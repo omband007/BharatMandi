@@ -26,6 +26,18 @@ Bharat Mandi is a mobile platform designed to empower farmers by solving systemi
 - **Logistics_Provider**: Third-party service that handles transportation of produce
 - **Cold_Storage_Provider**: Third-party service that provides temperature-controlled storage facilities
 - **Supplier**: Entity that provides agricultural inputs like seeds, fertilizers, and equipment
+- **Auction_Engine**: Bidding system for competitive produce pricing
+- **Disease_Diagnosis_Module**: AI-powered system for identifying crop diseases and pests
+- **Crop_AI_Advisor**: Multimodal AI assistant for farming queries with visual analysis
+- **Soil_Health_Module**: System for digitizing and tracking soil test reports
+- **Smart_Alert_System**: Proactive multi-channel notification system for weather, pests, prices, and schemes
+- **Manure_Marketplace**: Platform connecting crop farmers with organic manure suppliers
+- **Maturity_Test_Module**: AI system for verifying manure decomposition status
+- **Ad_Generation_Module**: Voice-to-text system for creating marketplace listings
+- **Eligibility_Engine**: System matching farmers with government schemes and subsidies
+- **Route_Optimizer**: Algorithm for optimizing multi-farmer pickup routes
+- **Live_Tracking_Module**: Real-time GPS tracking system for produce transport
+- **Traceability_Module**: End-to-end tracking system from seed to shelf
 
 ## Requirements
 
@@ -291,3 +303,184 @@ Bharat Mandi is a mobile platform designed to empower farmers by solving systemi
 7. WHEN a user receives negative feedback, THE Bharat_Mandi_Platform SHALL allow the user to respond with their perspective
 8. WHEN rating scores change significantly, THE Bharat_Mandi_Platform SHALL notify the affected user with explanation of contributing factors
 9. WHEN a new user joins, THE Rating_System SHALL initialize their rating at a neutral baseline value
+
+
+### Requirement 19: Auction and Bidding Engine
+
+**User Story:** As a buyer, I want to bid on quality-graded produce, so that I can get competitive prices and farmers can maximize their returns.
+
+#### Acceptance Criteria
+
+1. WHEN a farmer creates a listing, THE Digital_Mandi SHALL allow the farmer to enable auction mode with minimum bid price and auction duration
+2. WHEN auction mode is enabled, THE Bharat_Mandi_Platform SHALL display the listing as "Open for Bidding" with countdown timer
+3. WHEN a buyer views an auction listing, THE Bharat_Mandi_Platform SHALL display current highest bid, number of bids, and time remaining
+4. WHEN a buyer places a bid, THE Bharat_Mandi_Platform SHALL validate the bid is higher than current highest bid
+5. WHEN a new bid is placed, THE Bharat_Mandi_Platform SHALL notify the previous highest bidder and the farmer
+6. WHEN auction time expires, THE Bharat_Mandi_Platform SHALL automatically close the auction and notify the winning bidder
+7. WHEN auction closes, THE Bharat_Mandi_Platform SHALL create a transaction with the winning bidder at the winning bid price
+8. IF no bids are received, THE Bharat_Mandi_Platform SHALL convert the listing to regular fixed-price mode
+
+### Requirement 20: Disease and Pest Diagnosis
+
+**User Story:** As a farmer, I want to diagnose crop diseases by taking photos, so that I can get instant treatment recommendations and prevent crop loss.
+
+#### Acceptance Criteria
+
+1. WHEN a farmer captures a photo of affected crop, THE Bharat_Mandi_Platform SHALL analyze the image using AI disease detection model
+2. WHEN analyzing crop images, THE Disease_Diagnosis_Module SHALL identify disease type, pest type, or nutrient deficiency
+3. WHEN diagnosis is complete, THE Bharat_Mandi_Platform SHALL display disease name, severity level, and confidence score
+4. WHEN a disease is identified, THE Bharat_Mandi_Platform SHALL provide both chemical and organic treatment recommendations
+5. WHEN displaying treatment options, THE Bharat_Mandi_Platform SHALL show product names, application methods, and dosage
+6. WHEN a farmer selects a treatment, THE Bharat_Mandi_Platform SHALL allow direct purchase from connected suppliers
+7. WHEN diagnosis is saved, THE Bharat_Mandi_Platform SHALL add the entry to Photo-Log with disease tag
+8. WHERE internet connectivity is unavailable, THE Disease_Diagnosis_Module SHALL perform diagnosis offline using locally stored AI models
+
+### Requirement 21: Crop-AI Advisor
+
+**User Story:** As a farmer, I want to ask farming questions in my language and get instant answers, so that I can make informed decisions about my crops.
+
+#### Acceptance Criteria
+
+1. WHEN a farmer asks a question via text or voice, THE Crop_AI_Advisor SHALL process the query in the farmer's preferred language
+2. WHEN a farmer sends a photo or video with a question, THE Crop_AI_Advisor SHALL analyze the visual content to understand context
+3. WHEN analyzing visual content, THE Crop_AI_Advisor SHALL identify crop type, growth stage, and potential issues
+4. WHEN providing answers, THE Crop_AI_Advisor SHALL give actionable advice specific to the farmer's location and season
+5. THE Crop_AI_Advisor SHALL support queries about sowing, irrigation, fertilization, pest control, and harvesting
+6. WHEN a farmer asks about weather, THE Crop_AI_Advisor SHALL provide localized weather forecast and farming recommendations
+7. WHEN a farmer asks about market prices, THE Crop_AI_Advisor SHALL integrate with Price Prophecy module for current and predicted prices
+8. WHEN the advisor cannot answer with confidence, THE Bharat_Mandi_Platform SHALL escalate to human agricultural experts
+
+### Requirement 22: Soil Health Records
+
+**User Story:** As a farmer, I want to digitize and track my soil test reports, so that I can monitor soil health trends and make data-driven fertilization decisions.
+
+#### Acceptance Criteria
+
+1. WHEN a farmer uploads a soil test report photo, THE Bharat_Mandi_Platform SHALL extract key parameters using OCR
+2. WHEN extracting soil data, THE Bharat_Mandi_Platform SHALL capture pH, nitrogen, phosphorus, potassium, organic carbon, and micronutrients
+3. WHEN a new soil test is added, THE Bharat_Mandi_Platform SHALL store the data with test date and lab name
+4. WHEN a farmer views soil health dashboard, THE Bharat_Mandi_Platform SHALL display current values and historical trends
+5. WHEN displaying trends, THE Bharat_Mandi_Platform SHALL show graphs for each parameter over time
+6. WHEN soil parameters are outside optimal range, THE Bharat_Mandi_Platform SHALL highlight deficiencies and suggest corrective actions
+7. WHEN suggesting corrections, THE Bharat_Mandi_Platform SHALL recommend specific fertilizers and application rates
+8. WHEN a farmer plans next crop, THE Bharat_Mandi_Platform SHALL suggest crops suitable for current soil conditions
+
+### Requirement 23: Smart Alerts and Predictive Advisory
+
+**User Story:** As a farmer, I want to receive timely alerts about weather, pests, and market conditions, so that I can take proactive actions to protect my crops and maximize profits.
+
+#### Acceptance Criteria
+
+1. WHEN weather conditions change significantly, THE Bharat_Mandi_Platform SHALL send alerts about rain, temperature, or wind
+2. WHEN pest outbreaks are detected in the region, THE Bharat_Mandi_Platform SHALL send preventive alerts to nearby farmers
+3. WHEN market prices fluctuate significantly, THE Bharat_Mandi_Platform SHALL alert farmers with ready produce
+4. WHEN power cuts are scheduled, THE Bharat_Mandi_Platform SHALL send voice call alerts to farmers with irrigation schedules
+5. WHEN optimal harvest time approaches, THE Bharat_Mandi_Platform SHALL send reminders based on Photo-Log activity patterns
+6. WHEN government schemes open for applications, THE Bharat_Mandi_Platform SHALL notify eligible farmers
+7. WHEN sending alerts, THE Bharat_Mandi_Platform SHALL use multiple channels: push notifications, SMS, and automated voice calls
+8. WHEN a farmer receives an alert, THE Bharat_Mandi_Platform SHALL provide actionable suggestions with the alert
+
+### Requirement 24: Manure and Compost Marketplace
+
+**User Story:** As a crop farmer, I want to buy organic manure from dairy/poultry farms, so that I can improve soil health and reduce chemical fertilizer costs.
+
+#### Acceptance Criteria
+
+1. WHEN a dairy/poultry farmer has surplus manure, THE Manure_Marketplace SHALL allow listing with type, quantity, and maturity status
+2. WHEN creating a manure listing, THE Bharat_Mandi_Platform SHALL require photos and optional maturity test results
+3. WHEN crop farmers search for manure, THE Manure_Marketplace SHALL filter by type, location, quantity, and price
+4. WHEN viewing manure listings, THE Bharat_Mandi_Platform SHALL display seller rating, distance, and estimated delivery cost
+5. WHEN a farmer purchases manure, THE Bharat_Mandi_Platform SHALL coordinate logistics for bulk transport
+6. WHEN manure is delivered, THE Bharat_Mandi_Platform SHALL allow quality verification before payment release
+7. WHEN a transaction completes, THE Bharat_Mandi_Platform SHALL allow both parties to rate the transaction
+8. WHEN displaying manure listings, THE Manure_Marketplace SHALL prioritize geographically closer suppliers to reduce transport costs
+
+### Requirement 25: Manure Maturity Test
+
+**User Story:** As a farmer, I want to verify if manure is fully decomposed before purchase, so that I don't damage my crops with raw manure.
+
+#### Acceptance Criteria
+
+1. WHEN a farmer captures a photo or video of manure, THE Maturity_Test_Module SHALL analyze visual characteristics
+2. WHEN analyzing manure, THE Maturity_Test_Module SHALL evaluate color, texture, moisture content, and decomposition stage
+3. WHEN analysis is complete, THE Maturity_Test_Module SHALL classify manure as "Fully Decomposed", "Partially Decomposed", or "Raw"
+4. WHEN manure is classified as raw, THE Bharat_Mandi_Platform SHALL warn about potential crop damage and suggest composting duration
+5. WHEN manure is fully decomposed, THE Bharat_Mandi_Platform SHALL provide a maturity certificate
+6. WHEN a seller lists manure, THE Bharat_Mandi_Platform SHALL encourage maturity testing to increase buyer confidence
+7. WHEN buyers view manure listings, THE Bharat_Mandi_Platform SHALL display maturity test results if available
+8. WHERE internet connectivity is unavailable, THE Maturity_Test_Module SHALL perform analysis offline using Edge AI
+
+### Requirement 26: Voice-to-Ad Generation
+
+**User Story:** As a farmer, I want to create classified ads by speaking and taking photos, so that I can list items quickly without typing.
+
+#### Acceptance Criteria
+
+1. WHEN a farmer activates voice-to-ad feature, THE Bharat_Mandi_Platform SHALL record voice input in the farmer's language
+2. WHEN voice recording is complete, THE Ad_Generation_Module SHALL transcribe and extract key information
+3. WHEN extracting information, THE Ad_Generation_Module SHALL identify item type, quantity, price, and condition
+4. WHEN a farmer adds photos, THE Ad_Generation_Module SHALL analyze images to enhance ad description
+5. WHEN generating ad, THE Bharat_Mandi_Platform SHALL create a rich listing with title, description, and photos
+6. WHEN ad is generated, THE Bharat_Mandi_Platform SHALL show preview and allow farmer to edit before publishing
+7. WHEN ad is published, THE Bharat_Mandi_Platform SHALL categorize it appropriately in the marketplace
+8. WHERE voice input is unclear, THE Bharat_Mandi_Platform SHALL ask clarifying questions before generating ad
+
+### Requirement 27: Government Scheme Eligibility Engine
+
+**User Story:** As a farmer, I want to know which government schemes I'm eligible for, so that I can access subsidies and insurance benefits.
+
+#### Acceptance Criteria
+
+1. WHEN a farmer views scheme recommendations, THE Eligibility_Engine SHALL analyze farmer profile, land size, crop type, and location
+2. WHEN analyzing eligibility, THE Eligibility_Engine SHALL match farmer data against scheme criteria from government databases
+3. WHEN displaying schemes, THE Bharat_Mandi_Platform SHALL show scheme name, benefits, eligibility criteria, and application deadline
+4. WHEN a farmer is eligible for a scheme, THE Bharat_Mandi_Platform SHALL highlight the scheme and provide application guidance
+5. WHEN a farmer selects a scheme, THE Bharat_Mandi_Platform SHALL show required documents and application process
+6. WHEN documents are required, THE Bharat_Mandi_Platform SHALL allow uploading documents from Photo-Log or device storage
+7. WHEN application is ready, THE Bharat_Mandi_Platform SHALL provide links to official application portals
+8. WHEN new schemes are announced, THE Bharat_Mandi_Platform SHALL notify eligible farmers immediately
+
+### Requirement 28: Logistics Route Optimization
+
+**User Story:** As a logistics provider, I want to optimize pickup routes for multiple farmers, so that I can reduce costs and serve more farmers efficiently.
+
+#### Acceptance Criteria
+
+1. WHEN multiple farmers in a region have produce ready for pickup, THE Route_Optimizer SHALL identify opportunities for combined loads
+2. WHEN analyzing routes, THE Route_Optimizer SHALL consider pickup locations, delivery destinations, and vehicle capacity
+3. WHEN optimizing routes, THE Route_Optimizer SHALL minimize total distance while respecting time windows
+4. WHEN a combined route is created, THE Bharat_Mandi_Platform SHALL notify all farmers with pickup schedule
+5. WHEN farmers accept the schedule, THE Bharat_Mandi_Platform SHALL confirm the route with the logistics provider
+6. WHEN route is confirmed, THE Bharat_Mandi_Platform SHALL provide turn-by-turn navigation to the driver
+7. WHEN pickups are completed, THE Bharat_Mandi_Platform SHALL update transaction status for all farmers
+8. WHEN route is optimized, THE Bharat_Mandi_Platform SHALL show cost savings to farmers compared to individual transport
+
+### Requirement 29: Live Vehicle Tracking
+
+**User Story:** As a farmer, I want to track my produce in real-time during transport, so that I know when it will reach the buyer and can ensure timely delivery.
+
+#### Acceptance Criteria
+
+1. WHEN produce is loaded for transport, THE Bharat_Mandi_Platform SHALL activate live tracking for the vehicle
+2. WHEN tracking is active, THE Bharat_Mandi_Platform SHALL display vehicle location on a map in real-time
+3. WHEN viewing tracking, THE Bharat_Mandi_Platform SHALL show estimated time of arrival, distance remaining, and current speed
+4. WHEN vehicle deviates from planned route, THE Bharat_Mandi_Platform SHALL alert both farmer and buyer
+5. WHEN vehicle stops for extended periods, THE Bharat_Mandi_Platform SHALL send alerts to relevant parties
+6. WHEN produce reaches destination, THE Bharat_Mandi_Platform SHALL notify farmer and buyer of arrival
+7. WHEN tracking history is requested, THE Bharat_Mandi_Platform SHALL show complete route with timestamps
+8. WHERE GPS signal is lost, THE Bharat_Mandi_Platform SHALL show last known location and estimated position
+
+### Requirement 30: End-to-End Traceability
+
+**User Story:** As a buyer, I want to see the complete journey of produce from seed to shelf, so that I can verify origin, quality, and farming practices.
+
+#### Acceptance Criteria
+
+1. WHEN a farmer starts a new crop cycle, THE Bharat_Mandi_Platform SHALL create a traceability record with seed source and planting date
+2. WHEN farming activities are logged, THE Bharat_Mandi_Platform SHALL link Photo-Log entries to the traceability record
+3. WHEN inputs are applied, THE Bharat_Mandi_Platform SHALL record fertilizer, pesticide, and water usage in the traceability record
+4. WHEN produce is graded, THE Bharat_Mandi_Platform SHALL link the Digital Quality Certificate to the traceability record
+5. WHEN produce is sold, THE Bharat_Mandi_Platform SHALL add transaction details to the traceability record
+6. WHEN produce is transported, THE Bharat_Mandi_Platform SHALL add logistics and tracking information to the traceability record
+7. WHEN a buyer views produce, THE Bharat_Mandi_Platform SHALL display complete traceability timeline with verifiable proof
+8. WHEN traceability data is requested, THE Bharat_Mandi_Platform SHALL generate a QR code or blockchain-based certificate for verification
