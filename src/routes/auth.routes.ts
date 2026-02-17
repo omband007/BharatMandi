@@ -128,3 +128,120 @@ router.get('/user/:phoneNumber', async (req: Request, res: Response) => {
 });
 
 export default router;
+
+import { setupPIN, loginWithPIN, loginWithBiometric, verifyToken } from '../services/auth.service';
+
+/**
+ * POST /api/auth/setup-pin
+ * Set up PIN for a user
+ */
+router.post('/setup-pin', async (req: Request, res: Response) => {
+  try {
+    const { phoneNumber, pin } = req.body;
+
+    if (!phoneNumber || !pin) {
+      return res.status(400).json({ error: 'Phone number and PIN are required' });
+    }
+
+    const result = await setupPIN(phoneNumber, pin);
+
+    if (!result.success) {
+      return res.status(400).json({ error: result.message });
+    }
+
+    res.json({ message: result.message });
+  } catch (error) {
+    console.error('Error setting up PIN:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * POST /api/auth/login
+ * Login with phone number and PIN
+ */
+router.post('/login', async (req: Request, res: Response) => {
+  try {
+    const { phoneNumber, pin } = req.body;
+
+    if (!phoneNumber || !pin) {
+      return res.status(400).json({ error: 'Phone number and PIN are required' });
+    }
+
+    const result = await loginWithPIN(phoneNumber, pin);
+
+    if (!result.success) {
+      return res.status(400).json({ error: result.message });
+    }
+
+    res.json({
+      message: result.message,
+      token: result.token,
+      user: result.user
+    });
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * POST /api/auth/login/biometric
+ * Login with biometric authentication
+ * Note: The mobile app should verify biometric locally first,
+ * then call this endpoint with the phone number
+ */
+router.post('/login/biometric', async (req: Request, res: Response) => {
+  try {
+    const { phoneNumber } = req.body;
+
+    if (!phoneNumber) {
+      return res.status(400).json({ error: 'Phone number is required' });
+    }
+
+    const result = await loginWithBiometric(phoneNumber);
+
+    if (!result.success) {
+      return res.status(400).json({ error: result.message });
+    }
+
+    res.json({
+      message: result.message,
+      token: result.token,
+      user: result.user
+    });
+  } catch (error) {
+    console.error('Error during biometric login:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * POST /api/auth/verify-token
+ * Verify JWT token
+ */
+router.post('/verify-token', async (req: Request, res: Response) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ error: 'Token is required' });
+    }
+
+    const result = verifyToken(token);
+
+    if (!result.valid) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    res.json({
+      valid: true,
+      userId: result.userId,
+      phoneNumber: result.phoneNumber,
+      userType: result.userType
+    });
+  } catch (error) {
+    console.error('Error verifying token:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});

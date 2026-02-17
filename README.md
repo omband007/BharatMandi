@@ -1,6 +1,23 @@
-# Bharat Mandi - Proof of Concept
+# Bharat Mandi - Agricultural Marketplace Platform
 
-A minimal POC demonstrating the core workflow of the Bharat Mandi agricultural marketplace platform.
+A comprehensive agricultural marketplace platform addressing systemic issues in agricultural trade through AI-powered produce grading, secure escrow payments, digital farming records, and ecosystem integration.
+
+## Documentation
+
+All project documentation is organized in the `docs/` folder:
+
+- [Quickstart Guide](docs/QUICKSTART.md) - Get started quickly
+- [POC v2 Guide](docs/POC-V2-GUIDE.md) - Current POC implementation guide
+- [Authentication API Guide](docs/AUTH-API-GUIDE.md) - Authentication endpoints and flows
+- [AI Grading Guide](docs/AI-GRADING-GUIDE.md) - AI-powered produce grading
+- [UI Guide](docs/UI-GUIDE.md) - User interface documentation
+- [Database Setup](docs/DATABASE-SETUP.md) - Database configuration
+- [Database Documentation](docs/DATABASE-DOCUMENTATION.md) - Schema and models
+- [Database ER Diagrams](docs/DATABASE-ER-DIAGRAMS.md) - Entity relationship diagrams
+- [Database Summary](docs/DATABASE-SUMMARY.md) - Database overview
+- [MongoDB Setup](docs/MONGODB-SETUP.md) - MongoDB configuration
+- [POC Test Results](docs/POC-TEST-RESULTS.md) - Testing outcomes
+- [Crop Detection Update](docs/CROP-DETECTION-UPDATE.md) - Latest crop detection features
 
 ## POC Scope
 
@@ -31,13 +48,20 @@ This POC focuses on the essential workflow:
 ## Project Structure
 
 ```
-bharat-mandi-poc/
+bharat-mandi/
+├── .kiro/                  # Kiro specs and configuration
+│   └── specs/
+│       └── bharat-mandi/   # Feature specifications
+├── data/                   # SQLite database files
+├── docs/                   # 📚 All documentation files
+├── public/                 # Static HTML files for POC UI
 ├── src/
-│   ├── types/           # TypeScript type definitions
-│   ├── database/        # In-memory database
-│   ├── services/        # Business logic services
-│   ├── routes/          # API routes
-│   └── index.ts         # Server entry point
+│   ├── database/          # Database configuration and migrations
+│   ├── routes/            # API route handlers
+│   ├── services/          # Business logic services
+│   ├── types/             # TypeScript type definitions
+│   └── __tests__/         # Integration tests
+├── TestImages/            # Sample images for testing
 ├── package.json
 ├── tsconfig.json
 ├── jest.config.js

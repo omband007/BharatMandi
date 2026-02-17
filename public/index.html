@@ -218,8 +218,8 @@
     <div class="container">
         <div class="header">
             <a href="/help.html" target="_blank" class="help-link">📖 Help Guide</a>
-            <h1>🌾 Bharat Mandi POC v2</h1>
-            <p>Complete Workflow with Authentication & Database Integration</p>
+            <h1>🌾 Bharat Mandi POC v2.2</h1>
+            <p>Complete Workflow with PIN & Biometric Authentication</p>
         </div>
 
         <div class="status-bar">
@@ -262,7 +262,8 @@
                             Enter 10-digit mobile number
                         </small>
                     </div>
-                    <button onclick="requestOTP()">Request OTP</button>
+                    <button onclick="showLoginOptions()" style="margin-bottom: 10px;">Login with PIN/Biometric</button>
+                    <button onclick="requestOTP()" style="background: #6c757d;">Register / Login with OTP</button>
                     <div id="otpRequestResult" class="result"></div>
                 </div>
                 
@@ -310,10 +311,38 @@
                     <div id="registrationResult" class="result"></div>
                 </div>
                 
+                <div id="authStep3b" style="display: none;">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">Setup PIN</h3>
+                    <p style="color: #666; margin-bottom: 15px;">Create a 4-6 digit PIN for secure login</p>
+                    <div class="form-group">
+                        <label>Enter PIN</label>
+                        <input type="password" id="setupPin" placeholder="1234" maxlength="6" pattern="[0-9]*" inputmode="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm PIN</label>
+                        <input type="password" id="confirmPin" placeholder="1234" maxlength="6" pattern="[0-9]*" inputmode="numeric">
+                    </div>
+                    <button onclick="setupPIN()">Setup PIN</button>
+                    <div id="pinSetupResult" class="result"></div>
+                </div>
+                
+                <div id="authStepLogin" style="display: none;">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">Login</h3>
+                    <div class="form-group">
+                        <label>Enter PIN</label>
+                        <input type="password" id="loginPin" placeholder="1234" maxlength="6" pattern="[0-9]*" inputmode="numeric">
+                    </div>
+                    <button onclick="loginWithPIN()" style="margin-bottom: 10px;">Login with PIN</button>
+                    <button onclick="loginWithBiometric()" style="background: #28a745; margin-bottom: 10px;">Login with Biometric</button>
+                    <button onclick="backToStart()" style="background: #6c757d;">Back / Use OTP</button>
+                    <div id="loginResult" class="result"></div>
+                </div>
+                
                 <div id="authStep4" style="display: none;">
                     <div style="text-align: center; padding: 20px;">
                         <h3 style="color: #28a745; margin-bottom: 10px;">✅ Authenticated</h3>
                         <p id="authenticatedUser" style="color: #666;"></p>
+                        <p id="tokenStatus" style="color: #999; font-size: 12px; margin-top: 10px;"></p>
                         <button onclick="logout()" style="margin-top: 15px; background: #dc3545;">Logout</button>
                     </div>
                 </div>
@@ -467,10 +496,124 @@
             listingId: null,
             transactionId: null,
             currentUser: null,
-            authPhone: null
+            authPhone: null,
+            authToken: null
         };
 
+        // Load token from localStorage on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedToken = localStorage.getItem('authToken');
+            if (savedToken) {
+                // Verify token is still valid
+                verifyStoredToken(savedToken);
+            }
+            
+            // Setup auto-detect toggle
+            const autoDetect = document.getElementById('autoDetect');
+            const produceTypeGroup = document.getElementById('produceTypeGroup');
+            const produceTypeSelect = document.getElementById('produceType');
+            
+            autoDetect.addEventListener('change', function() {
+                if (this.checked) {
+                    produceTypeGroup.style.opacity = '0.5';
+                    produceTypeGroup.style.pointerEvents = 'none';
+                    produceTypeSelect.selectedIndex = 0;
+                } else {
+                    produceTypeGroup.style.opacity = '1';
+                    produceTypeGroup.style.pointerEvents = 'auto';
+                    produceTypeSelect.selectedIndex = 1;
+                }
+            });
+            
+            if (autoDetect.checked) {
+                produceTypeGroup.style.opacity = '0.5';
+                produceTypeGroup.style.pointerEvents = 'none';
+                produceTypeSelect.selectedIndex = 0;
+            }
+        });
+
+        async function verifyStoredToken(token) {
+            try {
+                const response = await fetch(`${API_BASE}/auth/verify-token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    state.authToken = token;
+                    state.authPhone = data.phoneNumber;
+                    
+                    // Get full user details
+                    const userResponse = await fetch(`${API_BASE}/auth/user/${data.phoneNumber}`);
+                    if (userResponse.ok) {
+                        const userData = await userResponse.json();
+                        state.currentUser = userData.user;
+                        showAuthenticatedState();
+                    }
+                } else {
+                    // Token invalid, clear it
+                    localStorage.removeItem('authToken');
+                }
+            } catch (error) {
+                console.error('Token verification failed:', error);
+                localStorage.removeItem('authToken');
+            }
+        }
+
+        function showAuthenticatedState() {
+            document.getElementById('authStep1').style.display = 'none';
+            document.getElementById('authStep2').style.display = 'none';
+            document.getElementById('authStep3').style.display = 'none';
+            document.getElementById('authStep3b').style.display = 'none';
+            document.getElementById('authStepLogin').style.display = 'none';
+            document.getElementById('authStep4').style.display = 'block';
+            
+            document.getElementById('authenticatedUser').innerHTML = 
+                `<strong>${state.currentUser.name}</strong><br>
+                ${state.currentUser.userType}<br>
+                ${state.currentUser.phoneNumber}`;
+            
+            document.getElementById('tokenStatus').textContent = 
+                state.authToken ? '🔒 Secure session active' : '';
+            
+            // Auto-fill user data based on type
+            if (state.currentUser.userType === 'FARMER') {
+                state.farmerId = state.currentUser.id;
+                document.getElementById('farmerName').value = state.currentUser.name;
+                document.getElementById('farmerPhone').value = state.currentUser.phoneNumber;
+                document.getElementById('gradeBtn').disabled = false;
+            } else if (state.currentUser.userType === 'BUYER') {
+                state.buyerId = state.currentUser.id;
+                document.getElementById('buyerName').value = state.currentUser.name;
+                document.getElementById('buyerPhone').value = state.currentUser.phoneNumber;
+            }
+            updateStatus();
+        }
+
         // Authentication Functions
+        function showLoginOptions() {
+            const phone = document.getElementById('authPhone').value.trim();
+            
+            if (!/^[6-9]\d{9}$/.test(phone)) {
+                showResult('otpRequestResult', '❌ Invalid phone number. Must be 10 digits starting with 6-9', true);
+                return;
+            }
+            
+            state.authPhone = phone;
+            document.getElementById('authStep1').style.display = 'none';
+            document.getElementById('authStepLogin').style.display = 'block';
+        }
+
+        function backToStart() {
+            document.getElementById('authStep1').style.display = 'block';
+            document.getElementById('authStep2').style.display = 'none';
+            document.getElementById('authStepLogin').style.display = 'none';
+            document.getElementById('loginResult').className = 'result';
+            document.getElementById('loginResult').innerHTML = '';
+        }
+
         async function requestOTP() {
             try {
                 const phone = document.getElementById('authPhone').value.trim();
@@ -527,28 +670,11 @@
                 }
                 
                 if (data.userExists) {
-                    // Existing user - log them in
+                    // Existing user - show login options
                     state.currentUser = data.user;
                     document.getElementById('authStep2').style.display = 'none';
-                    document.getElementById('authStep4').style.display = 'block';
-                    document.getElementById('authenticatedUser').innerHTML = 
-                        `<strong>${data.user.name}</strong><br>
-                        ${data.user.userType}<br>
-                        ${data.user.phoneNumber}`;
-                    
-                    // Auto-fill user data based on type
-                    if (data.user.userType === 'FARMER') {
-                        state.farmerId = data.user.id;
-                        document.getElementById('farmerName').value = data.user.name;
-                        document.getElementById('farmerPhone').value = data.user.phoneNumber;
-                        document.getElementById('gradeBtn').disabled = false;
-                    } else if (data.user.userType === 'BUYER') {
-                        state.buyerId = data.user.id;
-                        document.getElementById('buyerName').value = data.user.name;
-                        document.getElementById('buyerPhone').value = data.user.phoneNumber;
-                    }
-                    updateStatus();
-                    showResult('otpVerifyResult', `✅ Welcome back, ${data.user.name}!`);
+                    document.getElementById('authStepLogin').style.display = 'block';
+                    showResult('otpVerifyResult', `✅ Welcome back! Please login with your PIN or biometric.`);
                 } else {
                     // New user - show registration form
                     document.getElementById('authStep2').style.display = 'none';
@@ -595,32 +721,142 @@
                 }
                 
                 state.currentUser = data.user;
-                document.getElementById('authStep3').style.display = 'none';
-                document.getElementById('authStep4').style.display = 'block';
-                document.getElementById('authenticatedUser').innerHTML = 
-                    `<strong>${data.user.name}</strong><br>
-                    ${data.user.userType}<br>
-                    ${data.user.phoneNumber}`;
                 
-                // Auto-fill user data based on type
-                if (data.user.userType === 'FARMER') {
-                    state.farmerId = data.user.id;
-                    document.getElementById('farmerName').value = data.user.name;
-                    document.getElementById('farmerPhone').value = data.user.phoneNumber;
-                    document.getElementById('gradeBtn').disabled = false;
-                } else if (data.user.userType === 'BUYER') {
-                    state.buyerId = data.user.id;
-                    document.getElementById('buyerName').value = data.user.name;
-                    document.getElementById('buyerPhone').value = data.user.phoneNumber;
-                }
-                updateStatus();
-                showResult('registrationResult', `✅ Registration complete! Welcome, ${data.user.name}!`);
+                // Show PIN setup screen
+                document.getElementById('authStep3').style.display = 'none';
+                document.getElementById('authStep3b').style.display = 'block';
+                showResult('registrationResult', `✅ Registration complete! Now setup your PIN for secure login.`);
             } catch (error) {
                 showResult('registrationResult', `❌ Error: ${error.message}`, true);
             }
         }
 
+        async function setupPIN() {
+            try {
+                const pin = document.getElementById('setupPin').value.trim();
+                const confirmPin = document.getElementById('confirmPin').value.trim();
+                
+                if (!/^\d{4,6}$/.test(pin)) {
+                    showResult('pinSetupResult', '❌ PIN must be 4-6 digits', true);
+                    return;
+                }
+                
+                if (pin !== confirmPin) {
+                    showResult('pinSetupResult', '❌ PINs do not match', true);
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/auth/setup-pin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phoneNumber: state.authPhone,
+                        pin: pin
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'PIN setup failed');
+                }
+                
+                // Now login with the PIN to get token
+                const loginResponse = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phoneNumber: state.authPhone,
+                        pin: pin
+                    })
+                });
+                
+                const loginData = await loginResponse.json();
+                
+                if (loginResponse.ok) {
+                    state.authToken = loginData.token;
+                    localStorage.setItem('authToken', loginData.token);
+                    showAuthenticatedState();
+                    showResult('pinSetupResult', `✅ PIN setup complete! You're now logged in.`);
+                }
+            } catch (error) {
+                showResult('pinSetupResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function loginWithPIN() {
+            try {
+                const pin = document.getElementById('loginPin').value.trim();
+                
+                if (!/^\d{4,6}$/.test(pin)) {
+                    showResult('loginResult', '❌ PIN must be 4-6 digits', true);
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phoneNumber: state.authPhone,
+                        pin: pin
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Login failed');
+                }
+                
+                state.authToken = data.token;
+                state.currentUser = data.user;
+                localStorage.setItem('authToken', data.token);
+                
+                showAuthenticatedState();
+                showResult('loginResult', `✅ Login successful! Welcome back, ${data.user.name}!`);
+            } catch (error) {
+                showResult('loginResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function loginWithBiometric() {
+            try {
+                // In a real mobile app, this would trigger device biometric authentication
+                // For POC, we'll simulate it with a confirmation
+                if (!confirm('Simulate biometric authentication?\n\nIn a real app, this would use fingerprint/face ID.')) {
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/auth/login/biometric`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phoneNumber: state.authPhone
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Biometric login failed');
+                }
+                
+                state.authToken = data.token;
+                state.currentUser = data.user;
+                localStorage.setItem('authToken', data.token);
+                
+                showAuthenticatedState();
+                showResult('loginResult', `✅ Biometric login successful! Welcome back, ${data.user.name}!`);
+            } catch (error) {
+                showResult('loginResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
         function logout() {
+            // Clear token from localStorage
+            localStorage.removeItem('authToken');
+            
+            // Reset state
             state = {
                 farmerId: null,
                 buyerId: null,
@@ -628,11 +864,16 @@
                 listingId: null,
                 transactionId: null,
                 currentUser: null,
-                authPhone: null
+                authPhone: null,
+                authToken: null
             };
+            
+            // Reset UI
             document.getElementById('authStep1').style.display = 'block';
             document.getElementById('authStep2').style.display = 'none';
             document.getElementById('authStep3').style.display = 'none';
+            document.getElementById('authStep3b').style.display = 'none';
+            document.getElementById('authStepLogin').style.display = 'none';
             document.getElementById('authStep4').style.display = 'none';
             document.getElementById('authPhone').value = '';
             document.getElementById('otpCode').value = '';
@@ -641,33 +882,6 @@
         }
 
         // Toggle produce type dropdown based on auto-detect checkbox
-        document.addEventListener('DOMContentLoaded', function() {
-            const autoDetect = document.getElementById('autoDetect');
-            const produceTypeGroup = document.getElementById('produceTypeGroup');
-            const produceTypeSelect = document.getElementById('produceType');
-            
-            autoDetect.addEventListener('change', function() {
-                if (this.checked) {
-                    produceTypeGroup.style.opacity = '0.5';
-                    produceTypeGroup.style.pointerEvents = 'none';
-                    // Reset to auto-detect option
-                    produceTypeSelect.selectedIndex = 0;
-                } else {
-                    produceTypeGroup.style.opacity = '1';
-                    produceTypeGroup.style.pointerEvents = 'auto';
-                    // Select first actual crop (Tomato) when manual mode
-                    produceTypeSelect.selectedIndex = 1;
-                }
-            });
-            
-            // Initialize state
-            if (autoDetect.checked) {
-                produceTypeGroup.style.opacity = '0.5';
-                produceTypeGroup.style.pointerEvents = 'none';
-                produceTypeSelect.selectedIndex = 0;
-            }
-        });
-
         function updateStatus() {
             document.getElementById('farmerIdDisplay').textContent = state.farmerId || '-';
             document.getElementById('buyerIdDisplay').textContent = state.buyerId || '-';

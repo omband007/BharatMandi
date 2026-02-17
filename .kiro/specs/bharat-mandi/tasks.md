@@ -72,18 +72,18 @@ The approach follows a bottom-up strategy: building core infrastructure first, i
     - Store user data with encryption
     - _Requirements: 5.1, 5.2_
   
-  - [ ] 3.2 Write property test for OTP verification requirement
+  - [x] 3.2 Write property test for OTP verification requirement
     - **Property 13: OTP Verification Requirement**
     - **Validates: Requirements 5.1**
   
-  - [ ] 3.3 Implement login with PIN and biometric authentication
+  - [x] 3.3 Implement login with PIN and biometric authentication
     - Create login API endpoint
     - Implement PIN validation
     - Integrate React Native biometric authentication
     - Generate and manage JWT tokens
     - _Requirements: 5.3_
   
-  - [ ] 3.4 Implement account lockout mechanism
+  - [x] 3.4 Implement account lockout mechanism
     - Track failed login attempts
     - Implement 30-minute lockout after 3 failures
     - Add unlock mechanism

@@ -8,10 +8,14 @@ The authentication system implements secure user registration and login using OT
 
 - ✅ OTP-based phone number verification
 - ✅ User registration with encrypted data storage
+- ✅ PIN-based login with JWT tokens
+- ✅ Biometric authentication support
+- ✅ Account lockout after 3 failed login attempts (30 minutes)
 - ✅ Support for multiple user types (Farmer, Buyer, Logistics Provider, etc.)
 - ✅ Bank account encryption
 - ✅ Failed attempt tracking (max 3 attempts)
 - ✅ OTP expiration (10 minutes)
+- ✅ JWT token generation and verification
 
 ## API Endpoints
 
@@ -158,6 +162,167 @@ The authentication system implements secure user registration and login using OT
 
 ---
 
+### 5. Setup PIN
+
+**Endpoint**: `POST /api/auth/setup-pin`
+
+**Request Body**:
+```json
+{
+  "phoneNumber": "9876543210",
+  "pin": "1234"
+}
+```
+
+**Response** (Success):
+```json
+{
+  "message": "PIN set up successfully"
+}
+```
+
+**Response** (Error):
+```json
+{
+  "error": "PIN must be 4-6 digits"
+}
+```
+
+**Notes**:
+- PIN must be 4-6 digits
+- PIN is hashed using bcrypt before storage
+- Should be called after user registration
+
+---
+
+### 6. Login with PIN
+
+**Endpoint**: `POST /api/auth/login`
+
+**Request Body**:
+```json
+{
+  "phoneNumber": "9876543210",
+  "pin": "1234"
+}
+```
+
+**Response** (Success):
+```json
+{
+  "message": "Login successful",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "uuid",
+    "phoneNumber": "9876543210",
+    "name": "John Doe",
+    "userType": "FARMER",
+    "location": {
+      "latitude": 19.0760,
+      "longitude": 72.8777,
+      "address": "Mumbai, Maharashtra"
+    },
+    "createdAt": "2026-02-17T10:00:00.000Z"
+  }
+}
+```
+
+**Response** (Error - Invalid PIN):
+```json
+{
+  "error": "Invalid PIN. 2 attempts remaining."
+}
+```
+
+**Response** (Error - Account Locked):
+```json
+{
+  "error": "Account is locked. Please try again in 25 minutes."
+}
+```
+
+**Notes**:
+- Maximum 3 failed login attempts
+- After 3 failed attempts, account is locked for 30 minutes
+- JWT token expires in 7 days
+- Failed attempts counter resets on successful login
+
+---
+
+### 7. Login with Biometric
+
+**Endpoint**: `POST /api/auth/login/biometric`
+
+**Request Body**:
+```json
+{
+  "phoneNumber": "9876543210"
+}
+```
+
+**Response** (Success):
+```json
+{
+  "message": "Biometric login successful",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "uuid",
+    "phoneNumber": "9876543210",
+    "name": "John Doe",
+    "userType": "FARMER",
+    "location": {
+      "latitude": 19.0760,
+      "longitude": 72.8777,
+      "address": "Mumbai, Maharashtra"
+    },
+    "createdAt": "2026-02-17T10:00:00.000Z"
+  }
+}
+```
+
+**Notes**:
+- Mobile app should verify biometric locally first (fingerprint/face ID)
+- Only call this endpoint after successful biometric verification on device
+- Returns JWT token for authenticated session
+- Account lockout still applies if account was previously locked
+
+---
+
+### 8. Verify JWT Token
+
+**Endpoint**: `POST /api/auth/verify-token`
+
+**Request Body**:
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Response** (Success):
+```json
+{
+  "valid": true,
+  "userId": "uuid",
+  "phoneNumber": "9876543210",
+  "userType": "FARMER"
+}
+```
+
+**Response** (Error):
+```json
+{
+  "error": "Invalid or expired token"
+}
+```
+
+**Notes**:
+- Use this endpoint to validate JWT tokens
+- Tokens expire after 7 days
+- Returns user information if token is valid
+
+---
+
 ### 4. Get User by Phone Number
 
 **Endpoint**: `GET /api/auth/user/:phoneNumber`
@@ -194,8 +359,9 @@ The authentication system implements secure user registration and login using OT
 
 ---
 
-## Complete Registration Flow
+## Complete Registration and Login Flow
 
+### New User Registration
 1. **Request OTP**
    ```bash
    curl -X POST http://localhost:3000/api/auth/request-otp \
@@ -210,7 +376,7 @@ The authentication system implements secure user registration and login using OT
      -d '{"phoneNumber": "9876543210", "otp": "123456"}'
    ```
 
-3. **Register User** (if new user)
+3. **Register User**
    ```bash
    curl -X POST http://localhost:3000/api/auth/register \
      -H "Content-Type: application/json" \
@@ -231,12 +397,57 @@ The authentication system implements secure user registration and login using OT
      }'
    ```
 
+4. **Setup PIN**
+   ```bash
+   curl -X POST http://localhost:3000/api/auth/setup-pin \
+     -H "Content-Type: application/json" \
+     -d '{"phoneNumber": "9876543210", "pin": "1234"}'
+   ```
+
+### Existing User Login
+1. **Login with PIN**
+   ```bash
+   curl -X POST http://localhost:3000/api/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"phoneNumber": "9876543210", "pin": "1234"}'
+   ```
+
+2. **Or Login with Biometric** (after device biometric verification)
+   ```bash
+   curl -X POST http://localhost:3000/api/auth/login/biometric \
+     -H "Content-Type: application/json" \
+     -d '{"phoneNumber": "9876543210"}'
+   ```
+
+3. **Use JWT Token** for authenticated requests
+   ```bash
+   curl -X GET http://localhost:3000/api/protected-endpoint \
+     -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+   ```
+
 ## Security Features
 
 ### Data Encryption
 - Bank account details are encrypted using AES-256-CBC
 - Encryption key should be stored in environment variables (AWS KMS in production)
 - Encrypted data format: `iv:encryptedText`
+
+### PIN Security
+- PIN is hashed using bcrypt (10 salt rounds)
+- PIN must be 4-6 digits
+- Never stored in plain text
+
+### Account Lockout
+- Maximum 3 failed login attempts
+- Account locked for 30 minutes after 3 failures
+- Failed attempts counter resets on successful login
+- Lockout applies to both PIN and biometric login
+
+### JWT Tokens
+- Tokens expire after 7 days
+- Signed using HS256 algorithm
+- Contains userId, phoneNumber, and userType
+- Should be stored securely on client (encrypted storage)
 
 ### OTP Security
 - 6-digit random OTP
@@ -332,6 +543,9 @@ DATABASE_URL=postgresql://user:password@localhost:5432/bharat_mandi
 # Encryption
 ENCRYPTION_KEY=your-32-character-encryption-key
 
+# JWT
+JWT_SECRET=your-jwt-secret-key-change-in-production
+
 # SMS (Production)
 PINPOINT_APP_ID=your-pinpoint-app-id
 AWS_REGION=ap-south-1
@@ -344,11 +558,12 @@ REDIS_URL=redis://localhost:6379
 
 ## Next Steps
 
-- [ ] Implement JWT token generation for authenticated sessions
-- [ ] Add PIN-based login (Task 3.3)
-- [ ] Add biometric authentication support (Task 3.3)
-- [ ] Implement account lockout mechanism (Task 3.4)
+- [x] Implement JWT token generation for authenticated sessions
+- [x] Add PIN-based login (Task 3.3)
+- [x] Add biometric authentication support (Task 3.3)
+- [ ] Implement account lockout mechanism (Task 3.4) - Partially done, needs property test
 - [ ] Add profile management endpoints (Task 3.6)
 - [ ] Integrate AWS Pinpoint for SMS
 - [ ] Set up Redis for OTP storage
 - [ ] Implement rate limiting for OTP requests
+- [ ] Add middleware for JWT authentication on protected routes
