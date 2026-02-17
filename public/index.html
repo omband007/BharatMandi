@@ -343,7 +343,6 @@
                         <h3 style="color: #28a745; margin-bottom: 10px;">✅ Authenticated</h3>
                         <p id="authenticatedUser" style="color: #666;"></p>
                         <p id="tokenStatus" style="color: #999; font-size: 12px; margin-top: 10px;"></p>
-                        <button onclick="showProfileCard()" style="margin-top: 15px; background: #667eea; margin-right: 10px;">👤 Manage Profile</button>
                         <button onclick="logout()" style="margin-top: 15px; background: #dc3545;">Logout</button>
                     </div>
                 </div>
@@ -1307,10 +1306,88 @@
             try {
                 const response = await fetch(`${API_BASE}/users`);
                 const data = await response.json();
-                showResult('viewResult', 
-                    `<strong>All Users (${data.length}):</strong><br>
-                    <pre>${JSON.stringify(data, null, 2)}</pre>`
-                );
+                
+                if (data.length === 0) {
+                    showResult('viewResult', '<strong>No users found</strong>', false);
+                    return;
+                }
+                
+                // Create clickable user list
+                let userListHTML = `
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <strong style="color: #667eea; font-size: 18px;">👥 All Users (${data.length})</strong>
+                        <p style="color: #666; font-size: 14px; margin-top: 5px;">Click on a user to view their profile</p>
+                    </div>
+                    <div style="margin-top: 15px; display: grid; gap: 10px;">
+                `;
+                
+                data.forEach(user => {
+                    const userTypeColor = {
+                        'FARMER': '#4caf50',
+                        'BUYER': '#2196f3',
+                        'LOGISTICS_PROVIDER': '#ff9800',
+                        'COLD_STORAGE_PROVIDER': '#9c27b0',
+                        'SUPPLIER': '#f44336'
+                    };
+                    
+                    const color = userTypeColor[user.type] || '#666';
+                    
+                    userListHTML += `
+                        <div onclick="viewUserProfile('${user.id}')" 
+                             style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid ${color}; 
+                                    cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                             onmouseover="this.style.transform='translateX(5px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
+                             onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)';">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 5px;">
+                                        ${user.name}
+                                    </div>
+                                    <div style="font-size: 14px; color: #666;">
+                                        📱 ${user.phone}
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="background: ${color}; color: white; padding: 5px 12px; border-radius: 20px; 
+                                                font-size: 12px; font-weight: 600; margin-bottom: 5px;">
+                                        ${user.type}
+                                    </div>
+                                    <div style="font-size: 12px; color: #999;">
+                                        📍 ${user.location}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                userListHTML += '</div>';
+                
+                showResult('viewResult', userListHTML, false);
+            } catch (error) {
+                showResult('viewResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function viewUserProfile(userId) {
+            try {
+                const response = await fetch(`${API_BASE}/auth/profile/${userId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load profile');
+                }
+
+                // Store the user for profile card and mark as admin view
+                const tempCurrentUser = state.currentUser;
+                state.currentUser = data.user;
+                
+                // Show profile card in admin view mode
+                await showProfileCard(true);
+                
+                // Restore original current user
+                state.currentUser = tempCurrentUser;
+
             } catch (error) {
                 showResult('viewResult', `❌ Error: ${error.message}`, true);
             }
@@ -1620,7 +1697,7 @@
         }
 
         // Profile Card Functions (Separate Section)
-        async function showProfileCard() {
+        async function showProfileCard(isAdminView = false) {
             if (!state.currentUser || !state.currentUser.id) {
                 alert('No user logged in');
                 return;
@@ -1636,7 +1713,16 @@
 
                 // Display profile data in card
                 const user = data.user;
+                
+                // Add admin view indicator if viewing another user's profile
+                const adminBadge = isAdminView ? `
+                    <div style="background: #ff9800; color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                        <strong>👁️ Admin View</strong> - Viewing another user's profile
+                    </div>
+                ` : '';
+                
                 document.getElementById('profileCardDisplay').innerHTML = `
+                    ${adminBadge}
                     <div style="display: grid; gap: 15px;">
                         <div style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
                             <div style="color: #999; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">Name</div>
@@ -1649,6 +1735,10 @@
                         <div style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
                             <div style="color: #999; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">User Type</div>
                             <div style="font-size: 16px; color: #667eea; font-weight: 600;">${user.userType}</div>
+                        </div>
+                        <div style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+                            <div style="color: #999; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">User ID</div>
+                            <div style="font-size: 12px; color: #999; font-family: monospace;">${user.id}</div>
                         </div>
                         <div style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
                             <div style="color: #999; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">Location</div>
@@ -1684,6 +1774,18 @@
                         </div>
                     </div>
                 `;
+
+                // Update buttons based on admin view
+                const buttonsContainer = document.querySelector('#profileCardView');
+                const existingButtons = buttonsContainer.querySelectorAll('button');
+                existingButtons.forEach(btn => btn.remove());
+                
+                const buttonHTML = isAdminView ? 
+                    '<button onclick="hideProfileCard()" style="background: #6c757d;">Close</button>' :
+                    '<button onclick="showEditProfileCard()" style="background: #667eea; margin-right: 10px;">Edit Profile</button><button onclick="hideProfileCard()" style="background: #6c757d;">Close</button>';
+                
+                const resultDiv = document.getElementById('profileCardResult');
+                resultDiv.insertAdjacentHTML('beforebegin', buttonHTML);
 
                 // Show profile card
                 document.getElementById('profileCard').style.display = 'block';
