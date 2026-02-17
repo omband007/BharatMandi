@@ -323,6 +323,127 @@ The authentication system implements secure user registration and login using OT
 
 ---
 
+### 9. Get User Profile
+
+**Endpoint**: `GET /api/auth/profile/:userId`
+
+**Response** (Success):
+```json
+{
+  "message": "Profile retrieved successfully",
+  "user": {
+    "id": "uuid",
+    "phoneNumber": "9876543210",
+    "name": "John Doe",
+    "userType": "FARMER",
+    "location": {
+      "latitude": 19.0760,
+      "longitude": 72.8777,
+      "address": "Mumbai, Maharashtra"
+    },
+    "bankAccount": {
+      "accountNumber": "1234567890",
+      "ifscCode": "SBIN0001234",
+      "accountHolderName": "John Doe"
+    },
+    "createdAt": "2026-02-17T10:00:00.000Z"
+  }
+}
+```
+
+**Response** (Error):
+```json
+{
+  "error": "User not found"
+}
+```
+
+**Notes**:
+- Returns complete user profile including encrypted bank account details
+- Should be called with authenticated user's JWT token
+
+---
+
+### 10. Update User Profile
+
+**Endpoint**: `PUT /api/auth/profile/:userId`
+
+**Request Body** (Non-sensitive data):
+```json
+{
+  "name": "John Smith",
+  "location": {
+    "latitude": 19.0760,
+    "longitude": 72.8777,
+    "address": "New Mumbai, Maharashtra"
+  }
+}
+```
+
+**Request Body** (Sensitive data - requires verification):
+```json
+{
+  "name": "John Smith",
+  "phoneNumber": "9876543211",
+  "bankAccount": {
+    "accountNumber": "9876543210",
+    "ifscCode": "HDFC0001234",
+    "accountHolderName": "John Smith"
+  },
+  "isPhoneVerified": true
+}
+```
+
+**Response** (Success):
+```json
+{
+  "message": "Profile updated successfully",
+  "user": {
+    "id": "uuid",
+    "phoneNumber": "9876543211",
+    "name": "John Smith",
+    "userType": "FARMER",
+    "location": {
+      "latitude": 19.0760,
+      "longitude": 72.8777,
+      "address": "New Mumbai, Maharashtra"
+    },
+    "createdAt": "2026-02-17T10:00:00.000Z"
+  }
+}
+```
+
+**Response** (Error - Verification Required):
+```json
+{
+  "error": "Phone verification required for updating sensitive data",
+  "requiresVerification": true
+}
+```
+
+**Response** (Error):
+```json
+{
+  "error": "Phone number already in use"
+}
+```
+
+**Notes**:
+- Non-sensitive data (name, location) can be updated without verification
+- Sensitive data (phone number, bank account) requires OTP verification
+- Set `isPhoneVerified: true` after completing OTP verification flow
+- Phone number must be unique across all users
+
+**Sensitive Data Update Flow**:
+1. User requests to update phone number or bank account
+2. API returns `requiresVerification: true`
+3. Client initiates OTP verification flow:
+   - Call `/api/auth/request-otp` with new phone number
+   - Call `/api/auth/verify-otp` with OTP
+4. After OTP verification, call update endpoint again with `isPhoneVerified: true`
+
+---
+
 ### 4. Get User by Phone Number
 
 **Endpoint**: `GET /api/auth/user/:phoneNumber`
@@ -561,8 +682,9 @@ REDIS_URL=redis://localhost:6379
 - [x] Implement JWT token generation for authenticated sessions
 - [x] Add PIN-based login (Task 3.3)
 - [x] Add biometric authentication support (Task 3.3)
-- [ ] Implement account lockout mechanism (Task 3.4) - Partially done, needs property test
-- [ ] Add profile management endpoints (Task 3.6)
+- [x] Implement account lockout mechanism (Task 3.4)
+- [x] Add profile management endpoints (Task 3.6)
+- [ ] Complete property test for account lockout (Task 3.5)
 - [ ] Integrate AWS Pinpoint for SMS
 - [ ] Set up Redis for OTP storage
 - [ ] Implement rate limiting for OTP requests

@@ -595,3 +595,187 @@ export async function loginWithBiometric(phoneNumber: string): Promise<LoginResp
     return { success: false, message: 'Biometric login failed' };
   }
 }
+
+/**
+ * Get user profile by ID
+ */
+export async function getUserProfile(userId: string): Promise<{ success: boolean; user?: User; message: string }> {
+  try {
+    const result = await pool.query(
+      `SELECT id, phone, name, type, location, bank_account_number, created_at, last_login_at
+       FROM users
+       WHERE id = $1`,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return { success: false, message: 'User not found' };
+    }
+
+    const row = result.rows[0];
+    const user: User = {
+      id: row.id,
+      phoneNumber: row.phone,
+      name: row.name,
+      userType: row.type,
+      location: {
+        latitude: 0,
+        longitude: 0,
+        address: row.location
+      },
+      createdAt: row.created_at
+    };
+
+    // Decrypt bank account if exists
+    if (row.bank_account_number) {
+      try {
+        user.bankAccount = JSON.parse(decrypt(row.bank_account_number));
+      } catch (e) {
+        console.error('Failed to decrypt bank account:', e);
+      }
+    }
+
+    return { success: true, user, message: 'Profile retrieved successfully' };
+  } catch (error) {
+    console.error('Error getting user profile:', error);
+    return { success: false, message: 'Failed to retrieve profile' };
+  }
+}
+
+/**
+ * Update user profile
+ * Requires re-verification for sensitive data (phone number, bank account)
+ */
+export async function updateUserProfile(
+  userId: string,
+  updates: {
+    name?: string;
+    location?: {
+      latitude: number;
+      longitude: number;
+      address: string;
+    };
+    phoneNumber?: string;
+    bankAccount?: {
+      accountNumber: string;
+      ifscCode: string;
+      accountHolderName: string;
+    };
+  },
+  isPhoneVerified?: boolean
+): Promise<{ success: boolean; user?: User; requiresVerification?: boolean; message: string }> {
+  try {
+    // Check if user exists
+    const userResult = await pool.query(
+      'SELECT id, phone, bank_account_number FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return { success: false, message: 'User not found' };
+    }
+
+    const currentUser = userResult.rows[0];
+
+    // Check if sensitive data is being updated
+    const isUpdatingPhone = updates.phoneNumber && updates.phoneNumber !== currentUser.phone;
+    const isUpdatingBankAccount = updates.bankAccount !== undefined;
+
+    // Require verification for sensitive data changes
+    if ((isUpdatingPhone || isUpdatingBankAccount) && !isPhoneVerified) {
+      return {
+        success: false,
+        requiresVerification: true,
+        message: 'Phone verification required for updating sensitive data'
+      };
+    }
+
+    // If updating phone number, check if new number is already in use
+    if (isUpdatingPhone) {
+      const existingPhone = await pool.query(
+        'SELECT id FROM users WHERE phone = $1 AND id != $2',
+        [updates.phoneNumber, userId]
+      );
+
+      if (existingPhone.rows.length > 0) {
+        return { success: false, message: 'Phone number already in use' };
+      }
+    }
+
+    // Build update query dynamically
+    const updateFields: string[] = [];
+    const updateValues: any[] = [];
+    let paramIndex = 1;
+
+    if (updates.name) {
+      updateFields.push(`name = $${paramIndex++}`);
+      updateValues.push(updates.name);
+    }
+
+    if (updates.location) {
+      updateFields.push(`location = $${paramIndex++}`);
+      updateValues.push(updates.location.address);
+    }
+
+    if (isUpdatingPhone && isPhoneVerified) {
+      updateFields.push(`phone = $${paramIndex++}`);
+      updateValues.push(updates.phoneNumber);
+    }
+
+    if (isUpdatingBankAccount && isPhoneVerified) {
+      const encryptedBankAccount = updates.bankAccount
+        ? encrypt(JSON.stringify(updates.bankAccount))
+        : null;
+      updateFields.push(`bank_account_number = $${paramIndex++}`);
+      updateValues.push(encryptedBankAccount);
+    }
+
+    if (updateFields.length === 0) {
+      return { success: false, message: 'No valid fields to update' };
+    }
+
+    // Add updated_at
+    updateFields.push(`updated_at = NOW()`);
+
+    // Add userId to values
+    updateValues.push(userId);
+
+    // Execute update
+    const updateQuery = `
+      UPDATE users
+      SET ${updateFields.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING id, phone, name, type, location, bank_account_number, created_at
+    `;
+
+    const result = await pool.query(updateQuery, updateValues);
+    const row = result.rows[0];
+
+    const user: User = {
+      id: row.id,
+      phoneNumber: row.phone,
+      name: row.name,
+      userType: row.type,
+      location: updates.location || {
+        latitude: 0,
+        longitude: 0,
+        address: row.location
+      },
+      createdAt: row.created_at
+    };
+
+    // Decrypt bank account if exists
+    if (row.bank_account_number) {
+      try {
+        user.bankAccount = JSON.parse(decrypt(row.bank_account_number));
+      } catch (e) {
+        console.error('Failed to decrypt bank account:', e);
+      }
+    }
+
+    return { success: true, user, message: 'Profile updated successfully' };
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    return { success: false, message: 'Failed to update profile' };
+  }
+}

@@ -93,7 +93,7 @@ The approach follows a bottom-up strategy: building core infrastructure first, i
     - **Property 14: Account Lockout After Failed Attempts**
     - **Validates: Requirements 5.4**
   
-  - [ ] 3.6 Implement profile management
+  - [-] 3.6 Implement profile management
     - Create profile view and edit screens
     - Implement profile update API
     - Add re-verification for sensitive data changes

@@ -245,3 +245,78 @@ router.post('/verify-token', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+import { getUserProfile, updateUserProfile } from '../services/auth.service';
+
+/**
+ * GET /api/auth/profile/:userId
+ * Get user profile
+ */
+router.get('/profile/:userId', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const result = await getUserProfile(userId);
+
+    if (!result.success) {
+      return res.status(404).json({ error: result.message });
+    }
+
+    res.json({
+      message: result.message,
+      user: result.user
+    });
+  } catch (error) {
+    console.error('Error getting profile:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * PUT /api/auth/profile/:userId
+ * Update user profile
+ * Requires OTP verification for sensitive data changes (phone, bank account)
+ */
+router.put('/profile/:userId', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const { name, location, phoneNumber, bankAccount, isPhoneVerified } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const result = await updateUserProfile(
+      userId,
+      {
+        name,
+        location,
+        phoneNumber,
+        bankAccount
+      },
+      isPhoneVerified
+    );
+
+    if (!result.success) {
+      if (result.requiresVerification) {
+        return res.status(403).json({
+          error: result.message,
+          requiresVerification: true
+        });
+      }
+      return res.status(400).json({ error: result.message });
+    }
+
+    res.json({
+      message: result.message,
+      user: result.user
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
