@@ -24,7 +24,14 @@ This is the enhanced version of the Bharat Mandi POC that integrates:
 - User types: Farmer, Buyer, Logistics Provider, Cold Storage Provider, Supplier
 - Encrypted data storage (AES-256)
 
-### 2. Database Integration (Task 2.x)
+### 2. Profile Management (Task 3.6)
+- View complete user profile with all details
+- Edit profile information (name, location)
+- Update sensitive data (phone number, bank account) with OTP re-verification
+- Real-time validation and error handling
+- Seamless integration with authentication system
+
+### 3. Database Integration (Task 2.x)
 - **PostgreSQL**: User accounts, transactions, escrow, ratings, PIN hashes
 - **MongoDB**: Quality certificates, photo logs, predictions
 - **SQLite**: Offline caching and sync queue
@@ -131,6 +138,31 @@ This is the enhanced version of the Bharat Mandi POC that integrates:
    - Token valid for 7 days
    - Auto-login on page refresh if token is valid
    - Logout clears token and session
+
+#### Profile Management:
+
+After logging in, you can manage your profile:
+
+1. **View Profile**
+   - Click "View Profile" button in authenticated state
+   - See all your account details including:
+     - Name, phone number, user type
+     - Location and coordinates
+     - Bank account details (if provided)
+     - Member since date
+
+2. **Edit Profile**
+   - Click "Edit Profile" button
+   - Update non-sensitive data (name, location) without verification
+   - Update sensitive data (phone, bank account) requires OTP verification
+
+3. **Update Sensitive Data**
+   - Enter new phone number or bank account details
+   - Click "Save Changes"
+   - System will prompt for OTP verification
+   - Enter OTP sent to your phone
+   - Click "Verify & Update"
+   - Profile updated successfully
 
 ### Step 1: Create Users (Legacy - Optional)
 
@@ -540,12 +572,15 @@ npm run mongodb:setup
 - [x] JWT token generation for sessions (Task 3.3)
 - [x] PIN-based login (Task 3.3)
 - [x] Biometric authentication (Task 3.3)
-- [x] Account lockout mechanism (Task 3.3 - implemented, needs property test)
+- [x] Account lockout mechanism (Task 3.4)
+- [x] Profile management with OTP re-verification (Task 3.6)
 - [x] Persistent sessions with localStorage
+- [x] PostgreSQL integration (Task 2.2)
+- [x] MongoDB integration (Task 2.3)
+- [x] SQLite offline storage (Task 2.4)
 
 ### Immediate Enhancements
-- [ ] Property test for account lockout (Task 3.4, 3.5)
-- [ ] Profile management (Task 3.6)
+- [ ] Property test for account lockout (Task 3.5)
 - [ ] JWT middleware for protected routes
 - [ ] Refresh token mechanism
 
