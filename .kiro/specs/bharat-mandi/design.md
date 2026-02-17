@@ -867,7 +867,7 @@ flowchart TD
     ProcessOp --> OpType{Operation Type}
     
     OpType -->|Photo-Log| UploadPhoto[Upload Photo to Cloud]
-    OpType -->|Listing| CreateListing[Create/Update Listing]
+    OpType -->|Listing| CreateListing["Create/Update Listing"]
     OpType -->|Certificate| UploadCert[Upload Certificate]
     
     UploadPhoto --> CheckConflict{Conflict Detected?}
@@ -916,7 +916,7 @@ flowchart TD
     
     MakeDecision -->|Farmer Fault| RefundBuyer[Refund Buyer]
     MakeDecision -->|Buyer Fault| PayFarmer[Pay Farmer]
-    MakeDecision -->|Partial Fault| PartialRefund[Partial Refund/Payment]
+    MakeDecision -->|Partial Fault| PartialRefund["Partial Refund/Payment"]
     MakeDecision -->|Unclear| Escalate[Escalate to Senior Review]
     
     RefundBuyer --> UpdateScores[Update Credibility Scores]
@@ -927,7 +927,7 @@ flowchart TD
     SeniorReview --> FinalDecision[Final Decision]
     FinalDecision --> UpdateScores
     
-    UpdateScores --> ReleaseFunds[Release/Refund Funds]
+    UpdateScores --> ReleaseFunds["Release/Refund Funds"]
     ReleaseFunds --> NotifyOutcome[Notify Both Parties of Outcome]
     NotifyOutcome --> DisagreeOption{Party Disagrees?}
     
@@ -1094,10 +1094,10 @@ flowchart TD
     
     OptionalVideo -->|Yes| RecordVideo[Record Short Video]
     OptionalVideo -->|No| ProcessImage
-    RecordVideo --> ProcessImage[Process Image/Video]
+    RecordVideo --> ProcessImage["Process Image/Video"]
     
     ProcessImage --> EdgeAI[Run Edge AI Model]
-    EdgeAI --> DetectDisease[Detect Disease/Pest]
+    EdgeAI --> DetectDisease["Detect Disease/Pest"]
     
     DetectDisease --> HighConfidence{Confidence > 85%?}
     
@@ -1108,16 +1108,16 @@ flowchart TD
     ShowTopThree --> FarmerSelect[Farmer Selects Match]
     FarmerSelect --> DiseaseInfo
     
-    DiseaseInfo --> ShowSymptoms[Show Symptoms & Causes]
+    DiseaseInfo --> ShowSymptoms["Show Symptoms & Causes"]
     ShowSymptoms --> ShowRemedies[Show Treatment Options]
     
     ShowRemedies --> RemedyType{Treatment Type}
     
-    RemedyType -->|Chemical| ChemicalList[List Pesticides/Fungicides]
+    RemedyType -->|Chemical| ChemicalList["List Pesticides/Fungicides"]
     RemedyType -->|Organic| OrganicList[List Natural Remedies]
     RemedyType -->|Both| ShowBoth[Show Both Options]
     
-    ChemicalList --> DosageInfo[Show Dosage & Safety]
+    ChemicalList --> DosageInfo["Show Dosage & Safety"]
     OrganicList --> PreparationInfo[Show Preparation Steps]
     ShowBoth --> DosageInfo
     ShowBoth --> PreparationInfo
@@ -1155,17 +1155,17 @@ flowchart TD
     GuessIntent --> ProcessQuery
     
     ProcessQuery --> NLU[Natural Language Understanding]
-    NLU --> ExtractIntent[Extract Intent & Entities]
+    NLU --> ExtractIntent["Extract Intent & Entities"]
     
     ExtractIntent --> QueryType{Query Type}
     
     QueryType -->|Crop Selection| CropAdvice[Recommend Crops for Season/Soil]
-    QueryType -->|Planting| PlantingAdvice[Sowing Time, Spacing, Depth]
-    QueryType -->|Irrigation| IrrigationAdvice[Water Schedule & Quantity]
-    QueryType -->|Fertilizer| FertilizerAdvice[NPK Ratios & Timing]
+    QueryType -->|Planting| PlantingAdvice["Sowing Time, Spacing, Depth"]
+    QueryType -->|Irrigation| IrrigationAdvice["Water Schedule & Quantity"]
+    QueryType -->|Fertilizer| FertilizerAdvice["NPK Ratios & Timing"]
     QueryType -->|Pest/Disease| DiseaseDiagnosis[Link to Diagnosis Module]
-    QueryType -->|Harvest| HarvestAdvice[Harvest Timing & Methods]
-    QueryType -->|Market| MarketAdvice[Price Trends & Demand]
+    QueryType -->|Harvest| HarvestAdvice["Harvest Timing & Methods"]
+    QueryType -->|Market| MarketAdvice["Price Trends & Demand"]
     QueryType -->|General| GeneralAdvice[Search Knowledge Base]
     
     CropAdvice --> GenerateResponse[Generate Response]
@@ -1204,8 +1204,8 @@ flowchart TD
     InputMethod -->|Scan Report| CaptureReport[Capture Test Report Photo]
     InputMethod -->|Manual Entry| ManualForm[Open Manual Entry Form]
     
-    CaptureReport --> OCR[OCR Extract Data]
-    OCR --> ValidateData{Data Valid?}
+    CaptureReport --> OCRExtract[OCR Extract Data]
+    OCRExtract --> ValidateData{Data Valid?}
     
     ValidateData -->|No| ManualCorrection[Manual Correction]
     ValidateData -->|Yes| ParseData[Parse Test Parameters]
@@ -1214,7 +1214,7 @@ flowchart TD
     ManualForm --> ParseData
     
     ParseData --> ExtractParams["Extract: pH, N, P, K, OC, EC, etc."]
-    ExtractParams --> SaveRecord[Save Record with Date & Location]
+    ExtractParams --> SaveRecord["Save Record with Date & Location"]
     
     SaveRecord --> HistoryCheck{Previous Records Exist?}
     
@@ -1222,7 +1222,7 @@ flowchart TD
     HistoryCheck -->|No| FirstRecord[Mark as Baseline]
     
     CompareHistory --> TrendAnalysis[Analyze Trends]
-    TrendAnalysis --> ShowTrends[Visualize Trends (Charts)]
+    TrendAnalysis --> ShowTrends["Visualize Trends (Charts)"]
     
     FirstRecord --> ShowCurrent[Show Current Values]
     ShowTrends --> ShowCurrent
@@ -1242,7 +1242,7 @@ flowchart TD
     
     SuggestCrops --> SetReminder{Set Next Test Reminder?}
     
-    SetReminder -->|Yes| CreateReminder[Create Reminder (6 months)]
+    SetReminder -->|Yes| CreateReminder["Create Reminder (6 months)"]
     SetReminder -->|No| End([End])
     
     CreateReminder --> End
@@ -1393,10 +1393,10 @@ flowchart TD
     LocalAnalysis --> AnalyzeVisual[Analyze Visual Features]
     CloudAnalysis --> AnalyzeVisual
     
-    AnalyzeVisual --> CheckColor[Check Color (Dark Brown/Black)]
-    AnalyzeVisual --> CheckTexture[Check Texture (Crumbly)]
+    AnalyzeVisual --> CheckColor["Check Color (Dark Brown/Black)"]
+    AnalyzeVisual --> CheckTexture["Check Texture (Crumbly)"]
     AnalyzeVisual --> CheckMoisture[Check Moisture Level]
-    AnalyzeVisual --> CheckOdor[Estimate Odor (from visual cues)]
+    AnalyzeVisual --> CheckOdor["Estimate Odor (from visual cues)"]
     
     CheckColor --> ScoreColor["Color Score: 0-100"]
     CheckTexture --> ScoreTexture["Texture Score: 0-100"]
@@ -1478,7 +1478,7 @@ flowchart TD
     EditAd --> ShowPreview
     
     FarmerReview -->|Yes| SelectCategory[Select Category]
-    SelectCategory --> SetVisibility[Set Visibility (Public/Local)]
+    SelectCategory --> SetVisibility["Set Visibility (Public/Local)"]
     
     SetVisibility --> PublishAd[Publish Ad]
     PublishAd --> NotifyNearby[Notify Nearby Farmers]
@@ -1504,8 +1504,8 @@ flowchart TD
     MatchEngine --> CheckCropType[Check Crop Type]
     MatchEngine --> CheckIncome[Check Income Level]
     MatchEngine --> CheckAge[Check Farmer Age]
-    MatchEngine --> CheckGender[Check Gender (Women schemes)]
-    MatchEngine --> CheckCaste[Check Category (SC/ST/OBC)]
+    MatchEngine --> CheckGender["Check Gender (Women schemes)"]
+    MatchEngine --> CheckCaste["Check Category (SC/ST/OBC)"]
     MatchEngine --> CheckBankAccount[Check Bank Account]
     MatchEngine --> CheckPrevSchemes[Check Previous Schemes]
     
@@ -1582,7 +1582,7 @@ flowchart TD
     
     ConsiderFactors --> RoadConditions[Road Conditions]
     ConsiderFactors --> TrafficData[Traffic Data]
-    ConsiderFactors --> ProduceType[Produce Type (Perishability)]
+    ConsiderFactors --> ProduceType["Produce Type (Perishability)"]
     ConsiderFactors --> TruckCapacity[Truck Capacity]
     ConsiderFactors --> TimeWindows[Pickup Time Windows]
     
@@ -1682,7 +1682,7 @@ flowchart TD
     
     CreateTraceID --> Sowing[Sowing Activity]
     Sowing --> PhotoLog1["Photo Log: Sowing"]
-    PhotoLog1 --> RecordDate1[Record Date & Location]
+    PhotoLog1 --> RecordDate1["Record Date & Location"]
     
     RecordDate1 --> GrowthStage[Growth Monitoring]
     GrowthStage --> PhotoLog2["Photo Log: Growth Stages"]
