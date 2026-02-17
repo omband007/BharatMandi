@@ -170,7 +170,7 @@ export async function createUser(userData: {
   try {
     // Check if user already exists
     const existingUser = await pool.query(
-      'SELECT id FROM users WHERE phone_number = $1',
+      'SELECT id FROM users WHERE phone = $1',
       [userData.phoneNumber]
     );
 
@@ -186,25 +186,25 @@ export async function createUser(userData: {
     // Create user
     const userId = uuidv4();
     const result = await pool.query(
-      `INSERT INTO users (id, phone_number, name, user_type, location, bank_account, created_at, updated_at)
+      `INSERT INTO users (id, phone, name, type, location, bank_account_number, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-       RETURNING id, phone_number, name, user_type, location, created_at`,
+       RETURNING id, phone, name, type, location, created_at`,
       [
         userId,
         userData.phoneNumber,
         userData.name,
         userData.userType,
-        JSON.stringify(userData.location),
+        userData.location.address,
         encryptedBankAccount
       ]
     );
 
     const user: User = {
       id: result.rows[0].id,
-      phoneNumber: result.rows[0].phone_number,
+      phoneNumber: result.rows[0].phone,
       name: result.rows[0].name,
-      userType: result.rows[0].user_type,
-      location: result.rows[0].location,
+      userType: result.rows[0].type,
+      location: userData.location,
       createdAt: result.rows[0].created_at
     };
 
@@ -221,9 +221,9 @@ export async function createUser(userData: {
 export async function getUserByPhone(phoneNumber: string): Promise<User | null> {
   try {
     const result = await pool.query(
-      `SELECT id, phone_number, name, user_type, location, bank_account, created_at
+      `SELECT id, phone, name, type, location, bank_account_number, created_at
        FROM users
-       WHERE phone_number = $1`,
+       WHERE phone = $1`,
       [phoneNumber]
     );
 
@@ -234,16 +234,25 @@ export async function getUserByPhone(phoneNumber: string): Promise<User | null> 
     const row = result.rows[0];
     const user: User = {
       id: row.id,
-      phoneNumber: row.phone_number,
+      phoneNumber: row.phone,
       name: row.name,
-      userType: row.user_type,
-      location: row.location,
+      userType: row.type,
+      location: {
+        latitude: 0,
+        longitude: 0,
+        address: row.location
+      },
       createdAt: row.created_at
     };
 
     // Decrypt bank account if exists
-    if (row.bank_account) {
-      user.bankAccount = JSON.parse(decrypt(row.bank_account));
+    if (row.bank_account_number) {
+      try {
+        user.bankAccount = JSON.parse(decrypt(row.bank_account_number));
+      } catch (e) {
+        // If decryption fails, skip bank account
+        console.error('Failed to decrypt bank account:', e);
+      }
     }
 
     return user;
