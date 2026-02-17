@@ -64,8 +64,8 @@ The approach follows a bottom-up strategy: building core infrastructure first, i
     - _Requirements: 8.2, 8.3_
 
 
-- [ ] 3. Authentication and User Management
-  - [ ] 3.1 Implement user registration with OTP verification
+- [-] 3. Authentication and User Management
+  - [x] 3.1 Implement user registration with OTP verification
     - Create registration API endpoint
     - Integrate SMS/OTP service (AWS Pinpoint)
     - Implement mobile number validation

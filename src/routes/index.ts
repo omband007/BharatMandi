@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { UserType } from '../types';
 import { db } from '../database/memory-db';
 import gradingRoutes from './grading.routes';
+import authRoutes from './auth.routes';
 import { marketplaceService } from '../services/marketplace.service';
 import { transactionService } from '../services/transaction.service';
 
@@ -12,6 +13,9 @@ const router = Router();
 router.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date() });
 });
+
+// Use authentication routes
+router.use('/auth', authRoutes);
 
 // Use grading routes
 router.use('/grading', gradingRoutes);
