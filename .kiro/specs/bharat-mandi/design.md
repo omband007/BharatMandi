@@ -578,6 +578,148 @@ transactions (1) ──→ (1) logistics_orders ──→ (N) vehicle_tracking
 transactions (1) ──→ (1) disputes ──→ (N) dispute_evidence
 ```
 
+**Entity Relationship Diagram**:
+
+```mermaid
+erDiagram
+    USERS ||--o{ LISTINGS : creates
+    USERS ||--o{ TRANSACTIONS : "buyer/seller"
+    USERS ||--o{ CREDIBILITY_SCORES : has
+    USERS ||--o{ RATINGS : "gives/receives"
+    
+    LISTINGS ||--o{ TRANSACTIONS : "generates"
+    LISTINGS ||--o| AUCTION_LISTINGS : "can be"
+    
+    TRANSACTIONS ||--|| ESCROW_ACCOUNTS : "has"
+    TRANSACTIONS ||--o{ RATINGS : receives
+    TRANSACTIONS ||--o| LOGISTICS_ORDERS : "may have"
+    TRANSACTIONS ||--o| DISPUTES : "may have"
+    
+    AUCTION_LISTINGS ||--o{ BIDS : receives
+    
+    LOGISTICS_ORDERS ||--o{ VEHICLE_TRACKING : tracked
+    
+    DISPUTES ||--o{ DISPUTE_EVIDENCE : contains
+    
+    CREDIBILITY_SCORES ||--o{ CREDIBILITY_SCORE_HISTORY : "tracks changes"
+    
+    USERS {
+        uuid id PK
+        string phone_number UK
+        string name
+        enum user_type
+        jsonb location
+        jsonb bank_account
+        timestamp created_at
+    }
+    
+    LISTINGS {
+        uuid id PK
+        uuid farmer_id FK
+        string produce_type
+        decimal quantity
+        decimal price_per_unit
+        string grade
+        uuid certificate_id
+        enum status
+        timestamp created_at
+    }
+    
+    TRANSACTIONS {
+        uuid id PK
+        uuid listing_id FK
+        uuid buyer_id FK
+        uuid seller_id FK
+        decimal quantity
+        decimal total_amount
+        enum status
+        timestamp created_at
+    }
+    
+    ESCROW_ACCOUNTS {
+        uuid id PK
+        uuid transaction_id FK
+        decimal amount
+        enum status
+        timestamp locked_at
+        timestamp released_at
+    }
+    
+    RATINGS {
+        uuid id PK
+        uuid transaction_id FK
+        uuid from_user_id FK
+        uuid to_user_id FK
+        integer rating
+        text comment
+        timestamp created_at
+    }
+    
+    CREDIBILITY_SCORES {
+        uuid id PK
+        uuid user_id FK
+        integer score
+        jsonb components
+        timestamp updated_at
+    }
+    
+    AUCTION_LISTINGS {
+        uuid id PK
+        uuid listing_id FK
+        timestamp start_time
+        timestamp end_time
+        decimal starting_price
+        decimal current_highest_bid
+        enum status
+    }
+    
+    BIDS {
+        uuid id PK
+        uuid auction_id FK
+        uuid bidder_id FK
+        decimal bid_amount
+        timestamp bid_time
+    }
+    
+    LOGISTICS_ORDERS {
+        uuid id PK
+        uuid transaction_id FK
+        uuid provider_id FK
+        jsonb pickup_location
+        jsonb delivery_location
+        timestamp pickup_time
+        timestamp delivery_time
+        enum status
+    }
+    
+    VEHICLE_TRACKING {
+        uuid id PK
+        uuid logistics_order_id FK
+        jsonb current_location
+        timestamp timestamp
+        string status
+    }
+    
+    DISPUTES {
+        uuid id PK
+        uuid transaction_id FK
+        uuid raised_by FK
+        text reason
+        enum status
+        timestamp created_at
+    }
+    
+    DISPUTE_EVIDENCE {
+        uuid id PK
+        uuid dispute_id FK
+        uuid submitted_by FK
+        string evidence_type
+        text description
+        string file_url
+        timestamp submitted_at
+    }
+```
+
 #### MongoDB - Document Database
 **Purpose**: Flexible schema storage for unstructured/semi-structured data
 **Collections**: 10 collections
