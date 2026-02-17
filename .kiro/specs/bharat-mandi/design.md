@@ -887,7 +887,7 @@ flowchart TD
     MarkSuccess --> RemoveQueue[Remove from Queue]
     RemoveQueue --> GetQueue
     
-    SyncComplete --> NotifyUser[Notify User: Sync Complete]
+    SyncComplete --> NotifyUser["Notify User: Sync Complete"]
     NotifyUser --> End([End])
 ```
 
@@ -899,8 +899,8 @@ flowchart TD
     FreezeEscrow --> NotifyParties[Notify Both Parties]
     NotifyParties --> CollectEvidence[Collect Evidence from Both Parties]
     
-    CollectEvidence --> FarmerEvidence[Farmer Submits: Original Photos, Dispatch Records]
-    CollectEvidence --> BuyerEvidence[Buyer Submits: Delivery Photos, Quality Issues]
+    CollectEvidence --> FarmerEvidence["Farmer Submits: Original Photos, Dispatch Records"]
+    CollectEvidence --> BuyerEvidence["Buyer Submits: Delivery Photos, Quality Issues"]
     
     FarmerEvidence --> EvidenceComplete{All Evidence Collected?}
     BuyerEvidence --> EvidenceComplete
@@ -1213,7 +1213,7 @@ flowchart TD
     ManualCorrection --> ParseData
     ManualForm --> ParseData
     
-    ParseData --> ExtractParams[Extract: pH, N, P, K, OC, EC, etc.]
+    ParseData --> ExtractParams["Extract: pH, N, P, K, OC, EC, etc."]
     ExtractParams --> SaveRecord[Save Record with Date & Location]
     
     SaveRecord --> HistoryCheck{Previous Records Exist?}
@@ -1398,10 +1398,10 @@ flowchart TD
     AnalyzeVisual --> CheckMoisture[Check Moisture Level]
     AnalyzeVisual --> CheckOdor[Estimate Odor (from visual cues)]
     
-    CheckColor --> ScoreColor[Color Score: 0-100]
-    CheckTexture --> ScoreTexture[Texture Score: 0-100]
-    CheckMoisture --> ScoreMoisture[Moisture Score: 0-100]
-    CheckOdor --> ScoreOdor[Odor Score: 0-100]
+    CheckColor --> ScoreColor["Color Score: 0-100"]
+    CheckTexture --> ScoreTexture["Texture Score: 0-100"]
+    CheckMoisture --> ScoreMoisture["Moisture Score: 0-100"]
+    CheckOdor --> ScoreOdor["Odor Score: 0-100"]
     
     ScoreColor --> CalculateOverall[Calculate Overall Maturity Score]
     ScoreTexture --> CalculateOverall
@@ -1441,17 +1441,17 @@ flowchart TD
     Start([Farmer Wants to Create Ad]) --> OpenAdCreator[Open Ad Creator]
     OpenAdCreator --> RecordVoice[Record Voice Note]
     
-    RecordVoice --> VoiceContent[Farmer Describes: Item, Quantity, Price, Location]
+    RecordVoice --> VoiceContent["Farmer Describes: Item, Quantity, Price, Location"]
     VoiceContent --> STT[Speech-to-Text Conversion]
     
     STT --> NLU[Natural Language Understanding]
     NLU --> ExtractEntities[Extract Entities]
     
-    ExtractEntities --> ItemType[Item Type: Seeds/Saplings/Tools]
-    ExtractEntities --> Quantity[Quantity: Number & Unit]
-    ExtractEntities --> Price[Price: Amount]
-    ExtractEntities --> Location[Location: Village/District]
-    ExtractEntities --> Condition[Condition: New/Used]
+    ExtractEntities --> ItemType["Item Type: Seeds/Saplings/Tools"]
+    ExtractEntities --> Quantity["Quantity: Number & Unit"]
+    ExtractEntities --> Price["Price: Amount"]
+    ExtractEntities --> Location["Location: Village/District"]
+    ExtractEntities --> Condition["Condition: New/Used"]
     ExtractEntities --> Description[Additional Details]
     
     ItemType --> ValidateData{All Required Data?}
@@ -1571,7 +1571,7 @@ flowchart TD
     CheckProximity -->|No| IndividualRoutes[Create Individual Routes]
     CheckProximity -->|Yes| PoolingOpportunity[Pooling Opportunity Detected]
     
-    PoolingOpportunity --> NotifyFarmers[Notify Farmers: Pooling Available]
+    PoolingOpportunity --> NotifyFarmers["Notify Farmers: Pooling Available"]
     NotifyFarmers --> FarmersAgree{All Farmers Agree?}
     
     FarmersAgree -->|No| IndividualRoutes
@@ -1681,11 +1681,11 @@ flowchart TD
     SeedBatch --> CreateTraceID[Create Traceability ID]
     
     CreateTraceID --> Sowing[Sowing Activity]
-    Sowing --> PhotoLog1[Photo Log: Sowing]
+    Sowing --> PhotoLog1["Photo Log: Sowing"]
     PhotoLog1 --> RecordDate1[Record Date & Location]
     
     RecordDate1 --> GrowthStage[Growth Monitoring]
-    GrowthStage --> PhotoLog2[Photo Log: Growth Stages]
+    GrowthStage --> PhotoLog2["Photo Log: Growth Stages"]
     PhotoLog2 --> RecordActivities[Record Activities]
     
     RecordActivities --> Irrigation[Irrigation Events]
@@ -1701,7 +1701,7 @@ flowchart TD
     LogInputs --> InputDetails[Product Name, Quantity, Date]
     InputDetails --> Harvest[Harvest Activity]
     
-    Harvest --> PhotoLog3[Photo Log: Harvest]
+    Harvest --> PhotoLog3["Photo Log: Harvest"]
     PhotoLog3 --> RecordYield[Record Yield]
     RecordYield --> QualityGrading[Fasal-Parakh Grading]
     
@@ -2386,13 +2386,13 @@ graph TD
         Organic Carbon: 0.52% ✓ Good<br/>
         EC: 0.35 dS/m ✓ Normal<br/><br/>
         📈 <b>Trends (Last 2 Years)</b><br/>
-        [Line Chart: pH, N, P, K over time]<br/><br/>
+        Line Chart showing pH, N, P, K over time<br/><br/>
         💡 <b>Recommendations</b><br/>
         • Apply Urea 50 kg/acre for N<br/>
         • Add Muriate of Potash 25 kg/acre<br/>
         • Suitable crops: Tomato, Chili, Cotton<br/><br/>
-        [Add New Test] [View History]<br/>
-        [Set Reminder: Next Test in 6 months]
+        Add New Test | View History<br/>
+        Set Reminder for Next Test in 6 months
         </div>"]
     end
 ```
@@ -2598,17 +2598,17 @@ graph TD
     subgraph "Live Vehicle Tracking"
         AE["<div style='text-align:center'>
         ← Back | <b>Track Vehicle</b><br/><br/>
-        [Map View with Vehicle Icon]<br/><br/>
+        Map View with Vehicle Icon<br/><br/>
         🚚 <b>Vehicle: MH-15-AB-1234</b><br/>
         Driver: Ramesh Kumar<br/>
-        📞 [Call Driver]<br/><br/>
+        📞 Call Driver<br/><br/>
         <b>Current Location</b><br/>
         📍 NH-60, near Sinnar<br/>
         Updated: 2 min ago<br/><br/>
         <b>Status</b><br/>
         🟢 On Route • On Time<br/><br/>
         <b>Journey Progress</b><br/>
-        [Progress Bar: 65%]<br/><br/>
+        Progress Bar showing 65%<br/><br/>
         Pickup: ✅ Completed (2:30 PM)<br/>
         Current: 🚚 In Transit<br/>
         Delivery: ⏳ Expected 6:45 PM<br/><br/>
@@ -2616,7 +2616,7 @@ graph TD
         85 km • 1 hour 45 min<br/><br/>
         <b>Route</b><br/>
         Nashik → Sinnar → Kalyan → Mumbai<br/><br/>
-        [Share Location] [Report Issue]
+        Share Location | Report Issue
         </div>"]
     end
 ```
