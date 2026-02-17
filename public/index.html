@@ -27,6 +27,7 @@
             text-align: center;
             color: white;
             margin-bottom: 30px;
+            position: relative;
         }
         
         .header h1 {
@@ -37,6 +38,25 @@
         .header p {
             font-size: 1.2em;
             opacity: 0.9;
+        }
+        
+        .help-link {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .help-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
         }
         
         .workflow {
@@ -197,6 +217,7 @@
 <body>
     <div class="container">
         <div class="header">
+            <a href="POC-V2-GUIDE.md" target="_blank" class="help-link">📖 Help Guide</a>
             <h1>🌾 Bharat Mandi POC v2</h1>
             <p>Complete Workflow with Authentication & Database Integration</p>
         </div>
@@ -353,6 +374,7 @@
                 <div class="form-group" id="produceTypeGroup">
                     <label>Produce Type</label>
                     <select id="produceType">
+                        <option value="" disabled selected>Auto-detect (AI will identify)</option>
                         <option value="Tomato">Tomato</option>
                         <option value="Wheat">Wheat</option>
                         <option value="Rice">Rice</option>
@@ -622,14 +644,19 @@
         document.addEventListener('DOMContentLoaded', function() {
             const autoDetect = document.getElementById('autoDetect');
             const produceTypeGroup = document.getElementById('produceTypeGroup');
+            const produceTypeSelect = document.getElementById('produceType');
             
             autoDetect.addEventListener('change', function() {
                 if (this.checked) {
                     produceTypeGroup.style.opacity = '0.5';
                     produceTypeGroup.style.pointerEvents = 'none';
+                    // Reset to auto-detect option
+                    produceTypeSelect.selectedIndex = 0;
                 } else {
                     produceTypeGroup.style.opacity = '1';
                     produceTypeGroup.style.pointerEvents = 'auto';
+                    // Select first actual crop (Tomato) when manual mode
+                    produceTypeSelect.selectedIndex = 1;
                 }
             });
             
@@ -637,6 +664,7 @@
             if (autoDetect.checked) {
                 produceTypeGroup.style.opacity = '0.5';
                 produceTypeGroup.style.pointerEvents = 'none';
+                produceTypeSelect.selectedIndex = 0;
             }
         });
 
@@ -708,7 +736,14 @@
                 }
 
                 const autoDetect = document.getElementById('autoDetect').checked;
-                const produceType = autoDetect ? 'unknown' : document.getElementById('produceType').value;
+                const produceTypeSelect = document.getElementById('produceType');
+                const produceType = autoDetect ? 'unknown' : produceTypeSelect.value;
+                
+                // Validate that a produce type is selected if not auto-detecting
+                if (!autoDetect && !produceType) {
+                    showResult('gradeResult', '❌ Please select a produce type', true);
+                    return;
+                }
 
                 // Create FormData for file upload
                 const formData = new FormData();
