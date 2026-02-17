@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bharat Mandi - Help Guide</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .back-btn {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        #content {
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        #content h1 {
+            color: #667eea;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 2em;
+        }
+        
+        #content h2 {
+            color: #764ba2;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            font-size: 1.5em;
+        }
+        
+        #content h3 {
+            color: #667eea;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        #content p {
+            margin-bottom: 15px;
+        }
+        
+        #content ul, #content ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        
+        #content li {
+            margin-bottom: 8px;
+        }
+        
+        #content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        #content pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        
+        #content pre code {
+            background: none;
+            padding: 0;
+            color: #f8f8f2;
+        }
+        
+        #content blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+            margin: 15px 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        #content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        #content th, #content td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        
+        #content th {
+            background: #667eea;
+            color: white;
+        }
+        
+        #content a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        #content a:hover {
+            text-decoration: underline;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #667eea;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 style="color: #667eea; margin: 0;">📖 Help Guide</h1>
+            <a href="/" class="back-btn">← Back to POC</a>
+        </div>
+        <div id="content" class="loading">Loading guide...</div>
+    </div>
+
+    <script>
+        async function loadMarkdown() {
+            try {
+                const response = await fetch('/docs/POC-V2-GUIDE.md');
+                if (!response.ok) {
+                    throw new Error('Failed to load guide');
+                }
+                const markdown = await response.text();
+                const html = marked.parse(markdown);
+                document.getElementById('content').innerHTML = html;
+            } catch (error) {
+                document.getElementById('content').innerHTML = 
+                    '<p style="color: red;">Error loading guide: ' + error.message + '</p>';
+            }
+        }
+
+        loadMarkdown();
+    </script>
+</body>
+</html>
