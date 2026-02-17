@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bharat Mandi - POC Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .workflow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .status-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .status-value {
+            color: #333;
+            font-family: monospace;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge.pending { background: #ffc107; color: #000; }
+        .badge.accepted { background: #17a2b8; color: white; }
+        .badge.locked { background: #fd7e14; color: white; }
+        .badge.transit { background: #6f42c1; color: white; }
+        .badge.delivered { background: #20c997; color: white; }
+        .badge.completed { background: #28a745; color: white; }
+        
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌾 Bharat Mandi POC</h1>
+            <p>Complete Farmer-to-Buyer Workflow Demo</p>
+        </div>
+
+        <div class="status-bar">
+            <h3 style="margin-bottom: 15px; color: #667eea;">📊 Current Status</h3>
+            <div class="status-item">
+                <span class="status-label">Farmer ID:</span>
+                <span class="status-value" id="farmerIdDisplay">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Buyer ID:</span>
+                <span class="status-value" id="buyerIdDisplay">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Certificate ID:</span>
+                <span class="status-value" id="certIdDisplay">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Listing ID:</span>
+                <span class="status-value" id="listingIdDisplay">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Transaction ID:</span>
+                <span class="status-value" id="txIdDisplay">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Transaction Status:</span>
+                <span class="status-value" id="txStatusDisplay">-</span>
+            </div>
+        </div>
+
+        <div class="workflow">
+            <!-- Step 1: Create Users -->
+            <div class="card">
+                <h2><span class="step-number">1</span> Create Users</h2>
+                <div class="form-group">
+                    <label>Farmer Name</label>
+                    <input type="text" id="farmerName" value="Ramesh Kumar">
+                </div>
+                <div class="form-group">
+                    <label>Farmer Phone</label>
+                    <input type="text" id="farmerPhone" value="+919876543210">
+                </div>
+                <div class="form-group">
+                    <label>Farmer Location</label>
+                    <input type="text" id="farmerLocation" value="Punjab">
+                </div>
+                <button onclick="createFarmer()">Create Farmer</button>
+                <div id="farmerResult" class="result"></div>
+                
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;">
+                
+                <div class="form-group">
+                    <label>Buyer Name</label>
+                    <input type="text" id="buyerName" value="Suresh Traders">
+                </div>
+                <div class="form-group">
+                    <label>Buyer Phone</label>
+                    <input type="text" id="buyerPhone" value="+919876543211">
+                </div>
+                <div class="form-group">
+                    <label>Buyer Location</label>
+                    <input type="text" id="buyerLocation" value="Delhi">
+                </div>
+                <button onclick="createBuyer()">Create Buyer</button>
+                <div id="buyerResult" class="result"></div>
+            </div>
+
+            <!-- Step 2: Grade Produce -->
+            <div class="card">
+                <h2><span class="step-number">2</span> Grade Produce</h2>
+                <div class="form-group">
+                    <label>Upload Produce Image</label>
+                    <input type="file" id="produceImage" accept="image/*" style="padding: 5px;">
+                    <small style="color: #666; display: block; margin-top: 5px;">
+                        Upload a photo of your produce for AI analysis
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="autoDetect" checked style="width: auto; cursor: pointer;">
+                        <span>Auto-detect crop type using AI</span>
+                    </label>
+                </div>
+                <div class="form-group" id="produceTypeGroup">
+                    <label>Produce Type</label>
+                    <select id="produceType">
+                        <option value="Tomato">Tomato</option>
+                        <option value="Wheat">Wheat</option>
+                        <option value="Rice">Rice</option>
+                        <option value="Potato">Potato</option>
+                        <option value="Onion">Onion</option>
+                        <option value="Corn">Corn</option>
+                        <option value="Apple">Apple</option>
+                        <option value="Banana">Banana</option>
+                        <option value="Carrot">Carrot</option>
+                        <option value="Cabbage">Cabbage</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Latitude</label>
+                    <input type="number" id="lat" value="30.7333" step="0.0001">
+                </div>
+                <div class="form-group">
+                    <label>Longitude</label>
+                    <input type="number" id="lng" value="76.7794" step="0.0001">
+                </div>
+                <button onclick="gradeProduce()" id="gradeBtn" disabled>Grade Produce with AI</button>
+                <div id="gradeResult" class="result"></div>
+            </div>
+
+            <!-- Step 3: Create Listing -->
+            <div class="card">
+                <h2><span class="step-number">3</span> Create Listing</h2>
+                <div class="form-group">
+                    <label>Quantity (kg)</label>
+                    <input type="number" id="quantity" value="1000">
+                </div>
+                <div class="form-group">
+                    <label>Price per kg (₹)</label>
+                    <input type="number" id="pricePerKg" value="25">
+                </div>
+                <button onclick="createListing()" id="listingBtn" disabled>Create Listing</button>
+                <div id="listingResult" class="result"></div>
+            </div>
+
+            <!-- Step 4: Initiate Transaction -->
+            <div class="card">
+                <h2><span class="step-number">4</span> Buyer Purchase</h2>
+                <div class="form-group">
+                    <label>Amount (₹)</label>
+                    <input type="number" id="amount" value="25000" readonly>
+                </div>
+                <button onclick="initiatePurchase()" id="purchaseBtn" disabled>Initiate Purchase</button>
+                <div id="purchaseResult" class="result"></div>
+            </div>
+
+            <!-- Step 5: Transaction Workflow -->
+            <div class="card">
+                <h2><span class="step-number">5</span> Transaction Flow</h2>
+                <button onclick="acceptOrder()" id="acceptBtn" disabled style="margin-bottom: 10px;">
+                    Farmer Accepts Order
+                </button>
+                <button onclick="lockPayment()" id="lockBtn" disabled style="margin-bottom: 10px;">
+                    Buyer Locks Payment
+                </button>
+                <button onclick="dispatch()" id="dispatchBtn" disabled style="margin-bottom: 10px;">
+                    Farmer Dispatches
+                </button>
+                <button onclick="deliver()" id="deliverBtn" disabled style="margin-bottom: 10px;">
+                    Buyer Confirms Delivery
+                </button>
+                <button onclick="releaseFunds()" id="releaseBtn" disabled>
+                    Release Funds
+                </button>
+                <div id="workflowResult" class="result"></div>
+            </div>
+
+            <!-- Step 6: View Data -->
+            <div class="card">
+                <h2><span class="step-number">6</span> View Data</h2>
+                <button onclick="viewAllUsers()" style="margin-bottom: 10px;">View All Users</button>
+                <button onclick="viewAllListings()" style="margin-bottom: 10px;">View All Listings</button>
+                <button onclick="viewTransaction()">View Transaction Details</button>
+                <div id="viewResult" class="result"></div>
+            </div>
+        </div>
+    </div>
+""
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let state = {
+            farmerId: null,
+            buyerId: null,
+            certificateId: null,
+            listingId: null,
+            transactionId: null
+        };
+
+        // Toggle produce type dropdown based on auto-detect checkbox
+        document.addEventListener('DOMContentLoaded', function() {
+            const autoDetect = document.getElementById('autoDetect');
+            const produceTypeGroup = document.getElementById('produceTypeGroup');
+            
+            autoDetect.addEventListener('change', function() {
+                if (this.checked) {
+                    produceTypeGroup.style.opacity = '0.5';
+                    produceTypeGroup.style.pointerEvents = 'none';
+                } else {
+                    produceTypeGroup.style.opacity = '1';
+                    produceTypeGroup.style.pointerEvents = 'auto';
+                }
+            });
+            
+            // Initialize state
+            if (autoDetect.checked) {
+                produceTypeGroup.style.opacity = '0.5';
+                produceTypeGroup.style.pointerEvents = 'none';
+            }
+        });
+
+        function updateStatus() {
+            document.getElementById('farmerIdDisplay').textContent = state.farmerId || '-';
+            document.getElementById('buyerIdDisplay').textContent = state.buyerId || '-';
+            document.getElementById('certIdDisplay').textContent = state.certificateId || '-';
+            document.getElementById('listingIdDisplay').textContent = state.listingId || '-';
+            document.getElementById('txIdDisplay').textContent = state.transactionId || '-';
+        }
+
+        function showResult(elementId, message, isError = false) {
+            const el = document.getElementById(elementId);
+            el.className = `result ${isError ? 'error' : 'success'}`;
+            el.innerHTML = message;
+        }
+
+        async function createFarmer() {
+            try {
+                const response = await fetch(`${API_BASE}/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('farmerName').value,
+                        phone: document.getElementById('farmerPhone').value,
+                        type: 'FARMER',
+                        location: document.getElementById('farmerLocation').value
+                    })
+                });
+                const data = await response.json();
+                state.farmerId = data.id;
+                updateStatus();
+                document.getElementById('gradeBtn').disabled = false;
+                showResult('farmerResult', `✅ Farmer created: ${data.name}<br>ID: ${data.id}`);
+            } catch (error) {
+                showResult('farmerResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function createBuyer() {
+            try {
+                const response = await fetch(`${API_BASE}/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('buyerName').value,
+                        phone: document.getElementById('buyerPhone').value,
+                        type: 'BUYER',
+                        location: document.getElementById('buyerLocation').value
+                    })
+                });
+                const data = await response.json();
+                state.buyerId = data.id;
+                updateStatus();
+                showResult('buyerResult', `✅ Buyer created: ${data.name}<br>ID: ${data.id}`);
+            } catch (error) {
+                showResult('buyerResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function gradeProduce() {
+            try {
+                const fileInput = document.getElementById('produceImage');
+                const file = fileInput.files ? fileInput.files[0] : null;
+                
+                if (!file) {
+                    showResult('gradeResult', '❌ Please select an image file', true);
+                    return;
+                }
+
+                const autoDetect = document.getElementById('autoDetect').checked;
+                const produceType = autoDetect ? 'unknown' : document.getElementById('produceType').value;
+
+                // Create FormData for file upload
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('farmerId', state.farmerId);
+                formData.append('produceType', produceType);
+                formData.append('lat', document.getElementById('lat').value);
+                formData.append('lng', document.getElementById('lng').value);
+                formData.append('autoDetect', autoDetect.toString());
+
+                showResult('gradeResult', '🔄 Analyzing image with AI... Please wait...');
+
+                const response = await fetch(`${API_BASE}/grading/grade-with-image`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Grading failed');
+                }
+                
+                state.certificateId = data.certificate.id;
+                updateStatus();
+                document.getElementById('listingBtn').disabled = false;
+                
+                // Show detected crop or user-selected crop
+                const finalCrop = data.certificate.produceType;
+                const wasDetected = autoDetect && data.analysis.detectedCrop !== 'unknown';
+                
+                showResult('gradeResult', 
+                    `✅ AI Grading Complete!<br>
+                    <strong>Crop Type:</strong> ${finalCrop} ${wasDetected ? '(AI detected)' : '(User selected)'}<br>
+                    <strong>Grade:</strong> ${data.gradingResult.grade}<br>
+                    <strong>Confidence:</strong> ${(data.gradingResult.confidence * 100).toFixed(1)}%<br>
+                    <strong>Size:</strong> ${data.analysis.details.size}<br>
+                    <strong>Color:</strong> ${data.analysis.details.color}<br>
+                    <strong>Defects:</strong> ${data.analysis.details.defects}<br>
+                    <strong>Certificate ID:</strong> ${data.certificate.id}`
+                );
+            } catch (error) {
+                showResult('gradeResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function createListing() {
+            try {
+                const quantity = parseInt(document.getElementById('quantity').value);
+                const pricePerKg = parseInt(document.getElementById('pricePerKg').value);
+                document.getElementById('amount').value = quantity * pricePerKg;
+                
+                const response = await fetch(`${API_BASE}/listings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        farmerId: state.farmerId,
+                        produceType: document.getElementById('produceType').value,
+                        quantity: quantity,
+                        pricePerKg: pricePerKg,
+                        certificateId: state.certificateId
+                    })
+                });
+                const data = await response.json();
+                state.listingId = data.id;
+                updateStatus();
+                document.getElementById('purchaseBtn').disabled = false;
+                showResult('listingResult', 
+                    `✅ Listing Created!<br>
+                    Listing ID: ${data.id}<br>
+                    Quantity: ${data.quantity} kg<br>
+                    Price: ₹${data.pricePerKg}/kg<br>
+                    Total: ₹${quantity * pricePerKg}`
+                );
+            } catch (error) {
+                showResult('listingResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function initiatePurchase() {
+            try {
+                const response = await fetch(`${API_BASE}/transactions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        listingId: state.listingId,
+                        farmerId: state.farmerId,
+                        buyerId: state.buyerId,
+                        amount: parseInt(document.getElementById('amount').value)
+                    })
+                });
+                const data = await response.json();
+                state.transactionId = data.id;
+                updateStatus();
+                updateTxStatus(data.status);
+                document.getElementById('acceptBtn').disabled = false;
+                showResult('purchaseResult', 
+                    `✅ Purchase Initiated!<br>
+                    Transaction ID: ${data.id}<br>
+                    Status: ${data.status}<br>
+                    Amount: ₹${data.amount}`
+                );
+            } catch (error) {
+                showResult('purchaseResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        function updateTxStatus(status) {
+            const statusMap = {
+                'PENDING': 'pending',
+                'ACCEPTED': 'accepted',
+                'PAYMENT_LOCKED': 'locked',
+                'IN_TRANSIT': 'transit',
+                'DELIVERED': 'delivered',
+                'COMPLETED': 'completed'
+            };
+            const badge = `<span class="badge ${statusMap[status]}">${status}</span>`;
+            document.getElementById('txStatusDisplay').innerHTML = badge;
+        }
+
+        async function acceptOrder() {
+            try {
+                const response = await fetch(`${API_BASE}/transactions/${state.transactionId}/accept`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                updateTxStatus(data.transaction.status);
+                document.getElementById('acceptBtn').disabled = true;
+                document.getElementById('lockBtn').disabled = false;
+                showResult('workflowResult', 
+                    `✅ Order Accepted!<br>
+                    Status: ${data.transaction.status}<br>
+                    Escrow Created: ${data.escrow.id}`
+                );
+            } catch (error) {
+                showResult('workflowResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function lockPayment() {
+            try {
+                const response = await fetch(`${API_BASE}/transactions/${state.transactionId}/lock-payment`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                updateTxStatus(data.transaction.status);
+                document.getElementById('lockBtn').disabled = true;
+                document.getElementById('dispatchBtn').disabled = false;
+                showResult('workflowResult', 
+                    `✅ Payment Locked!<br>
+                    Status: ${data.transaction.status}<br>
+                    Escrow Locked: ${data.escrow.isLocked}`
+                );
+            } catch (error) {
+                showResult('workflowResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function dispatch() {
+            try {
+                const response = await fetch(`${API_BASE}/transactions/${state.transactionId}/dispatch`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                updateTxStatus(data.status);
+                document.getElementById('dispatchBtn').disabled = true;
+                document.getElementById('deliverBtn').disabled = false;
+                showResult('workflowResult', 
+                    `✅ Produce Dispatched!<br>
+                    Status: ${data.status}`
+                );
+            } catch (error) {
+                showResult('workflowResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function deliver() {
+            try {
+                const response = await fetch(`${API_BASE}/transactions/${state.transactionId}/deliver`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                updateTxStatus(data.status);
+                document.getElementById('deliverBtn').disabled = true;
+                document.getElementById('releaseBtn').disabled = false;
+                showResult('workflowResult', 
+                    `✅ Delivery Confirmed!<br>
+                    Status: ${data.status}`
+                );
+            } catch (error) {
+                showResult('workflowResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function releaseFunds() {
+            try {
+                const response = await fetch(`${API_BASE}/transactions/${state.transactionId}/release-funds`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                updateTxStatus(data.transaction.status);
+                document.getElementById('releaseBtn').disabled = true;
+                showResult('workflowResult', 
+                    `✅ Funds Released! Transaction Complete!<br>
+                    Status: ${data.transaction.status}<br>
+                    Escrow Unlocked: ${!data.escrow.isLocked}<br>
+                    <strong>🎉 Workflow Complete!</strong>`
+                );
+            } catch (error) {
+                showResult('workflowResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function viewAllUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/users`);
+                const data = await response.json();
+                showResult('viewResult', 
+                    `<strong>All Users (${data.length}):</strong><br>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>`
+                );
+            } catch (error) {
+                showResult('viewResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function viewAllListings() {
+            try {
+                const response = await fetch(`${API_BASE}/listings`);
+                const data = await response.json();
+                showResult('viewResult', 
+                    `<strong>All Listings (${data.length}):</strong><br>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>`
+                );
+            } catch (error) {
+                showResult('viewResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function viewTransaction() {
+            if (!state.transactionId) {
+                showResult('viewResult', '❌ No transaction created yet', true);
+                return;
+            }
+            try {
+                const response = await fetch(`${API_BASE}/transactions/${state.transactionId}`);
+                const data = await response.json();
+                showResult('viewResult', 
+                    `<strong>Transaction Details:</strong><br>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>`
+                );
+            } catch (error) {
+                showResult('viewResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+    </script>
+</body>
+</html>

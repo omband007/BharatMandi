@@ -1,35 +1,6 @@
-# Node modules
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# IDE
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Build outputs
 dist/
-build/
 *.log
-
-# Temporary files
-*.tmp
-.cache/
-
-# Keep Kiro specs
-!.kiro/specs/
+.env
+.DS_Store
+coverage/

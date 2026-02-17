@@ -1,0 +1,60 @@
+{
+  "name": "bharat-mandi-poc",
+  "version": "0.1.0",
+  "description": "Bharat Mandi POC - Farmer to Buyer workflow demonstration",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "migrate": "ts-node src/database/migrate.ts",
+    "db:setup": "ts-node src/database/migrate.ts up",
+    "db:rollback": "ts-node src/database/migrate.ts rollback",
+    "mongodb:setup": "ts-node src/database/mongodb-setup.ts setup",
+    "mongodb:test": "ts-node src/database/mongodb-setup.ts test",
+    "mongodb:stats": "ts-node src/database/mongodb-setup.ts stats",
+    "sqlite:setup": "ts-node src/database/sqlite-setup.ts setup",
+    "sqlite:test": "ts-node src/database/sqlite-setup.ts test",
+    "sqlite:stats": "ts-node src/database/sqlite-setup.ts stats"
+  },
+  "keywords": [
+    "agriculture",
+    "marketplace",
+    "escrow",
+    "grading"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.13.5",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.18.2",
+    "form-data": "^4.0.5",
+    "mongoose": "^8.23.0",
+    "multer": "^2.0.2",
+    "pg": "^8.18.0",
+    "sharp": "^0.34.5",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.17",
+    "@types/jest": "^29.5.0",
+    "@types/mongoose": "^5.11.97",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^20.0.0",
+    "@types/pg": "^8.16.0",
+    "@types/sqlite3": "^3.1.11",
+    "@types/uuid": "^9.0.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.0.0"
+  }
+}

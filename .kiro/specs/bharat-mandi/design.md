@@ -533,6 +533,140 @@ graph TB
 - **RDS Automated Backups**: Daily snapshots with point-in-time recovery
 - **Route 53 Health Checks**: Automatic failover to healthy endpoints
 
+### Database Implementation (Completed)
+
+The platform uses a **polyglot persistence** architecture with three databases, each optimized for specific use cases:
+
+#### PostgreSQL - Transactional Database
+**Purpose**: ACID-compliant storage for financial transactions and relational data
+**Tables**: 19 tables
+**Key Features**:
+- UUID primary keys for better distribution
+- Foreign key constraints for referential integrity
+- Compound indexes for query optimization
+- Automatic timestamp updates via triggers
+- Connection pooling (max 20 connections)
+
+**Core Tables**:
+1. **users** - All platform users (farmers, buyers, providers)
+2. **listings** - Marketplace produce listings
+3. **transactions** - Purchase transactions
+4. **escrow_accounts** - Secure payment escrow
+5. **ratings** - User ratings and feedback
+6. **credibility_scores** - Farmer credibility system
+7. **credibility_score_history** - Score change audit trail
+8. **service_providers** - Logistics, storage, suppliers
+9. **logistics_orders** - Delivery orders
+10. **storage_bookings** - Cold storage bookings
+11. **auction_listings** - Auction-based listings
+12. **bids** - Auction bids
+13. **government_schemes** - Available schemes
+14. **scheme_applications** - Farmer applications
+15. **route_optimizations** - Optimized delivery routes
+16. **vehicle_tracking** - Real-time vehicle locations
+17. **disputes** - Transaction disputes
+18. **dispute_evidence** - Dispute evidence submissions
+19. **migrations** - Migration tracking
+
+**Key Relationships**:
+```
+users (1) ──→ (N) listings ──→ (N) transactions ──→ (1) escrow_accounts
+users (1) ──→ (N) credibility_scores ──→ (N) credibility_score_history
+transactions (1) ──→ (N) ratings
+listings (1) ──→ (1) auction_listings ──→ (N) bids
+transactions (1) ──→ (1) logistics_orders ──→ (N) vehicle_tracking
+transactions (1) ──→ (1) disputes ──→ (N) dispute_evidence
+```
+
+#### MongoDB - Document Database
+**Purpose**: Flexible schema storage for unstructured/semi-structured data
+**Collections**: 10 collections
+**Key Features**:
+- Flexible schemas for evolving data structures
+- Compound indexes for efficient queries
+- Document size limit: 16MB
+- Connection pooling (min 5, max 10)
+- Aggregation pipeline for complex queries
+
+**Collections**:
+1. **photo_logs** - Farming activity photos with GPS metadata
+2. **quality_certificates** - AI-generated quality certificates
+3. **price_predictions** - 7-day price forecasts
+4. **voice_queries** - Voice assistant query history
+5. **feedback_comments** - Detailed user feedback
+6. **disease_diagnoses** - Crop disease diagnoses with treatments
+7. **soil_test_reports** - Soil health test results
+8. **smart_alerts** - Weather, pest, price alerts
+9. **traceability_records** - End-to-end produce traceability
+10. **ad_listings** - Voice-to-ad generated listings
+
+#### SQLite - Offline Storage
+**Purpose**: Local device storage for offline functionality
+**Tables**: 10 tables
+**Key Features**:
+- WAL mode for better concurrency
+- File-level encryption (SQLCipher in production)
+- Automatic sync when connectivity restored
+- FIFO sync queue processing
+
+**Tables**:
+1. **cached_listings** - Cached marketplace listings
+2. **pending_sync_queue** - Operations waiting to sync
+3. **local_photo_logs** - Photos stored locally
+4. **user_profile** - Cached user profile
+5. **ai_models_metadata** - Local AI model metadata
+6. **cached_certificates** - Quality certificates cache
+7. **offline_activities** - Activity log
+8. **cached_transactions** - Transaction history cache
+9. **sync_status** - Sync status per entity type
+10. **app_settings** - Application settings
+
+**Sync Strategy**:
+```
+1. User performs action offline
+2. Save to SQLite immediately
+3. Add to pending_sync_queue
+4. When online, process queue (FIFO)
+5. Sync to PostgreSQL/MongoDB
+6. Mark as synced, remove from queue
+7. Handle conflicts (server wins for transactions)
+```
+
+#### Data Consistency Rules
+
+**Transaction States**:
+```
+PENDING → ACCEPTED → PAYMENT_LOCKED → IN_TRANSIT → DELIVERED → COMPLETED
+                                                              ↓
+                                                          DISPUTED
+```
+
+**Escrow Rules**:
+- Funds locked when transaction status = PAYMENT_LOCKED
+- Funds released when status = COMPLETED (quality match >90%)
+- Funds frozen when status = DISPUTED
+
+**Credibility Score**:
+- Range: 300-900
+- Components: transaction_history (35%), payment_reliability (30%), farming_consistency (20%), produce_quality (15%)
+- Updated on transaction completion
+- History tracked with audit trail
+
+**Rating System**:
+- Range: 0-5
+- Implicit rating (70%) + Explicit rating (30%)
+- Both parties can rate after completion
+
+#### Database Documentation
+
+Complete database documentation available in:
+- `DATABASE-DOCUMENTATION.md` - Complete table documentation
+- `DATABASE-ER-DIAGRAMS.md` - Visual relationship diagrams
+- `DATABASE-SUMMARY.md` - Quick reference guide
+- `src/database/README.md` - PostgreSQL specific docs
+- `src/database/MONGODB-README.md` - MongoDB specific docs
+- `src/database/SQLITE-README.md` - SQLite specific docs
+
 ## Process Flow Diagrams
 
 ### 1. Farmer Onboarding and Produce Listing Flow

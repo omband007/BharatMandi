@@ -1,0 +1,552 @@
+# Bharat Mandi - Entity Relationship Diagrams
+
+## Core Transaction Flow ER Diagram
+
+```
+┌─────────────────┐
+│     USERS       │
+│─────────────────│
+│ PK: id (UUID)   │
+│ phone (UNIQUE)  │
+│ name            │
+│ type            │
+│ location        │
+│ credibility_    │
+│   score         │
+│ rating          │
+└────────┬────────┘
+         │
+         │ 1:N (farmer)
+         │
+         ▼
+┌─────────────────┐
+│    LISTINGS     │
+│─────────────────│
+│ PK: id (UUID)   │
+│ FK: farmer_id   │──┐
+│ produce_type    │  │
+│ quantity        │  │
+│ price_per_kg    │  │
+│ certificate_id  │  │
+│ is_active       │  │
+└────────┬────────┘  │
+         │           │
+         │ 1:N       │
+         │           │
+         ▼           │
+┌─────────────────┐  │
+│  TRANSACTIONS   │  │
+│─────────────────│  │
+│ PK: id (UUID)   │  │
+│ FK: listing_id  │──┘
+│ FK: farmer_id   │──┐
+│ FK: buyer_id    │──┤ (both → USERS)
+│ amount          │  │
+│ status          │  │
+│ created_at      │  │
+└────────┬────────┘  │
+         │           │
+         │ 1:1       │
+         │           │
+         ▼           │
+┌─────────────────┐  │
+│ ESCROW_ACCOUNTS │  │
+│─────────────────│  │
+│ PK: id (UUID)   │  │
+│ FK: transaction │  │
+│     _id (UNIQUE)│  │
+│ amount          │  │
+│ is_locked       │  │
+│ released_at     │  │
+└─────────────────┘  │
+                     │
+         ┌───────────┘
+         │
+         │ 1:N
+         │
+         ▼
+┌─────────────────┐
+│    RATINGS      │
+│─────────────────│
+│ PK: id (UUID)   │
+│ FK: transaction │
+│     _id         │
+│ FK: from_user_id│──┐
+│ FK: to_user_id  │──┤ (both → USERS)
+│ rating (0-5)    │  │
+│ feedback        │  │
+│ implicit_rating │  │
+└─────────────────┘  │
+                     │
+         ┌───────────┘
+         │
+         │ 1:1 (farmer only)
+         │
+         ▼
+┌─────────────────┐
+│ CREDIBILITY_    │
+│   SCORES        │
+│─────────────────│
+│ PK: id (UUID)   │
+│ FK: farmer_id   │
+│     (UNIQUE)    │
+│ score (300-900) │
+│ transaction_    │
+│   history       │
+│ payment_        │
+│   reliability   │
+│ farming_        │
+│   consistency   │
+│ produce_quality │
+└────────┬────────┘
+         │
+         │ 1:N
+         │
+         ▼
+┌─────────────────┐
+│ CREDIBILITY_    │
+│ SCORE_HISTORY   │
+│─────────────────│
+│ PK: id (UUID)   │
+│ FK: credibility │
+│     _score_id   │
+│ score           │
+│ reason          │
+│ timestamp       │
+└─────────────────┘
+```
+
+---
+
+## Auction System ER Diagram
+
+```
+┌─────────────────┐
+│    LISTINGS     │
+│─────────────────│
+│ PK: id (UUID)   │
+│ FK: farmer_id   │
+│ produce_type    │
+│ quantity        │
+│ price_per_kg    │
+└────────┬────────┘
+         │
+         │ 1:1 (optional)
+         │
+         ▼
+┌─────────────────┐
+│ AUCTION_        │
+│   LISTINGS      │
+│─────────────────│
+│ PK: id (UUID)   │
+│ FK: listing_id  │
+│     (UNIQUE)    │
+│ FK: farmer_id   │──┐
+│ FK: current_    │  │
+│     highest_    │  │
+│     bidder      │──┤ (both → USERS)
+│ minimum_bid_    │  │
+│   price         │  │
+│ current_highest │  │
+│   _bid          │  │
+│ start_time      │  │
+│ end_time        │  │
+│ status          │  │
+└────────┬────────┘  │
+         │           │
+         │ 1:N       │
+         │           │
+         ▼           │
+┌─────────────────┐  │
+│      BIDS       │  │
+│─────────────────│  │
+│ PK: id (UUID)   │  │
+│ FK: auction_id  │──┘
+│ FK: bidder_id   │──┐
+│ amount          │  │
+│ timestamp       │  │
+└─────────────────┘  │
+                     │
+         ┌───────────┘
+         │
+         └──────────► USERS
+```
+
+---
+
+## Logistics & Tracking ER Diagram
+
+```
+┌─────────────────┐
+│  TRANSACTIONS   │
+│─────────────────│
+│ PK: id (UUID)   │
+│ status          │
+└────────┬────────┘
+         │
+         │ 1:1
+         │
+         ▼
+┌─────────────────┐
+│ LOGISTICS_      │
+│   ORDERS        │
+│─────────────────│
+│ PK: id (UUID)   │
+│ FK: transaction │
+│     _id         │
+│ FK: provider_id │──┐
+│ pickup_lat/lng  │  │
+│ delivery_lat/lng│  │
+│ status          │  │
+│ vehicle_id      │  │
+│ estimated_      │  │
+│   delivery_time │  │
+└────────┬────────┘  │
+         │           │
+         │ 1:N       │
+         │           │
+         ▼           │
+┌─────────────────┐  │
+│ VEHICLE_        │  │
+│   TRACKING      │  │
+│─────────────────│  │
+│ PK: id (UUID)   │  │
+│ FK: logistics_  │  │
+│     order_id    │  │
+│ vehicle_id      │  │
+│ current_lat/lng │  │
+│ speed           │  │
+│ estimated_      │  │
+│   arrival       │  │
+│ last_updated    │  │
+└─────────────────┘  │
+                     │
+         ┌───────────┘
+         │
+         ▼
+┌─────────────────┐
+│ SERVICE_        │
+│   PROVIDERS     │
+│─────────────────│
+│ PK: id (UUID)   │
+│ name            │
+│ type            │
+│ services[]      │
+│ location        │
+│ rating          │
+│ contact_phone   │
+└────────┬────────┘
+         │
+         │ 1:N
+         │
+         ├──────────► STORAGE_BOOKINGS
+         │            (FK: provider_id)
+         │
+         └──────────► ROUTE_OPTIMIZATIONS
+                      (FK: provider_id)
+```
+
+---
+
+## Dispute Resolution ER Diagram
+
+```
+┌─────────────────┐
+│  TRANSACTIONS   │
+│─────────────────│
+│ PK: id (UUID)   │
+│ status          │
+└────────┬────────┘
+         │
+         │ 1:1 (when disputed)
+         │
+         ▼
+┌─────────────────┐
+│    DISPUTES     │
+│─────────────────│
+│ PK: id (UUID)   │
+│ FK: transaction │
+│     _id         │
+│ FK: initiated_  │──┐
+│     by          │  │
+│ status          │  │
+│ resolution      │  │
+│ created_at      │  │
+│ resolved_at     │  │
+└────────┬────────┘  │
+         │           │
+         │ 1:N       │
+         │           │
+         ▼           │
+┌─────────────────┐  │
+│ DISPUTE_        │  │
+│   EVIDENCE      │  │
+│─────────────────│  │
+│ PK: id (UUID)   │  │
+│ FK: dispute_id  │──┘
+│ FK: user_id     │──┐
+│ type            │  │
+│ content         │  │
+│ timestamp       │  │
+└─────────────────┘  │
+                     │
+         ┌───────────┘
+         │
+         └──────────► USERS
+```
+
+---
+
+## Government Schemes ER Diagram
+
+```
+┌─────────────────┐
+│ GOVERNMENT_     │
+│   SCHEMES       │
+│─────────────────│
+│ PK: id (UUID)   │
+│ name            │
+│ description     │
+│ benefits        │
+│ min/max_land_   │
+│   size          │
+│ crop_types[]    │
+│ locations[]     │
+│ farmer_         │
+│   categories[]  │
+│ application_    │
+│   deadline      │
+│ is_active       │
+└────────┬────────┘
+         │
+         │ 1:N
+         │
+         ▼
+┌─────────────────┐
+│ SCHEME_         │
+│   APPLICATIONS  │
+│─────────────────│
+│ PK: id (UUID)   │
+│ FK: scheme_id   │──┘
+│ FK: farmer_id   │──┐
+│ documents[]     │  │
+│ status          │  │
+│ applied_at      │  │
+│ reviewed_at     │  │
+└─────────────────┘  │
+                     │
+         ┌───────────┘
+         │
+         └──────────► USERS (farmer)
+```
+
+---
+
+## Complete Database Relationship Overview
+
+```
+                    ┌──────────────────────────────────────┐
+                    │            USERS (Central)           │
+                    │  - Farmers                           │
+                    │  - Buyers                            │
+                    │  - Service Providers                 │
+                    └──────────┬───────────────────────────┘
+                               │
+                ┌──────────────┼──────────────┐
+                │              │              │
+                ▼              ▼              ▼
+        ┌──────────┐   ┌──────────┐   ┌──────────┐
+        │ LISTINGS │   │CREDIBILITY│   │ RATINGS  │
+        │          │   │  SCORES   │   │          │
+        └────┬─────┘   └──────────┘   └──────────┘
+             │
+             ├──────────► AUCTION_LISTINGS ──► BIDS
+             │
+             └──────────► TRANSACTIONS
+                              │
+                    ┌─────────┼─────────┐
+                    │         │         │
+                    ▼         ▼         ▼
+            ┌──────────┐ ┌──────────┐ ┌──────────┐
+            │ ESCROW_  │ │LOGISTICS_│ │ DISPUTES │
+            │ ACCOUNTS │ │  ORDERS  │ │          │
+            └──────────┘ └────┬─────┘ └────┬─────┘
+                              │            │
+                              ▼            ▼
+                      ┌──────────┐  ┌──────────┐
+                      │ VEHICLE_ │  │ DISPUTE_ │
+                      │ TRACKING │  │ EVIDENCE │
+                      └──────────┘  └──────────┘
+
+        ┌──────────────────────────────────────────┐
+        │      SERVICE_PROVIDERS                   │
+        └──────────┬───────────────────────────────┘
+                   │
+        ┌──────────┼──────────┐
+        │          │          │
+        ▼          ▼          ▼
+┌──────────┐ ┌──────────┐ ┌──────────┐
+│LOGISTICS_│ │ STORAGE_ │ │  ROUTE_  │
+│  ORDERS  │ │ BOOKINGS │ │OPTIMIZA- │
+│          │ │          │ │  TIONS   │
+└──────────┘ └──────────┘ └──────────┘
+
+        ┌──────────────────────────────────────────┐
+        │      GOVERNMENT_SCHEMES                  │
+        └──────────┬───────────────────────────────┘
+                   │
+                   │ 1:N
+                   │
+                   ▼
+        ┌──────────────────────────────────────────┐
+        │      SCHEME_APPLICATIONS                 │
+        └──────────────────────────────────────────┘
+```
+
+---
+
+## MongoDB Collections Relationship
+
+```
+┌──────────────────┐
+│   PHOTO_LOGS     │ ◄──┐
+│  (farmerId)      │    │
+└──────────────────┘    │
+                        │ References
+┌──────────────────┐    │
+│   QUALITY_       │    │
+│  CERTIFICATES    │    │
+│  (farmerId,      │    │
+│   certificateId) │    │
+└──────────────────┘    │
+                        │
+┌──────────────────┐    │
+│  TRACEABILITY_   │    │
+│    RECORDS       │────┘
+│  (farmerId,      │
+│   certificateId, │
+│   photoLogId)    │
+└──────────────────┘
+
+┌──────────────────┐
+│ DISEASE_         │
+│  DIAGNOSES       │
+│  (farmerId,      │
+│   photoLogId)    │
+└──────────────────┘
+
+┌──────────────────┐
+│ SOIL_TEST_       │
+│   REPORTS        │
+│  (farmerId)      │
+└──────────────────┘
+
+┌──────────────────┐
+│ PRICE_           │
+│  PREDICTIONS     │
+│  (produceType,   │
+│   location)      │
+└──────────────────┘
+
+┌──────────────────┐
+│ SMART_ALERTS     │
+│  (userId)        │
+└──────────────────┘
+
+┌──────────────────┐
+│ VOICE_QUERIES    │
+│  (userId)        │
+└──────────────────┘
+
+┌──────────────────┐
+│ FEEDBACK_        │
+│  COMMENTS        │
+│  (transactionId, │
+│   fromUserId,    │
+│   toUserId)      │
+└──────────────────┘
+
+┌──────────────────┐
+│ AD_LISTINGS      │
+│  (userId)        │
+└──────────────────┘
+```
+
+---
+
+## SQLite Offline Storage Flow
+
+```
+┌──────────────────────────────────────────┐
+│         ONLINE DATABASES                 │
+│  (PostgreSQL + MongoDB)                  │
+└──────────────┬───────────────────────────┘
+               │
+               │ Sync when online
+               │
+               ▼
+┌──────────────────────────────────────────┐
+│         SQLITE (Offline)                 │
+└──────────────┬───────────────────────────┘
+               │
+    ┌──────────┼──────────┐
+    │          │          │
+    ▼          ▼          ▼
+┌────────┐ ┌────────┐ ┌────────┐
+│CACHED_ │ │LOCAL_  │ │PENDING_│
+│LISTINGS│ │PHOTO_  │ │SYNC_   │
+│        │ │LOGS    │ │QUEUE   │
+└────────┘ └────────┘ └────────┘
+    │          │          │
+    │          │          │
+    ▼          ▼          ▼
+┌────────┐ ┌────────┐ ┌────────┐
+│CACHED_ │ │OFFLINE_│ │SYNC_   │
+│CERTIFI-│ │ACTIVI- │ │STATUS  │
+│CATES   │ │TIES    │ │        │
+└────────┘ └────────┘ └────────┘
+    │          │          │
+    │          │          │
+    ▼          ▼          ▼
+┌────────┐ ┌────────┐ ┌────────┐
+│USER_   │ │AI_     │ │APP_    │
+│PROFILE │ │MODELS_ │ │SETTINGS│
+│        │ │METADATA│ │        │
+└────────┘ └────────┘ └────────┘
+```
+
+---
+
+## Data Flow Across Databases
+
+```
+USER ACTION (Mobile App)
+        │
+        ▼
+┌───────────────────┐
+│  Check Network    │
+└────────┬──────────┘
+         │
+    ┌────┴────┐
+    │         │
+ONLINE    OFFLINE
+    │         │
+    ▼         ▼
+┌────────┐ ┌────────┐
+│PostgreSQL MongoDB│ │ SQLite │
+│        │ │        │ │        │
+│ Users  │ │Photos  │ │ Cache  │
+│ Trans  │ │Certs   │ │ Queue  │
+│ Escrow │ │Alerts  │ │ Local  │
+└────────┘ └────────┘ └────────┘
+    │         │         │
+    │         │         │
+    └─────────┴─────────┘
+              │
+              ▼
+    ┌──────────────────┐
+    │  Sync Process    │
+    │  (when online)   │
+    └──────────────────┘
+```
+
