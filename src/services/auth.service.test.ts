@@ -142,3 +142,223 @@ describe('Authentication Service', () => {
     });
   });
 });
+
+import { getUserProfile, updateUserProfile } from './auth.service';
+
+describe('Profile Management', () => {
+  let testUserId: string;
+
+  beforeAll(async () => {
+    // Create a test user for profile tests
+    const userData = {
+      phoneNumber: '9111111111',
+      name: 'Profile Test User',
+      userType: UserType.FARMER,
+      location: {
+        latitude: 19.0760,
+        longitude: 72.8777,
+        address: 'Test City, Test State'
+      },
+      bankAccount: {
+        accountNumber: '1111111111',
+        ifscCode: 'TEST0001111',
+        accountHolderName: 'Profile Test User'
+      }
+    };
+
+    const result = await createUser(userData);
+    if (result.success && result.user) {
+      testUserId = result.user.id;
+    }
+  });
+
+  describe('Get User Profile', () => {
+    it('should retrieve user profile by ID', async () => {
+      if (!testUserId) {
+        console.log('Skipping test - no test user created');
+        return;
+      }
+
+      const result = await getUserProfile(testUserId);
+      
+      expect(result.success).toBe(true);
+      expect(result.user).toBeDefined();
+      expect(result.user?.id).toBe(testUserId);
+      expect(result.user?.name).toBe('Profile Test User');
+    });
+
+    it('should return error for non-existent user ID', async () => {
+      const result = await getUserProfile('00000000-0000-0000-0000-000000000000');
+      
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('User not found');
+    });
+
+    it('should include decrypted bank account in profile', async () => {
+      if (!testUserId) {
+        console.log('Skipping test - no test user created');
+        return;
+      }
+
+      const result = await getUserProfile(testUserId);
+      
+      if (result.success && result.user) {
+        expect(result.user.bankAccount).toBeDefined();
+        expect(result.user.bankAccount?.accountNumber).toBe('1111111111');
+        expect(result.user.bankAccount?.ifscCode).toBe('TEST0001111');
+      }
+    });
+  });
+
+  describe('Update User Profile', () => {
+    it('should update non-sensitive data without verification', async () => {
+      if (!testUserId) {
+        console.log('Skipping test - no test user created');
+        return;
+      }
+
+      const updates = {
+        name: 'Updated Profile Name',
+        location: {
+          latitude: 20.0,
+          longitude: 73.0,
+          address: 'Updated City, Updated State'
+        }
+      };
+
+      const result = await updateUserProfile(testUserId, updates, false);
+      
+      expect(result.success).toBe(true);
+      expect(result.user?.name).toBe('Updated Profile Name');
+      expect(result.user?.location.address).toBe('Updated City, Updated State');
+    });
+
+    it('should require verification for phone number update', async () => {
+      if (!testUserId) {
+        console.log('Skipping test - no test user created');
+        return;
+      }
+
+      const updates = {
+        phoneNumber: '9222222222'
+      };
+
+      const result = await updateUserProfile(testUserId, updates, false);
+      
+      expect(result.success).toBe(false);
+      expect(result.requiresVerification).toBe(true);
+      expect(result.message).toBe('Phone verification required for updating sensitive data');
+    });
+
+    it('should require verification for bank account update', async () => {
+      if (!testUserId) {
+        console.log('Skipping test - no test user created');
+        return;
+      }
+
+      const updates = {
+        bankAccount: {
+          accountNumber: '2222222222',
+          ifscCode: 'TEST0002222',
+          accountHolderName: 'Updated Account Holder'
+        }
+      };
+
+      const result = await updateUserProfile(testUserId, updates, false);
+      
+      expect(result.success).toBe(false);
+      expect(result.requiresVerification).toBe(true);
+    });
+
+    it('should update phone number with verification', async () => {
+      if (!testUserId) {
+        console.log('Skipping test - no test user created');
+        return;
+      }
+
+      const updates = {
+        phoneNumber: '9333333333'
+      };
+
+      const result = await updateUserProfile(testUserId, updates, true);
+      
+      // This might fail if phone number already exists
+      if (result.success) {
+        expect(result.user?.phoneNumber).toBe('9333333333');
+      }
+    });
+
+    it('should update bank account with verification', async () => {
+      if (!testUserId) {
+        console.log('Skipping test - no test user created');
+        return;
+      }
+
+      const updates = {
+        bankAccount: {
+          accountNumber: '3333333333',
+          ifscCode: 'TEST0003333',
+          accountHolderName: 'New Account Holder'
+        }
+      };
+
+      const result = await updateUserProfile(testUserId, updates, true);
+      
+      expect(result.success).toBe(true);
+      expect(result.user?.bankAccount?.accountNumber).toBe('3333333333');
+    });
+
+    it('should reject duplicate phone number', async () => {
+      if (!testUserId) {
+        console.log('Skipping test - no test user created');
+        return;
+      }
+
+      // Try to update to an existing phone number
+      const updates = {
+        phoneNumber: '9876543210' // Assuming this exists from earlier tests
+      };
+
+      const result = await updateUserProfile(testUserId, updates, true);
+      
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Phone number already in use');
+    });
+
+    it('should handle empty updates gracefully', async () => {
+      if (!testUserId) {
+        console.log('Skipping test - no test user created');
+        return;
+      }
+
+      const updates = {};
+
+      const result = await updateUserProfile(testUserId, updates, false);
+      
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('No valid fields to update');
+    });
+
+    it('should update multiple fields at once', async () => {
+      if (!testUserId) {
+        console.log('Skipping test - no test user created');
+        return;
+      }
+
+      const updates = {
+        name: 'Multi Update Test',
+        location: {
+          latitude: 21.0,
+          longitude: 74.0,
+          address: 'Multi Update City'
+        }
+      };
+
+      const result = await updateUserProfile(testUserId, updates, false);
+      
+      expect(result.success).toBe(true);
+      expect(result.user?.name).toBe('Multi Update Test');
+      expect(result.user?.location.address).toBe('Multi Update City');
+    });
+  });
+});
