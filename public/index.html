@@ -197,8 +197,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🌾 Bharat Mandi POC</h1>
-            <p>Complete Farmer-to-Buyer Workflow Demo</p>
+            <h1>🌾 Bharat Mandi POC v2</h1>
+            <p>Complete Workflow with Authentication & Database Integration</p>
         </div>
 
         <div class="status-bar">
@@ -230,6 +230,74 @@
         </div>
 
         <div class="workflow">
+            <!-- Step 0: Authentication -->
+            <div class="card" id="authCard">
+                <h2><span class="step-number">0</span> Authentication</h2>
+                <div id="authStep1" style="display: block;">
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="authPhone" placeholder="9876543210" maxlength="10">
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            Enter 10-digit mobile number
+                        </small>
+                    </div>
+                    <button onclick="requestOTP()">Request OTP</button>
+                    <div id="otpRequestResult" class="result"></div>
+                </div>
+                
+                <div id="authStep2" style="display: none;">
+                    <div class="form-group">
+                        <label>Enter OTP</label>
+                        <input type="text" id="otpCode" placeholder="123456" maxlength="6">
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            Check console for OTP (in production, sent via SMS)
+                        </small>
+                    </div>
+                    <button onclick="verifyOTP()">Verify OTP</button>
+                    <div id="otpVerifyResult" class="result"></div>
+                </div>
+                
+                <div id="authStep3" style="display: none;">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">Complete Registration</h3>
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="regName" placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label>User Type</label>
+                        <select id="regUserType">
+                            <option value="FARMER">Farmer</option>
+                            <option value="BUYER">Buyer</option>
+                            <option value="LOGISTICS_PROVIDER">Logistics Provider</option>
+                            <option value="COLD_STORAGE_PROVIDER">Cold Storage Provider</option>
+                            <option value="SUPPLIER">Supplier</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" id="regAddress" placeholder="City, State">
+                    </div>
+                    <div class="form-group">
+                        <label>Latitude</label>
+                        <input type="number" id="regLat" value="19.0760" step="0.0001">
+                    </div>
+                    <div class="form-group">
+                        <label>Longitude</label>
+                        <input type="number" id="regLng" value="72.8777" step="0.0001">
+                    </div>
+                    <button onclick="completeRegistration()">Complete Registration</button>
+                    <div id="registrationResult" class="result"></div>
+                </div>
+                
+                <div id="authStep4" style="display: none;">
+                    <div style="text-align: center; padding: 20px;">
+                        <h3 style="color: #28a745; margin-bottom: 10px;">✅ Authenticated</h3>
+                        <p id="authenticatedUser" style="color: #666;"></p>
+                        <button onclick="logout()" style="margin-top: 15px; background: #dc3545;">Logout</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Step 1: Create Users -->
             <div class="card">
                 <h2><span class="step-number">1</span> Create Users</h2>
@@ -375,8 +443,180 @@
             buyerId: null,
             certificateId: null,
             listingId: null,
-            transactionId: null
+            transactionId: null,
+            currentUser: null,
+            authPhone: null
         };
+
+        // Authentication Functions
+        async function requestOTP() {
+            try {
+                const phone = document.getElementById('authPhone').value.trim();
+                
+                if (!/^[6-9]\d{9}$/.test(phone)) {
+                    showResult('otpRequestResult', '❌ Invalid phone number. Must be 10 digits starting with 6-9', true);
+                    return;
+                }
+                
+                state.authPhone = phone;
+                
+                const response = await fetch(`${API_BASE}/auth/request-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber: phone })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to send OTP');
+                }
+                
+                document.getElementById('authStep1').style.display = 'none';
+                document.getElementById('authStep2').style.display = 'block';
+                showResult('otpRequestResult', `✅ ${data.message}<br><small>Check browser console for OTP</small>`);
+            } catch (error) {
+                showResult('otpRequestResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function verifyOTP() {
+            try {
+                const otp = document.getElementById('otpCode').value.trim();
+                
+                if (!/^\d{6}$/.test(otp)) {
+                    showResult('otpVerifyResult', '❌ OTP must be 6 digits', true);
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/auth/verify-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        phoneNumber: state.authPhone,
+                        otp: otp
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'OTP verification failed');
+                }
+                
+                if (data.userExists) {
+                    // Existing user - log them in
+                    state.currentUser = data.user;
+                    document.getElementById('authStep2').style.display = 'none';
+                    document.getElementById('authStep4').style.display = 'block';
+                    document.getElementById('authenticatedUser').innerHTML = 
+                        `<strong>${data.user.name}</strong><br>
+                        ${data.user.userType}<br>
+                        ${data.user.phoneNumber}`;
+                    
+                    // Auto-fill user data based on type
+                    if (data.user.userType === 'FARMER') {
+                        state.farmerId = data.user.id;
+                        document.getElementById('farmerName').value = data.user.name;
+                        document.getElementById('farmerPhone').value = data.user.phoneNumber;
+                        document.getElementById('gradeBtn').disabled = false;
+                    } else if (data.user.userType === 'BUYER') {
+                        state.buyerId = data.user.id;
+                        document.getElementById('buyerName').value = data.user.name;
+                        document.getElementById('buyerPhone').value = data.user.phoneNumber;
+                    }
+                    updateStatus();
+                    showResult('otpVerifyResult', `✅ Welcome back, ${data.user.name}!`);
+                } else {
+                    // New user - show registration form
+                    document.getElementById('authStep2').style.display = 'none';
+                    document.getElementById('authStep3').style.display = 'block';
+                    showResult('otpVerifyResult', '✅ OTP verified! Please complete registration.');
+                }
+            } catch (error) {
+                showResult('otpVerifyResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function completeRegistration() {
+            try {
+                const name = document.getElementById('regName').value.trim();
+                const userType = document.getElementById('regUserType').value;
+                const address = document.getElementById('regAddress').value.trim();
+                const lat = parseFloat(document.getElementById('regLat').value);
+                const lng = parseFloat(document.getElementById('regLng').value);
+                
+                if (!name || !address) {
+                    showResult('registrationResult', '❌ Please fill all required fields', true);
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phoneNumber: state.authPhone,
+                        name: name,
+                        userType: userType,
+                        location: {
+                            latitude: lat,
+                            longitude: lng,
+                            address: address
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Registration failed');
+                }
+                
+                state.currentUser = data.user;
+                document.getElementById('authStep3').style.display = 'none';
+                document.getElementById('authStep4').style.display = 'block';
+                document.getElementById('authenticatedUser').innerHTML = 
+                    `<strong>${data.user.name}</strong><br>
+                    ${data.user.userType}<br>
+                    ${data.user.phoneNumber}`;
+                
+                // Auto-fill user data based on type
+                if (data.user.userType === 'FARMER') {
+                    state.farmerId = data.user.id;
+                    document.getElementById('farmerName').value = data.user.name;
+                    document.getElementById('farmerPhone').value = data.user.phoneNumber;
+                    document.getElementById('gradeBtn').disabled = false;
+                } else if (data.user.userType === 'BUYER') {
+                    state.buyerId = data.user.id;
+                    document.getElementById('buyerName').value = data.user.name;
+                    document.getElementById('buyerPhone').value = data.user.phoneNumber;
+                }
+                updateStatus();
+                showResult('registrationResult', `✅ Registration complete! Welcome, ${data.user.name}!`);
+            } catch (error) {
+                showResult('registrationResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        function logout() {
+            state = {
+                farmerId: null,
+                buyerId: null,
+                certificateId: null,
+                listingId: null,
+                transactionId: null,
+                currentUser: null,
+                authPhone: null
+            };
+            document.getElementById('authStep1').style.display = 'block';
+            document.getElementById('authStep2').style.display = 'none';
+            document.getElementById('authStep3').style.display = 'none';
+            document.getElementById('authStep4').style.display = 'none';
+            document.getElementById('authPhone').value = '';
+            document.getElementById('otpCode').value = '';
+            updateStatus();
+            location.reload();
+        }
 
         // Toggle produce type dropdown based on auto-detect checkbox
         document.addEventListener('DOMContentLoaded', function() {
