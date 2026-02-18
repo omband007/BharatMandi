@@ -8,7 +8,7 @@ type: feature-enhancement
 
 # Design Document: Listing Media Support
 
-**Parent Spec:** [Bharat Mandi Design](../bharat-mandi/design.md)  
+**Parent Spec:** [Bharat Mandi Design](../../bharat-mandi-main/design.md)  
 **Related Requirements:** [Listing Media Support Requirements](./requirements.md)  
 **Depends On:** [Dual Database Sync Design](../database-sync-postgresql-sqlite/design.md), [Persist Listings Design](../persist-listings-transactions/design.md)  
 **Status:** 📝 Spec Ready

@@ -8,7 +8,7 @@ type: infrastructure
 
 # Design Document: Database Sync PostgreSQL-SQLite
 
-**Parent Spec:** [Bharat Mandi Design](../bharat-mandi/design.md)  
+**Parent Spec:** [Bharat Mandi Design](../../bharat-mandi-main/design.md)  
 **Related Requirements:** [Database Sync Requirements](./requirements.md)  
 **Status:** ✅ Complete  
 **Type:** Infrastructure Foundation

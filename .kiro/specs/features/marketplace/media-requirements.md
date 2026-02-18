@@ -8,7 +8,7 @@ type: feature-enhancement
 
 # Requirements Document: Listing Media Support
 
-**Parent Spec:** [Bharat Mandi](../bharat-mandi/requirements.md) - Requirement 6 (Digital Mandi)  
+**Parent Spec:** [Bharat Mandi](../../bharat-mandi-main/requirements.md) - Requirement 6 (Digital Mandi)  
 **Depends On:** [Dual Database Sync](../database-sync-postgresql-sqlite/requirements.md), [Persist Listings & Transactions](../persist-listings-transactions/requirements.md)  
 **Status:** 📝 Spec Ready
 

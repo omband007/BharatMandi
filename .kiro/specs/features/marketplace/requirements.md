@@ -8,7 +8,7 @@ type: feature
 
 # Requirements Document
 
-**Parent Spec:** [Bharat Mandi](../bharat-mandi/requirements.md) - Requirements 6 & 7  
+**Parent Spec:** [Bharat Mandi](../../bharat-mandi-main/requirements.md) - Requirements 6 & 7  
 **Depends On:** [Dual Database Sync](../database-sync-postgresql-sqlite/requirements.md)  
 **Status:** ✅ Complete
 

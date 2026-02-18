@@ -8,7 +8,7 @@ type: infrastructure
 
 # Requirements Document
 
-**Parent Spec:** [Bharat Mandi](../bharat-mandi/requirements.md) - Requirement 8 (Offline Functionality)  
+**Parent Spec:** [Bharat Mandi](../../bharat-mandi-main/requirements.md) - Requirement 8 (Offline Functionality)  
 **Status:** ✅ Complete  
 **Type:** Infrastructure Foundation
 

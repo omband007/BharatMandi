@@ -8,7 +8,7 @@ type: feature
 
 # Design Document: Persist Listings and Transactions
 
-**Parent Spec:** [Bharat Mandi Design](../bharat-mandi/design.md)  
+**Parent Spec:** [Bharat Mandi Design](../../bharat-mandi-main/design.md)  
 **Related Requirements:** [Persist Listings Requirements](./requirements.md)  
 **Depends On:** [Dual Database Sync Design](../database-sync-postgresql-sqlite/design.md)  
 **Status:** ✅ Complete
