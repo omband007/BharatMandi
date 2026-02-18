@@ -142,7 +142,7 @@ This implementation plan adds comprehensive media support to marketplace listing
 
 
 - [ ] 6. Media Service Implementation
-  - [ ] 6.1 Implement uploadMedia method
+  - [x] 6.1 Implement uploadMedia method
     - Validate file type and size
     - Check media count limit (max 10 per listing)
     - Generate thumbnail if photo or video
