@@ -18,6 +18,9 @@ All project documentation is organized in the `docs/` folder:
 - [MongoDB Setup](docs/MONGODB-SETUP.md) - MongoDB configuration
 - [POC Test Results](docs/POC-TEST-RESULTS.md) - Testing outcomes
 - [Crop Detection Update](docs/CROP-DETECTION-UPDATE.md) - Latest crop detection features
+- **[Vertical Slicing Guide](docs/VERTICAL-SLICING-GUIDE.md)** - Feature-based architecture guide
+- **[Vertical Slicing Migration](docs/VERTICAL-SLICING-MIGRATION.md)** - Migration documentation
+- [Code Organization](docs/CODE-ORGANIZATION.md) - Best practices and patterns
 
 ## POC Scope
 
@@ -52,21 +55,48 @@ bharat-mandi/
 ├── .kiro/                  # Kiro specs and configuration
 │   └── specs/
 │       └── bharat-mandi/   # Feature specifications
+├── config/                 # Configuration files
+│   ├── jest.config.js     # Jest test configuration
+│   └── test-workflow.ps1  # Test workflow script
 ├── data/                   # SQLite database files
 ├── docs/                   # 📚 All documentation files
 ├── public/                 # Static HTML files for POC UI
 ├── src/
-│   ├── database/          # Database configuration and migrations
-│   ├── routes/            # API route handlers
-│   ├── services/          # Business logic services
-│   ├── types/             # TypeScript type definitions
-│   └── __tests__/         # Integration tests
+│   ├── features/          # 🎯 Feature modules (vertical slices)
+│   │   ├── auth/         # Authentication & user management
+│   │   ├── grading/      # AI-powered produce grading
+│   │   ├── marketplace/  # Marketplace listings
+│   │   ├── transactions/ # Transaction management
+│   │   └── users/        # User CRUD operations
+│   ├── shared/           # Shared code across features
+│   │   ├── database/     # Database connections & migrations
+│   │   ├── types/        # Common type definitions
+│   │   └── __tests__/    # Integration tests
+│   ├── app.ts            # Express app setup
+│   ├── index.ts          # Server entry point
+│   └── README.md         # Source code documentation
 ├── TestImages/            # Sample images for testing
 ├── package.json
 ├── tsconfig.json
-├── jest.config.js
 └── README.md
 ```
+
+### Architecture: Vertical Slicing (Feature-Based)
+
+This project uses **vertical slicing** architecture where each feature is self-contained with its own:
+- Controller (HTTP routes)
+- Service (business logic)
+- Types (type definitions)
+- Tests (unit & integration)
+
+**Benefits:**
+- ✅ High cohesion - all related code in one place
+- ✅ Low coupling - features are independent
+- ✅ Easy navigation - everything for a feature is together
+- ✅ Scalable - add features without touching existing ones
+- ✅ Team friendly - teams can own entire features
+
+See [Vertical Slicing Guide](docs/VERTICAL-SLICING-GUIDE.md) for details.
 
 ## Installation
 

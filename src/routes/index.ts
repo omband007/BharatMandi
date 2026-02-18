@@ -2,8 +2,8 @@ import { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { UserType } from '../types';
 import { db } from '../database/memory-db';
-import gradingRoutes from './grading.routes';
-import authRoutes from './auth.routes';
+import gradingRoutes from '../features/grading/grading.controller';
+import authRoutes from '../features/auth/auth.controller';
 import { marketplaceService } from '../services/marketplace.service';
 import { transactionService } from '../services/transaction.service';
 

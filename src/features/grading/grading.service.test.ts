@@ -1,5 +1,5 @@
 import { GradingService } from './grading.service';
-import { ProduceGrade } from '../types';
+import { ProduceGrade } from '../../types';
 
 describe('GradingService', () => {
   let service: GradingService;

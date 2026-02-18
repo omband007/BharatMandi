@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
-import { gradingService } from '../services/grading.service';
+import { gradingService } from '../../services/grading.service';
 
 const router = Router();
 
@@ -117,4 +117,5 @@ router.post('/grade', async (req: Request, res: Response) => {
   }
 });
 
-export default router;
+// Export as gradingController for feature-based architecture
+export const gradingController = router;

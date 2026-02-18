@@ -1,32 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
-import { pool } from '../database/pg-config';
-import { UserType } from '../types';
-
-interface OTPSession {
-  phoneNumber: string;
-  otp: string;
-  expiresAt: Date;
-  attempts: number;
-}
-
-interface User {
-  id: string;
-  phoneNumber: string;
-  name: string;
-  userType: UserType;
-  location: {
-    latitude: number;
-    longitude: number;
-    address: string;
-  };
-  bankAccount?: {
-    accountNumber: string;
-    ifscCode: string;
-    accountHolderName: string;
-  };
-  createdAt: Date;
-}
+import { pool } from '../../shared/database/pg-config';
+import { UserType } from '../../shared/types/common.types';
+import type { User, OTPSession, CreateUserDTO, UpdateUserDTO, AuthResult, TokenPayload } from './auth.types';
 
 // In-memory OTP storage (in production, use Redis)
 const otpSessions = new Map<string, OTPSession>();

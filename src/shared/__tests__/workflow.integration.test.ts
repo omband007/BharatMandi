@@ -1,10 +1,10 @@
 // Integration test for the complete workflow
 import { v4 as uuidv4 } from 'uuid';
-import { UserType, TransactionStatus } from '../types';
+import { UserType, TransactionStatus } from '../../types';
 import { db } from '../database/memory-db';
-import { gradingService } from '../services/grading.service';
-import { marketplaceService } from '../services/marketplace.service';
-import { transactionService } from '../services/transaction.service';
+import { gradingService } from '../features/grading';
+import { marketplaceService } from '../features/marketplace';
+import { transactionService } from '../features/transactions';
 
 describe('Complete Workflow Integration Test', () => {
   beforeEach(() => {

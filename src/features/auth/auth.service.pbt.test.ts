@@ -15,8 +15,8 @@ import {
   getOTPForTesting,
   clearVerifiedPhoneNumbers
 } from './auth.service';
-import { UserType } from '../types';
-import { pool } from '../database/pg-config';
+import { UserType } from '../../types';
+import { pool } from '../../shared/database/pg-config';
 
 // Set test environment
 process.env.NODE_ENV = 'test';

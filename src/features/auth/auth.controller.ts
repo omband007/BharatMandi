@@ -1,6 +1,17 @@
 import express, { Request, Response } from 'express';
-import { requestOTP, verifyOTP, createUser, getUserByPhone } from '../services/auth.service';
-import { UserType } from '../types';
+import { 
+  requestOTP, 
+  verifyOTP, 
+  createUser, 
+  getUserByPhone,
+  setupPIN,
+  loginWithPIN,
+  loginWithBiometric,
+  verifyToken,
+  getUserProfile,
+  updateUserProfile
+} from './auth.service';
+import { UserType } from '../../shared/types/common.types';
 
 const router = express.Router();
 
@@ -127,9 +138,8 @@ router.get('/user/:phoneNumber', async (req: Request, res: Response) => {
   }
 });
 
-export default router;
-
-import { setupPIN, loginWithPIN, loginWithBiometric, verifyToken } from '../services/auth.service';
+// Export as authController for feature-based architecture
+export const authController = router;
 
 /**
  * POST /api/auth/setup-pin
@@ -245,8 +255,6 @@ router.post('/verify-token', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-import { getUserProfile, updateUserProfile } from '../services/auth.service';
 
 /**
  * GET /api/auth/profile/:userId

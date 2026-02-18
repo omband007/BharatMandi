@@ -1,5 +1,5 @@
 import { requestOTP, verifyOTP, createUser } from './auth.service';
-import { UserType } from '../types';
+import { UserType } from '../../types';
 
 describe('Authentication Service', () => {
   describe('OTP Flow', () => {
