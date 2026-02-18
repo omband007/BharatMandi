@@ -6,23 +6,23 @@
 -- ============================================================================
 
 -- ============================================================================
--- CACHED LISTINGS TABLE
+-- LISTINGS TABLE (Marketplace listings with offline sync)
 -- ============================================================================
-CREATE TABLE IF NOT EXISTS cached_listings (
+CREATE TABLE IF NOT EXISTS listings (
   id TEXT PRIMARY KEY,
   farmer_id TEXT NOT NULL,
   produce_type TEXT NOT NULL,
   quantity REAL NOT NULL,
   price_per_kg REAL NOT NULL,
-  certificate_id TEXT,
+  certificate_id TEXT NOT NULL,
   expected_harvest_date TEXT,
   is_active INTEGER DEFAULT 1,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  cached_at TEXT DEFAULT CURRENT_TIMESTAMP
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_cached_listings_produce_type ON cached_listings(produce_type);
-CREATE INDEX IF NOT EXISTS idx_cached_listings_is_active ON cached_listings(is_active);
+CREATE INDEX IF NOT EXISTS idx_listings_farmer ON listings(farmer_id);
+CREATE INDEX IF NOT EXISTS idx_listings_active ON listings(is_active);
+CREATE INDEX IF NOT EXISTS idx_listings_created_at ON listings(created_at);
 
 -- ============================================================================
 -- PENDING SYNC QUEUE TABLE
@@ -64,7 +64,42 @@ CREATE INDEX IF NOT EXISTS idx_local_photo_logs_synced ON local_photo_logs(synce
 CREATE INDEX IF NOT EXISTS idx_local_photo_logs_timestamp ON local_photo_logs(timestamp DESC);
 
 -- ============================================================================
--- USER PROFILE TABLE (Cached)
+-- USERS TABLE (Primary user storage with authentication)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  phone_number TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  user_type TEXT NOT NULL, -- FARMER, BUYER, etc.
+  location TEXT NOT NULL, -- JSON string: {address, city, state, pincode, coordinates}
+  bank_account TEXT, -- JSON string: {accountNumber, ifscCode, bankName, accountHolderName}
+  pin_hash TEXT, -- Hashed PIN for authentication
+  failed_attempts INTEGER DEFAULT 0,
+  locked_until TEXT, -- ISO timestamp when account lock expires
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_phone_number ON users(phone_number);
+CREATE INDEX IF NOT EXISTS idx_users_user_type ON users(user_type);
+
+-- ============================================================================
+-- OTP SESSIONS TABLE (For phone verification)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS otp_sessions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  phone_number TEXT NOT NULL,
+  otp TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  attempts INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_otp_sessions_phone_number ON otp_sessions(phone_number);
+CREATE INDEX IF NOT EXISTS idx_otp_sessions_expires_at ON otp_sessions(expires_at);
+
+-- ============================================================================
+-- USER PROFILE TABLE (Cached - for offline sync)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS user_profile (
   id TEXT PRIMARY KEY,
@@ -137,9 +172,9 @@ CREATE INDEX IF NOT EXISTS idx_offline_activities_user_id ON offline_activities(
 CREATE INDEX IF NOT EXISTS idx_offline_activities_created_at ON offline_activities(created_at DESC);
 
 -- ============================================================================
--- CACHED TRANSACTIONS TABLE
+-- TRANSACTIONS TABLE (Purchase transactions with offline sync)
 -- ============================================================================
-CREATE TABLE IF NOT EXISTS cached_transactions (
+CREATE TABLE IF NOT EXISTS transactions (
   id TEXT PRIMARY KEY,
   listing_id TEXT NOT NULL,
   farmer_id TEXT NOT NULL,
@@ -147,13 +182,33 @@ CREATE TABLE IF NOT EXISTS cached_transactions (
   amount REAL NOT NULL,
   status TEXT NOT NULL,
   created_at TEXT NOT NULL,
-  updated_at TEXT,
-  cached_at TEXT DEFAULT CURRENT_TIMESTAMP
+  updated_at TEXT NOT NULL,
+  dispatched_at TEXT,
+  delivered_at TEXT,
+  completed_at TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_cached_transactions_farmer_id ON cached_transactions(farmer_id);
-CREATE INDEX IF NOT EXISTS idx_cached_transactions_buyer_id ON cached_transactions(buyer_id);
-CREATE INDEX IF NOT EXISTS idx_cached_transactions_status ON cached_transactions(status);
+CREATE INDEX IF NOT EXISTS idx_transactions_listing ON transactions(listing_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_farmer ON transactions(farmer_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_buyer ON transactions(buyer_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status);
+CREATE INDEX IF NOT EXISTS idx_transactions_created_at ON transactions(created_at);
+
+-- ============================================================================
+-- ESCROW ACCOUNTS TABLE (Payment escrow with offline sync)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS escrow_accounts (
+  id TEXT PRIMARY KEY,
+  transaction_id TEXT UNIQUE NOT NULL,
+  amount REAL NOT NULL,
+  status TEXT NOT NULL,
+  is_locked INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  released_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_escrow_transaction ON escrow_accounts(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_escrow_status ON escrow_accounts(status);
 
 -- ============================================================================
 -- SYNC STATUS TABLE
@@ -170,10 +225,12 @@ CREATE TABLE IF NOT EXISTS sync_status (
 
 -- Insert default sync status records
 INSERT OR IGNORE INTO sync_status (entity_type, last_sync_status) VALUES
+  ('users', 'SUCCESS'),
   ('listings', 'SUCCESS'),
+  ('transactions', 'SUCCESS'),
+  ('escrow_accounts', 'SUCCESS'),
   ('photo_logs', 'SUCCESS'),
   ('certificates', 'SUCCESS'),
-  ('transactions', 'SUCCESS'),
   ('user_profile', 'SUCCESS');
 
 -- ============================================================================
@@ -191,3 +248,60 @@ INSERT OR IGNORE INTO app_settings (key, value) VALUES
   ('auto_sync', 'true'),
   ('last_online_at', CURRENT_TIMESTAMP),
   ('app_version', '0.1.0');
+
+-- ============================================================================
+-- LISTING MEDIA TABLES (Media caching and offline support)
+-- ============================================================================
+
+-- Cached media metadata
+CREATE TABLE IF NOT EXISTS listing_media_cache (
+  id TEXT PRIMARY KEY,
+  listing_id TEXT NOT NULL,
+  media_type TEXT NOT NULL CHECK (media_type IN ('photo', 'video', 'document')),
+  file_name TEXT NOT NULL,
+  file_size INTEGER NOT NULL,
+  mime_type TEXT NOT NULL,
+  storage_url TEXT NOT NULL,
+  thumbnail_url TEXT,
+  display_order INTEGER NOT NULL DEFAULT 0,
+  is_primary INTEGER DEFAULT 0,
+  uploaded_at TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE CASCADE
+);
+
+-- Pending media operations queue
+CREATE TABLE IF NOT EXISTS pending_media_ops (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  operation_type TEXT NOT NULL CHECK (operation_type IN ('upload', 'delete', 'reorder', 'set_primary')),
+  listing_id TEXT NOT NULL,
+  media_id TEXT,
+  file_path TEXT,
+  metadata TEXT,
+  retry_count INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Local file storage for offline uploads
+CREATE TABLE IF NOT EXISTS local_media_files (
+  id TEXT PRIMARY KEY,
+  listing_id TEXT NOT NULL,
+  local_file_path TEXT NOT NULL,
+  media_type TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  file_size INTEGER NOT NULL,
+  mime_type TEXT NOT NULL,
+  upload_status TEXT DEFAULT 'pending' CHECK (upload_status IN ('pending', 'uploading', 'completed', 'failed')),
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for media tables
+CREATE INDEX IF NOT EXISTS idx_media_cache_listing ON listing_media_cache(listing_id);
+CREATE INDEX IF NOT EXISTS idx_pending_media_ops_listing ON pending_media_ops(listing_id);
+CREATE INDEX IF NOT EXISTS idx_local_media_listing ON local_media_files(listing_id);
+CREATE INDEX IF NOT EXISTS idx_local_media_status ON local_media_files(upload_status);
+
+-- Add listing_media to sync status
+INSERT OR IGNORE INTO sync_status (entity_type, last_sync_status) VALUES
+  ('listing_media', 'SUCCESS');
