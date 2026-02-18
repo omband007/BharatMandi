@@ -1,5 +1,5 @@
 ---
-parent_spec: bharat-mandi
+parent_spec: bharat-mandi-main
 implements_requirements: [8]
 depends_on: []
 status: complete

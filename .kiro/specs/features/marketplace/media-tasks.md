@@ -13,45 +13,45 @@ This implementation plan adds comprehensive media support to marketplace listing
 
 ## Tasks
 
-- [ ] 1. Database Schema Setup
-  - [ ] 1.1 Create PostgreSQL schema for listing_media
+- [x] 1. Database Schema Setup
+  - [x] 1.1 Create PostgreSQL schema for listing_media
     - Create `listing_media` table with all fields
     - Add indexes for performance (listing_id, media_type, is_primary, display_order)
     - Create unique constraint for one primary media per listing
     - Create trigger to update listing's updated_at timestamp
     - _Requirements: 1.6, 3.4, 8.3_
   
-  - [ ] 1.2 Create SQLite schema for media caching
+  - [x] 1.2 Create SQLite schema for media caching
     - Create `listing_media_cache` table
     - Create `pending_media_ops` table for sync queue
     - Create `local_media_files` table for offline uploads
     - Add indexes for performance
     - _Requirements: 2.8, 3.8, 6.2_
   
-  - [ ] 1.3 Write migration scripts
+  - [x] 1.3 Write migration scripts
     - Create PostgreSQL migration script
     - Create SQLite migration script
     - Test migrations on clean database
     - _Requirements: All_
 
 
-- [ ] 2. Data Models and Types
-  - [ ] 2.1 Define TypeScript interfaces
+- [x] 2. Data Models and Types
+  - [x] 2.1 Define TypeScript interfaces
     - Create MediaType, MediaOperation, UploadStatus types
     - Create ListingMedia interface
     - Create MediaUploadRequest, MediaUploadResponse interfaces
     - Create PendingMediaOperation, LocalMediaFile interfaces
     - _Requirements: 1.2, 5.6_
   
-  - [ ] 2.2 Define validation constants
+  - [x] 2.2 Define validation constants
     - Define ALLOWED_MIME_TYPES map
     - Define MAX_FILE_SIZES map
     - Define MAX_MEDIA_PER_LISTING constant (10)
     - _Requirements: 1.3, 1.8, 2.4_
 
 
-- [ ] 3. Storage Service Implementation
-  - [ ] 3.1 Implement cloud storage service (AWS S3)
+- [x] 3. Storage Service Implementation
+  - [x] 3.1 Implement cloud storage service (AWS S3)
     - Set up AWS S3 client configuration
     - Implement uploadFile method
     - Implement deleteFile method
@@ -59,13 +59,13 @@ This implementation plan adds comprehensive media support to marketplace listing
     - Organize files by listing: `listings/{listingId}/media/{mediaId}.{ext}`
     - _Requirements: 5.1, 5.2, 5.3, 7.1_
   
-  - [ ] 3.2 Implement local storage service
+  - [x] 3.2 Implement local storage service
     - Implement uploadToLocal method
     - Implement deleteFromLocal method
     - Store in: `data/media/{listingId}/{filename}`
     - _Requirements: 6.2_
   
-  - [ ] 3.3 Implement thumbnail generation
+  - [x] 3.3 Implement thumbnail generation
     - Use Sharp library for image processing
     - Generate 200x200px thumbnails for photos
     - Generate video preview (first frame) for videos
@@ -73,7 +73,7 @@ This implementation plan adds comprehensive media support to marketplace listing
     - Store thumbnails: `listings/{listingId}/thumbnails/{mediaId}_thumb.jpg`
     - _Requirements: 5.5_
   
-  - [ ] 3.4 Write unit tests for storage service
+  - [x] 3.4 Write unit tests for storage service
     - Test file upload to S3
     - Test file deletion from S3
     - Test signed URL generation
@@ -82,20 +82,20 @@ This implementation plan adds comprehensive media support to marketplace listing
     - _Requirements: 5.1, 5.5_
 
 
-- [ ] 4. File Validation Service
-  - [ ] 4.1 Implement file validation logic
+- [x] 4. File Validation Service
+  - [x] 4.1 Implement file validation logic
     - Validate file type using MIME type and extension
     - Validate file size against limits (photos ≤5MB, videos ≤50MB, PDFs ≤10MB)
     - Return clear error messages for validation failures
     - _Requirements: 1.3, 1.4_
   
-  - [ ] 4.2 Write property test for file validation
+  - [x] 4.2 Write property test for file validation
     - **Property 1: File Size Validation**
     - Test that files exceeding size limits are rejected
     - Test that files within limits are accepted
     - **Validates: Requirements 1.3**
   
-  - [ ] 4.3 Write unit tests for validation edge cases
+  - [x] 4.3 Write unit tests for validation edge cases
     - Test invalid MIME types
     - Test mismatched extension and MIME type
     - Test zero-byte files
@@ -103,8 +103,8 @@ This implementation plan adds comprehensive media support to marketplace listing
     - _Requirements: 1.3, 1.4_
 
 
-- [ ] 5. Database Adapter Extensions
-  - [ ] 5.1 Extend PostgreSQL adapter with media operations
+- [-] 5. Database Adapter Extensions
+  - [x] 5.1 Extend PostgreSQL adapter with media operations
     - Implement createListingMedia method
     - Implement getListingMedia method
     - Implement getMediaById method
@@ -120,7 +120,7 @@ This implementation plan adds comprehensive media support to marketplace listing
     - Test that setting new primary removes old primary
     - **Validates: Requirements 1.7, 3.5, 8.4**
   
-  - [ ] 5.3 Extend SQLite adapter with media caching
+  - [x] 5.3 Extend SQLite adapter with media caching
     - Implement cacheListingMedia method
     - Implement getCachedListingMedia method
     - Implement deleteCachedMedia method

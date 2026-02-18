@@ -1,5 +1,5 @@
 ---
-parent_spec: bharat-mandi
+parent_spec: bharat-mandi-main
 implements_requirements: [6, 7]
 depends_on: [database-sync-postgresql-sqlite]
 status: complete
