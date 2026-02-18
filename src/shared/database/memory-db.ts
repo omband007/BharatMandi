@@ -1,11 +1,9 @@
 // In-memory database for POC
-import {
-  User,
-  DigitalQualityCertificate,
-  Listing,
-  Transaction,
-  EscrowAccount
-} from '../types';
+import { UserType } from '../types/common.types';
+import type { User } from '../../features/auth/auth.types';
+import type { DigitalQualityCertificate } from '../../features/grading/grading.types';
+import type { Listing } from '../../features/marketplace/marketplace.types';
+import type { Transaction, EscrowAccount } from '../../features/transactions/transaction.types';
 
 class MemoryDatabase {
   private users: Map<string, User> = new Map();

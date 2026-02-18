@@ -1,9 +1,10 @@
 // AI-powered grading service with real image analysis
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
-import { ProduceGrade, GradingResult, DigitalQualityCertificate } from '../types';
-import { db } from '../database/memory-db';
-import { aiVisionService } from './ai-vision.service';
+import { ProduceGrade } from '../../shared/types/common.types';
+import type { GradingResult, DigitalQualityCertificate } from './grading.types';
+import { db } from '../../shared/database/memory-db';
+import { aiVisionService } from './ai/ai-vision.service';
 
 export class GradingService {
   // AI-powered grading with real image analysis
@@ -18,7 +19,11 @@ export class GradingService {
       grade: analysis.grade,
       confidence: analysis.confidence,
       timestamp: new Date(),
-      location
+      location: {
+        latitude: location.lat,
+        longitude: location.lng,
+        address: '' // Empty for now, can be filled with reverse geocoding
+      }
     };
 
     return {

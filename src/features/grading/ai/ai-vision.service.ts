@@ -1,6 +1,6 @@
 import axios from 'axios';
 import sharp from 'sharp';
-import { ProduceGrade } from '../types';
+import { ProduceGrade } from '../../../shared/types/common.types';
 
 interface HuggingFaceResult {
   label: string;
