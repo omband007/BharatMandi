@@ -1,8 +1,20 @@
-# Requirements Document: Bharat Mandi
+# Requirements Document: Bharat Mandi (High-Level)
+
+> **Note:** This document contains high-level requirements only. For detailed requirements, design, and implementation details, see the feature-specific specs in `features/` and `shared/` directories.
 
 ## Introduction
 
 Bharat Mandi is a mobile platform designed to empower farmers by solving systemic issues in agricultural trade and access to credit. The platform addresses the exploitation farmers face during crop selection, harvest, and sale by providing objective produce grading, secure payment mechanisms, verifiable farming activity logs, and a credibility scoring system that enables access to formal credit.
+
+## Feature Specs
+
+Detailed requirements for each feature are in their respective spec directories:
+
+- **[Authentication](../features/auth/requirements.md)** - User registration and login
+- **[Grading](../features/grading/requirements.md)** - AI-powered produce quality grading
+- **[Marketplace](../features/marketplace/requirements.md)** - Produce listings and media
+- **[Transactions](../features/transactions/requirements.md)** - Purchase transactions and escrow
+- **[Database](../shared/database/requirements.md)** - Dual database infrastructure
 
 ## Glossary
 
@@ -41,11 +53,237 @@ Bharat Mandi is a mobile platform designed to empower farmers by solving systemi
 
 ## Requirements
 
+> **Implementation Status Legend:**
+> - ✅ Complete - Fully implemented and tested
+> - 🚧 Partial - Some components implemented
+> - 📝 Spec Ready - Requirements and design complete, ready for implementation
+> - ❌ Not Started - No spec or implementation yet
+
 ### Requirement 1: Fasal-Parakh (AI Quality Grading)
+
+**Status:** 🚧 Partial | **Spec:** [features/grading](../features/grading/requirements.md) | **Code:** `src/features/grading/`
 
 **User Story:** As a farmer, I want to grade my produce objectively using my smartphone, so that I can prove quality to remote buyers and get fair prices.
 
-#### Acceptance Criteria
+**Key Capabilities:**
+- AI-powered image analysis
+- Quality grading (A/B/C)
+- Digital Quality Certificates
+- Offline grading support
+
+**Implementation Notes:**
+- ✅ AI vision service working
+- ✅ Quality evaluation implemented
+- ✅ Certificate generation working
+- 🚧 Needs database migration from memory-db
+- ❌ Offline AI models not yet implemented
+
+**Detailed Requirements:** See [Grading Requirements](../features/grading/requirements.md)
+
+---
+
+### Requirement 2: Smart Escrow Payments
+
+**Status:** 🚧 Partial | **Spec:** [features/transactions](../features/transactions/requirements.md) | **Code:** `src/features/transactions/`
+
+**User Story:** As a farmer, I want guaranteed payment with AI-validated delivery, so that I am protected from payment defaults and delivery disputes.
+
+**Key Capabilities:**
+- Escrow account creation
+- Payment locking
+- Fund release
+- Dispute handling
+
+**Implementation Notes:**
+- ✅ Escrow creation and locking working
+- ✅ Basic fund release implemented
+- ❌ AI delivery validation not implemented
+- ❌ Automatic fund release not implemented
+- ❌ Dispute resolution not implemented
+
+**Detailed Requirements:** See [Transaction Requirements](../features/transactions/requirements.md)
+
+---
+
+### Requirement 3: Photo-Log (Digital Diary)
+
+**Status:** ❌ Not Started
+
+**User Story:** As a farmer, I want to create a visual timeline of my farming activities, so that I can maintain records for planning, bank loans, and insurance.
+
+**Key Capabilities:**
+- Photo capture with GPS and timestamp
+- Activity categorization
+- Timeline view
+- Pattern analysis
+- Export for loans/insurance
+
+**Implementation Notes:**
+- No spec created yet
+- No implementation started
+- High priority for credibility scoring
+
+---
+
+### Requirement 4: Credibility Score Calculation
+
+**Status:** ❌ Not Started
+
+**User Story:** As a farmer, I want to build a credibility score based on my farming activities, so that I can access formal credit from financial institutions.
+
+**Key Capabilities:**
+- Score calculation from transactions
+- Photo-log integration
+- Historical tracking
+- Lender report generation
+
+**Implementation Notes:**
+- No spec created yet
+- Depends on Photo-Log (Req 3)
+- Critical for credit access
+
+---
+
+### Requirement 5: User Authentication and Profile Management
+
+**Status:** ✅ Complete | **Spec:** [features/auth](../features/auth/requirements.md) | **Code:** `src/features/auth/`
+
+**User Story:** As a user, I want to securely access my account and manage my profile, so that my data and transactions are protected.
+
+**Key Capabilities:**
+- OTP-based registration
+- PIN/biometric login
+- JWT token management
+- Account lockout protection
+- Profile management
+
+**Implementation Notes:**
+- ✅ All features complete and tested
+- ✅ Integrated with dual database
+- ✅ Offline support working
+
+**Detailed Requirements:** See [Auth Requirements](../features/auth/requirements.md)
+
+---
+
+### Requirement 6: Digital Mandi (Marketplace)
+
+**Status:** ✅ Complete (persistence), 📝 Ready (media) | **Spec:** [features/marketplace](../features/marketplace/requirements.md) | **Code:** `src/features/marketplace/`
+
+**User Story:** As a farmer, I want to list my produce with quality certificates in a marketplace, so that buyers can discover and purchase my crops with confidence.
+
+**Key Capabilities:**
+- Produce listings with CRUD operations
+- Search and filtering
+- Quality certificate display
+- Media attachments (photos, videos, PDFs)
+- Offline support
+
+**Implementation Notes:**
+- ✅ Listing persistence complete
+- ✅ Basic CRUD operations working
+- ✅ Dual database integration complete
+- 📝 Media support spec ready (not implemented)
+- ❌ Search and filtering not implemented
+- ❌ Auction mode not implemented
+
+**Detailed Requirements:** 
+- [Marketplace Requirements](../features/marketplace/requirements.md)
+- [Media Requirements](../features/marketplace/media-requirements.md)
+
+---
+
+### Requirement 7: Transaction Management
+
+**Status:** ✅ Complete | **Spec:** [features/transactions](../features/transactions/requirements.md) | **Code:** `src/features/transactions/`
+
+**User Story:** As a buyer, I want to initiate and track purchases, so that I can manage my procurement efficiently.
+
+**Key Capabilities:**
+- Purchase request flow
+- Transaction lifecycle tracking
+- Status updates
+- Feedback and ratings
+
+**Implementation Notes:**
+- ✅ All features complete and tested
+- ✅ Integrated with dual database
+- ✅ Offline support working
+
+**Detailed Requirements:** See [Transaction Requirements](../features/transactions/requirements.md)
+
+---
+
+### Requirement 8: Offline Functionality
+
+**Status:** ✅ Complete | **Spec:** [shared/database](../shared/database/requirements.md) | **Code:** `src/shared/database/`
+
+**User Story:** As a farmer in a rural area, I want to use core features without internet connectivity, so that poor network coverage does not prevent me from using the platform.
+
+**Key Capabilities:**
+- Offline data access
+- Local caching
+- Automatic sync
+- Conflict resolution
+
+**Implementation Notes:**
+- ✅ Dual database architecture complete
+- ✅ PostgreSQL + SQLite working
+- ✅ Automatic sync with retry logic
+- ✅ Connection monitoring
+- ✅ 71 automated tests passing
+
+**Detailed Requirements:** See [Database Requirements](../shared/database/requirements.md)
+
+---
+
+### Requirements 9-30: Additional Features
+
+**Status:** ❌ Not Started
+
+The following requirements are documented in this file but do not yet have detailed specs or implementations:
+
+9. Notifications and Alerts
+10. Data Privacy and Security
+11. Multi-Language Support
+12. Dispute Resolution
+13. Analytics and Insights
+14. Kisan-Konnect (Ecosystem Integration)
+15. Kisan-Mitra (AI Voice Assistant)
+16. P2P Input Marketplace
+17. Price Prophecy (Market Price Prediction)
+18. Rating and Feedback System
+19. Auction and Bidding Engine
+20. Disease and Pest Diagnosis
+21. Crop-AI Advisor
+22. Soil Health Records
+23. Smart Alerts and Predictive Advisory
+24. Manure and Compost Marketplace
+25. Manure Maturity Test
+26. Voice-to-Ad Generation
+27. Government Scheme Eligibility Engine
+28. Logistics Route Optimization
+29. Live Vehicle Tracking
+30. End-to-End Traceability
+
+**Next Priority Features:**
+1. Photo-Log (Req 3) - Foundation for credibility
+2. Credibility Score (Req 4) - Enable credit access
+3. Marketplace Media (Req 6 enhancement) - Spec ready
+4. Rating System (Req 18) - Build trust
+
+---
+
+## Acceptance Criteria
+
+> **Note:** This section contains the original detailed acceptance criteria for all 30 requirements. For implemented features, refer to their specific feature specs for the most current and detailed criteria:
+> - [Auth](../features/auth/requirements.md)
+> - [Grading](../features/grading/requirements.md)
+> - [Marketplace](../features/marketplace/requirements.md)
+> - [Transactions](../features/transactions/requirements.md)
+> - [Database](../shared/database/requirements.md)
+
+### Requirement 1: Fasal-Parakh (AI Quality Grading)
 
 1. WHEN a farmer captures a photo of produce using the smartphone camera, THE Fasal_Parakh_Module SHALL analyze the image within 5 seconds
 2. WHEN analyzing produce images, THE Fasal_Parakh_Module SHALL evaluate size, shape, color uniformity, and visible defects
