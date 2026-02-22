@@ -50,6 +50,32 @@ export class MediaService {
    */
   async uploadMedia(request: MediaUploadRequest): Promise<MediaUploadResponse> {
     try {
+      // 0. Verify listing exists in PostgreSQL
+      const pgAdapter = this.dbManager.getPostgreSQLAdapter();
+      const listing = await pgAdapter.getListing(request.listingId);
+      
+      if (!listing) {
+        // Check if listing is in SQLite (indicates sync issue)
+        const sqliteAdapter = this.dbManager.getSQLiteAdapter();
+        const sqliteListing = await sqliteAdapter.getListing(request.listingId);
+        
+        if (sqliteListing) {
+          return {
+            mediaId: '',
+            storageUrl: '',
+            success: false,
+            error: `Listing exists in SQLite but not PostgreSQL. This indicates PostgreSQL is not being used for listing creation. Please check server logs and ensure PostgreSQL is connected.`
+          };
+        }
+        
+        return {
+          mediaId: '',
+          storageUrl: '',
+          success: false,
+          error: `Listing ${request.listingId} not found`
+        };
+      }
+
       // 1. Validate file type and size (Requirement 1.3, 1.4)
       const validation = this.validationService.validateMediaFile(
         request.file as Buffer,
@@ -68,7 +94,6 @@ export class MediaService {
       }
 
       // 2. Check media count limit (Requirement 1.8, 2.4)
-      const pgAdapter = this.dbManager.getPostgreSQLAdapter();
       const mediaCount = await pgAdapter.getMediaCount(request.listingId);
 
       if (mediaCount >= MAX_MEDIA_PER_LISTING) {
@@ -145,9 +170,14 @@ export class MediaService {
 
       const createdMedia = await pgAdapter.createListingMedia(media);
 
-      // 9. Cache in SQLite for offline access
-      const sqliteAdapter = this.dbManager.getSQLiteAdapter();
-      await sqliteAdapter.cacheListingMedia(createdMedia);
+      // 9. Cache in SQLite for offline access (best effort - don't fail if it doesn't work)
+      try {
+        const sqliteAdapter = this.dbManager.getSQLiteAdapter();
+        await sqliteAdapter.cacheListingMedia(createdMedia);
+      } catch (cacheError) {
+        console.warn('[MediaService] Failed to cache media in SQLite (non-fatal):', cacheError);
+        // Continue - caching failure shouldn't prevent the upload from succeeding
+      }
 
       return {
         mediaId: createdMedia.id,

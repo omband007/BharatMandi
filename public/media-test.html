@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Upload Test - Bharat Mandi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .media-item {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            position: relative;
+        }
+        
+        .media-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        
+        .media-item .info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .media-item .primary-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .media-item button {
+            margin-top: 5px;
+            padding: 5px;
+            font-size: 12px;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📸 Media Upload Test</h1>
+            <p>Test listing media upload functionality</p>
+        </div>
+
+        <!-- Step 1: Create New Listing -->
+        <div class="card">
+            <h2>1. Create New Listing</h2>
+            <div class="form-group">
+                <label>Farmer ID</label>
+                <input type="text" id="farmerId" value="77360bb0-0584-4bfe-8be8-1c729b05c06f" placeholder="Enter farmer ID">
+            </div>
+            <div class="form-group">
+                <label>Produce Type</label>
+                <input type="text" id="produceType" value="Tomato">
+            </div>
+            <div class="form-group">
+                <label>Quantity (kg)</label>
+                <input type="number" id="quantity" value="100">
+            </div>
+            <div class="form-group">
+                <label>Price per kg (₹)</label>
+                <input type="number" id="pricePerKg" value="25">
+            </div>
+            <div class="form-group">
+                <label>Upload Media (Optional - Photos, Videos, PDFs)</label>
+                <input type="file" id="listingMediaFiles" accept="image/*,video/*,.pdf" multiple>
+                <p style="color: #666; font-size: 12px; margin-top: 5px;">
+                    Select multiple files at once. Supported: JPG, PNG, WebP, MP4, MOV, PDF
+                </p>
+            </div>
+            <button onclick="createNewListing()">Create New Listing</button>
+            <button onclick="useExistingListing()">Use Existing Listing</button>
+            <div id="listingResult" class="result"></div>
+        </div>
+
+        <!-- Step 2: Upload Additional Media -->
+        <div class="card">
+            <h2>2. Upload Additional Media</h2>
+            <div class="form-group">
+                <label>Listing ID</label>
+                <input type="text" id="listingId" placeholder="Listing ID from step 1" readonly>
+            </div>
+            <div class="form-group">
+                <label>Select Files (Photos, Videos, PDFs)</label>
+                <input type="file" id="mediaFile" accept="image/*,video/*,.pdf" multiple>
+                <p style="color: #666; font-size: 12px; margin-top: 5px;">
+                    Select multiple files. Type will be auto-detected.
+                </p>
+            </div>
+            <button onclick="uploadMedia()" id="uploadBtn" disabled>Upload Media</button>
+            <div id="uploadResult" class="result"></div>
+        </div>
+
+        <!-- Step 3: View Media -->
+        <div class="card">
+            <h2>3. View Listing Media</h2>
+            <button onclick="viewMedia()" id="viewBtn" disabled>Load Media</button>
+            <div id="mediaGrid" class="media-grid"></div>
+            <div id="viewResult" class="result"></div>
+        </div>
+
+        <!-- Step 4: Media Operations -->
+        <div class="card">
+            <h2>4. Media Operations</h2>
+            <div class="form-group">
+                <label>Media ID</label>
+                <input type="text" id="mediaId" placeholder="Select media from grid above">
+            </div>
+            <button onclick="setPrimary()">Set as Primary</button>
+            <button onclick="deleteMedia()" style="background: #dc3545;">Delete Media</button>
+            <div id="operationResult" class="result"></div>
+        </div>
+
+        <!-- Step 5: Reorder Media -->
+        <div class="card">
+            <h2>5. Reorder Media</h2>
+            <p style="color: #666; margin-bottom: 15px;">Enter media IDs in desired order (comma-separated)</p>
+            <div class="form-group">
+                <label>Media Order</label>
+                <input type="text" id="mediaOrder" placeholder="media-id-1, media-id-2, media-id-3">
+            </div>
+            <button onclick="reorderMedia()">Reorder Media</button>
+            <div id="reorderResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let state = {
+            listingId: null,
+            farmerId: null,
+            certificateId: 'cert-test-123' // Mock certificate for testing
+        };
+
+        function showResult(elementId, message, isError = false) {
+            const el = document.getElementById(elementId);
+            el.className = `result ${isError ? 'error' : 'success'}`;
+            el.innerHTML = message;
+        }
+
+        function useExistingListing() {
+            const listingId = 'b612288c-fc34-4576-bc70-89e1e836abdb';
+            const farmerId = '77360bb0-0584-4bfe-8be8-1c729b05c06f';
+            
+            state.listingId = listingId;
+            state.farmerId = farmerId;
+            document.getElementById('listingId').value = listingId;
+            document.getElementById('uploadBtn').disabled = false;
+            document.getElementById('viewBtn').disabled = false;
+            
+            showResult('listingResult', 
+                `✅ Using existing listing!<br>
+                <strong>Listing ID:</strong> ${listingId}<br>
+                <strong>Produce:</strong> Tomato<br>
+                <strong>Quantity:</strong> 100 kg<br>
+                <strong>Price:</strong> ₹25/kg<br>
+                <em>This listing exists in PostgreSQL</em>`
+            );
+        }
+
+        // Helper function to detect media type from MIME type
+        function detectMediaType(mimeType) {
+            if (mimeType.startsWith('image/')) return 'photo';
+            if (mimeType.startsWith('video/')) return 'video';
+            if (mimeType === 'application/pdf') return 'document';
+            return 'photo'; // default
+        }
+
+        async function createNewListing() {
+            try {
+                const farmerId = document.getElementById('farmerId').value.trim();
+                const produceType = document.getElementById('produceType').value.trim();
+                const quantity = parseInt(document.getElementById('quantity').value);
+                const pricePerKg = parseInt(document.getElementById('pricePerKg').value);
+
+                if (!farmerId) {
+                    showResult('listingResult', '❌ Please enter farmer ID', true);
+                    return;
+                }
+
+                console.log('[Test] Creating listing with:', { farmerId, produceType, quantity, pricePerKg });
+                showResult('listingResult', '🔄 Creating listing...', false);
+
+                const response = await fetch(`${API_BASE}/marketplace/listings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        farmerId,
+                        produceType,
+                        quantity,
+                        pricePerKg,
+                        certificateId: state.certificateId
+                    })
+                });
+
+                const data = await response.json();
+                console.log('[Test] Create listing response:', data);
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to create listing');
+                }
+
+                state.listingId = data.id;
+                state.farmerId = farmerId;
+                document.getElementById('listingId').value = data.id;
+                document.getElementById('uploadBtn').disabled = false;
+                document.getElementById('viewBtn').disabled = false;
+
+                // Check if user selected media files
+                const mediaFiles = document.getElementById('listingMediaFiles').files;
+                if (mediaFiles && mediaFiles.length > 0) {
+                    showResult('listingResult', 
+                        `✅ Listing created! Now uploading ${mediaFiles.length} media file(s)...`, false);
+                    
+                    // Upload media files
+                    await uploadListingMedia(data.id, mediaFiles);
+                } else {
+                    showResult('listingResult', 
+                        `✅ Listing created successfully!<br>
+                        <strong>Listing ID:</strong> ${data.id}<br>
+                        <strong>Produce:</strong> ${data.produceType}<br>
+                        <strong>Quantity:</strong> ${data.quantity} kg<br>
+                        <strong>Price:</strong> ₹${data.pricePerKg}/kg`
+                    );
+                }
+            } catch (error) {
+                console.error('[Test] Create listing error:', error);
+                showResult('listingResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function uploadListingMedia(listingId, files) {
+            let successCount = 0;
+            let failCount = 0;
+            const errors = [];
+
+            // Wait for listing to be fully committed to database
+            // This prevents foreign key constraint violations
+            console.log('[Test] Waiting for listing to be committed...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Verify listing exists before uploading media
+            try {
+                const verifyResponse = await fetch(`${API_BASE}/marketplace/listings/${listingId}`);
+                if (!verifyResponse.ok) {
+                    throw new Error('Listing not found in database yet');
+                }
+                console.log('[Test] Listing verified, proceeding with media upload');
+            } catch (error) {
+                showResult('listingResult', 
+                    `✅ Listing created but media upload failed: ${error.message}<br>
+                    Please use "Upload Additional Media" section to add media.`, 
+                    true);
+                return;
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const mediaType = detectMediaType(file.type);
+                
+                try {
+                    console.log(`[Test] Uploading file ${i + 1}/${files.length}: ${file.name} (${mediaType})`);
+                    
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('mediaType', mediaType);
+
+                    const response = await fetch(`${API_BASE}/marketplace/listings/${listingId}/media`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        const text = await response.text();
+                        console.error('Non-JSON response:', text);
+                        throw new Error('Server returned non-JSON response');
+                    }
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(result.error || 'Upload failed');
+                    }
+
+                    successCount++;
+                    console.log(`[Test] ✅ Uploaded: ${file.name}`);
+                } catch (error) {
+                    failCount++;
+                    errors.push(`${file.name}: ${error.message}`);
+                    console.error(`[Test] ❌ Failed to upload ${file.name}:`, error);
+                }
+            }
+
+            // Show final result
+            let resultMessage = `✅ Listing created!<br>`;
+            resultMessage += `<strong>Listing ID:</strong> ${listingId}<br>`;
+            resultMessage += `<strong>Media Upload:</strong> ${successCount} succeeded`;
+            
+            if (failCount > 0) {
+                resultMessage += `, ${failCount} failed<br>`;
+                resultMessage += `<strong>Errors:</strong><br>${errors.join('<br>')}`;
+                showResult('listingResult', resultMessage, true);
+            } else {
+                showResult('listingResult', resultMessage, false);
+            }
+
+            // Auto-refresh media grid
+            setTimeout(() => viewMedia(), 500);
+        }
+
+        async function uploadMedia() {
+            try {
+                const listingId = document.getElementById('listingId').value.trim();
+                const fileInput = document.getElementById('mediaFile');
+
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    showResult('uploadResult', '❌ Please select at least one file', true);
+                    return;
+                }
+
+                const files = fileInput.files;
+                showResult('uploadResult', `🔄 Uploading ${files.length} file(s)...`, false);
+
+                let successCount = 0;
+                let failCount = 0;
+                const errors = [];
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const mediaType = detectMediaType(file.type);
+                    
+                    try {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        formData.append('mediaType', mediaType);
+
+                        const response = await fetch(`${API_BASE}/marketplace/listings/${listingId}/media`, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const contentType = response.headers.get('content-type');
+                        if (!contentType || !contentType.includes('application/json')) {
+                            const text = await response.text();
+                            console.error('Non-JSON response:', text);
+                            throw new Error('Server returned non-JSON response');
+                        }
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Upload failed');
+                        }
+
+                        successCount++;
+                    } catch (error) {
+                        failCount++;
+                        errors.push(`${file.name}: ${error.message}`);
+                        console.error('Upload error:', error);
+                    }
+                }
+
+                // Show results
+                let resultMessage = `✅ Upload complete: ${successCount} succeeded`;
+                if (failCount > 0) {
+                    resultMessage += `, ${failCount} failed<br><strong>Errors:</strong><br>${errors.join('<br>')}`;
+                    showResult('uploadResult', resultMessage, true);
+                } else {
+                    showResult('uploadResult', resultMessage, false);
+                }
+
+                // Clear file input
+                fileInput.value = '';
+
+                // Auto-refresh media grid
+                setTimeout(() => viewMedia(), 500);
+            } catch (error) {
+                console.error('Upload error:', error);
+                showResult('uploadResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function viewMedia() {
+            try {
+                const listingId = document.getElementById('listingId').value.trim();
+
+                if (!listingId) {
+                    showResult('viewResult', '❌ Please create a listing first', true);
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/marketplace/listings/${listingId}/media`);
+                
+                // Check content type before parsing
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    throw new Error('Server returned non-JSON response. Check console for details.');
+                }
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load media');
+                }
+
+                const mediaGrid = document.getElementById('mediaGrid');
+                
+                if (!data.media || data.media.length === 0) {
+                    mediaGrid.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No media uploaded yet</p>';
+                    return;
+                }
+
+                mediaGrid.innerHTML = data.media.map(media => {
+                    // Fix the storage URL - remove leading slash if present and ensure it's relative to root
+                    let imageUrl = media.storageUrl;
+                    if (imageUrl.startsWith('/')) {
+                        imageUrl = 'http://localhost:3000' + imageUrl;
+                    } else if (!imageUrl.startsWith('http')) {
+                        imageUrl = 'http://localhost:3000/' + imageUrl;
+                    }
+                    
+                    return `
+                    <div class="media-item" onclick="selectMedia('${media.id}')">
+                        ${media.isPrimary ? '<div class="primary-badge">PRIMARY</div>' : ''}
+                        ${media.mediaType === 'photo' ? 
+                            `<img src="${imageUrl}" alt="${media.fileName}" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'150\\'%3E%3Crect fill=\\'%23ddd\\' width=\\'200\\' height=\\'150\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%23999\\'%3EImage Error%3C/text%3E%3C/svg%3E'; console.error('Failed to load image:', '${imageUrl}');">` :
+                            `<div style="width: 100%; height: 150px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 5px;">
+                                <span style="font-size: 48px;">${media.mediaType === 'video' ? '🎥' : '📄'}</span>
+                            </div>`
+                        }
+                        <div class="info">
+                            <strong>${media.fileName}</strong><br>
+                            Type: ${media.mediaType}<br>
+                            Size: ${(media.fileSize / 1024).toFixed(2)} KB<br>
+                            Order: ${media.displayOrder}
+                        </div>
+                    </div>
+                `}).join('');
+
+                showResult('viewResult', `✅ Loaded ${data.media.length} media item(s)`, false);
+            } catch (error) {
+                console.error('View media error:', error);
+                showResult('viewResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        function selectMedia(mediaId) {
+            document.getElementById('mediaId').value = mediaId;
+            showResult('operationResult', `✅ Selected media: ${mediaId}`, false);
+        }
+
+        async function setPrimary() {
+            try {
+                const listingId = document.getElementById('listingId').value.trim();
+                const mediaId = document.getElementById('mediaId').value.trim();
+
+                if (!mediaId) {
+                    showResult('operationResult', '❌ Please select a media item', true);
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/marketplace/listings/${listingId}/media/${mediaId}/primary`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: state.farmerId })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to set primary');
+                }
+
+                showResult('operationResult', `✅ ${data.message}`, false);
+                
+                // Refresh media grid
+                setTimeout(() => viewMedia(), 500);
+            } catch (error) {
+                showResult('operationResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function deleteMedia() {
+            try {
+                const listingId = document.getElementById('listingId').value.trim();
+                const mediaId = document.getElementById('mediaId').value.trim();
+
+                if (!mediaId) {
+                    showResult('operationResult', '❌ Please select a media item', true);
+                    return;
+                }
+
+                if (!confirm('Are you sure you want to delete this media?')) {
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/marketplace/listings/${listingId}/media/${mediaId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: state.farmerId })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to delete media');
+                }
+
+                showResult('operationResult', `✅ ${data.message}`, false);
+                document.getElementById('mediaId').value = '';
+                
+                // Refresh media grid
+                setTimeout(() => viewMedia(), 500);
+            } catch (error) {
+                showResult('operationResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function reorderMedia() {
+            try {
+                const listingId = document.getElementById('listingId').value.trim();
+                const mediaOrderStr = document.getElementById('mediaOrder').value.trim();
+
+                if (!mediaOrderStr) {
+                    showResult('reorderResult', '❌ Please enter media IDs', true);
+                    return;
+                }
+
+                const mediaOrder = mediaOrderStr.split(',').map(id => id.trim());
+
+                const response = await fetch(`${API_BASE}/marketplace/listings/${listingId}/media/reorder`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        mediaOrder,
+                        userId: state.farmerId 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to reorder media');
+                }
+
+                showResult('reorderResult', `✅ ${data.message}`, false);
+                
+                // Refresh media grid
+                setTimeout(() => viewMedia(), 500);
+            } catch (error) {
+                showResult('reorderResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+    </script>
+</body>
+</html>
