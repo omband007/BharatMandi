@@ -1,4 +1,225 @@
 import { getSQLiteDB } from './sqlite-config';
+import type { User } from '../../features/auth/auth.types';
+import type { OTPSession } from '../../features/auth/auth.types';
+
+// ============================================================================
+// USER OPERATIONS
+// ============================================================================
+
+export interface SQLiteUser {
+  id: string;
+  phone_number: string;
+  name: string;
+  user_type: string;
+  location: string; // JSON string
+  bank_account?: string; // JSON string
+  pin_hash?: string;
+  failed_attempts: number;
+  locked_until?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function createUser(user: User, pinHash?: string): Promise<User> {
+  const db = getSQLiteDB();
+  
+  await db.run(
+    `INSERT INTO users (id, phone_number, name, user_type, location, bank_account, pin_hash, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      user.id,
+      user.phoneNumber,
+      user.name,
+      user.userType,
+      JSON.stringify(user.location),
+      user.bankAccount ? JSON.stringify(user.bankAccount) : null,
+      pinHash,
+      user.createdAt.toISOString(),
+      user.updatedAt?.toISOString() || user.createdAt.toISOString()
+    ]
+  );
+  
+  return user;
+}
+
+export async function getUserById(id: string): Promise<User | undefined> {
+  const db = getSQLiteDB();
+  const row = await db.get<SQLiteUser>('SELECT * FROM users WHERE id = ?', [id]);
+  
+  if (!row) return undefined;
+  
+  return {
+    id: row.id,
+    phoneNumber: row.phone_number,
+    name: row.name,
+    userType: row.user_type as any,
+    location: JSON.parse(row.location),
+    bankAccount: row.bank_account ? JSON.parse(row.bank_account) : undefined,
+    createdAt: new Date(row.created_at),
+    updatedAt: row.updated_at ? new Date(row.updated_at) : undefined
+  };
+}
+
+export async function getUserByPhone(phoneNumber: string): Promise<User | undefined> {
+  const db = getSQLiteDB();
+  const row = await db.get<SQLiteUser>('SELECT * FROM users WHERE phone_number = ?', [phoneNumber]);
+  
+  if (!row) return undefined;
+  
+  return {
+    id: row.id,
+    phoneNumber: row.phone_number,
+    name: row.name,
+    userType: row.user_type as any,
+    location: JSON.parse(row.location),
+    bankAccount: row.bank_account ? JSON.parse(row.bank_account) : undefined,
+    createdAt: new Date(row.created_at),
+    updatedAt: row.updated_at ? new Date(row.updated_at) : undefined
+  };
+}
+
+export async function getUserPinHash(phoneNumber: string): Promise<string | undefined> {
+  const db = getSQLiteDB();
+  const row = await db.get<{ pin_hash?: string }>('SELECT pin_hash FROM users WHERE phone_number = ?', [phoneNumber]);
+  return row?.pin_hash;
+}
+
+export async function updateUserPin(phoneNumber: string, pinHash: string): Promise<void> {
+  const db = getSQLiteDB();
+  await db.run(
+    'UPDATE users SET pin_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE phone_number = ?',
+    [pinHash, phoneNumber]
+  );
+}
+
+export async function getFailedAttempts(phoneNumber: string): Promise<{ failed_attempts: number; locked_until?: string } | undefined> {
+  const db = getSQLiteDB();
+  return await db.get('SELECT failed_attempts, locked_until FROM users WHERE phone_number = ?', [phoneNumber]);
+}
+
+export async function incrementFailedAttempts(phoneNumber: string): Promise<void> {
+  const db = getSQLiteDB();
+  await db.run(
+    'UPDATE users SET failed_attempts = failed_attempts + 1, updated_at = CURRENT_TIMESTAMP WHERE phone_number = ?',
+    [phoneNumber]
+  );
+}
+
+export async function resetFailedAttempts(phoneNumber: string): Promise<void> {
+  const db = getSQLiteDB();
+  await db.run(
+    'UPDATE users SET failed_attempts = 0, locked_until = NULL, updated_at = CURRENT_TIMESTAMP WHERE phone_number = ?',
+    [phoneNumber]
+  );
+}
+
+export async function lockAccount(phoneNumber: string, lockUntil: Date): Promise<void> {
+  const db = getSQLiteDB();
+  await db.run(
+    'UPDATE users SET locked_until = ?, updated_at = CURRENT_TIMESTAMP WHERE phone_number = ?',
+    [lockUntil.toISOString(), phoneNumber]
+  );
+}
+
+export async function getAllUsers(): Promise<User[]> {
+  const db = getSQLiteDB();
+  const rows = await db.all<SQLiteUser[]>('SELECT * FROM users ORDER BY created_at DESC');
+  
+  return rows.map(row => ({
+    id: row.id,
+    phoneNumber: row.phone_number,
+    name: row.name,
+    userType: row.user_type as any,
+    location: JSON.parse(row.location),
+    bankAccount: row.bank_account ? JSON.parse(row.bank_account) : undefined,
+    createdAt: new Date(row.created_at),
+    updatedAt: row.updated_at ? new Date(row.updated_at) : undefined
+  }));
+}
+
+export async function updateUser(userId: string, updates: { name?: string; location?: any }): Promise<User | undefined> {
+  const db = getSQLiteDB();
+  
+  const updateFields: string[] = [];
+  const updateValues: any[] = [];
+  
+  if (updates.name) {
+    updateFields.push('name = ?');
+    updateValues.push(updates.name);
+  }
+  
+  if (updates.location) {
+    updateFields.push('location = ?');
+    updateValues.push(JSON.stringify(updates.location));
+  }
+  
+  if (updateFields.length === 0) {
+    return undefined;
+  }
+  
+  updateFields.push('updated_at = CURRENT_TIMESTAMP');
+  updateValues.push(userId);
+  
+  await db.run(
+    `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`,
+    updateValues
+  );
+  
+  return await getUserById(userId);
+}
+
+// ============================================================================
+// OTP SESSION OPERATIONS
+// ============================================================================
+
+export async function createOTPSession(session: OTPSession): Promise<void> {
+  const db = getSQLiteDB();
+  
+  // Delete any existing OTP sessions for this phone number
+  await db.run('DELETE FROM otp_sessions WHERE phone_number = ?', [session.phoneNumber]);
+  
+  // Create new session
+  await db.run(
+    `INSERT INTO otp_sessions (phone_number, otp, expires_at, attempts)
+     VALUES (?, ?, ?, ?)`,
+    [session.phoneNumber, session.otp, session.expiresAt.toISOString(), session.attempts]
+  );
+}
+
+export async function getOTPSession(phoneNumber: string): Promise<OTPSession | undefined> {
+  const db = getSQLiteDB();
+  const row = await db.get<{ phone_number: string; otp: string; expires_at: string; attempts: number }>(
+    'SELECT * FROM otp_sessions WHERE phone_number = ? ORDER BY created_at DESC LIMIT 1',
+    [phoneNumber]
+  );
+  
+  if (!row) return undefined;
+  
+  return {
+    phoneNumber: row.phone_number,
+    otp: row.otp,
+    expiresAt: new Date(row.expires_at),
+    attempts: row.attempts
+  };
+}
+
+export async function updateOTPAttempts(phoneNumber: string, attempts: number): Promise<void> {
+  const db = getSQLiteDB();
+  await db.run(
+    'UPDATE otp_sessions SET attempts = ? WHERE phone_number = ?',
+    [attempts, phoneNumber]
+  );
+}
+
+export async function deleteOTPSession(phoneNumber: string): Promise<void> {
+  const db = getSQLiteDB();
+  await db.run('DELETE FROM otp_sessions WHERE phone_number = ?', [phoneNumber]);
+}
+
+export async function cleanupExpiredOTPSessions(): Promise<void> {
+  const db = getSQLiteDB();
+  await db.run('DELETE FROM otp_sessions WHERE expires_at < ?', [new Date().toISOString()]);
+}
 
 // ============================================================================
 // SYNC QUEUE OPERATIONS
@@ -327,4 +548,244 @@ export async function getSyncStatus(entityType: string): Promise<SyncStatus | un
 export async function getAllSyncStatuses(): Promise<SyncStatus[]> {
   const db = getSQLiteDB();
   return await db.all('SELECT * FROM sync_status ORDER BY last_sync_at DESC');
+}
+
+
+// ============================================================================
+// Marketplace Operations - Listings
+// ============================================================================
+
+export async function createListing(listing: any): Promise<any> {
+  const db = getSQLiteDB();
+  await db.run(
+    `INSERT INTO listings (
+      id, farmer_id, produce_type, quantity, price_per_kg, 
+      certificate_id, expected_harvest_date, is_active, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      listing.id,
+      listing.farmerId,
+      listing.produceType,
+      listing.quantity,
+      listing.pricePerKg,
+      listing.certificateId,
+      listing.expectedHarvestDate?.toISOString() || null,
+      listing.isActive ? 1 : 0,
+      listing.createdAt.toISOString()
+    ]
+  );
+  return listing;
+}
+
+export async function getListing(id: string): Promise<any | undefined> {
+  const db = getSQLiteDB();
+  const row = await db.get('SELECT * FROM listings WHERE id = ?', [id]);
+  return row ? mapRowToListing(row) : undefined;
+}
+
+export async function getActiveListings(): Promise<any[]> {
+  const db = getSQLiteDB();
+  const rows = await db.all('SELECT * FROM listings WHERE is_active = 1 ORDER BY created_at DESC');
+  return rows.map(mapRowToListing);
+}
+
+export async function updateListing(id: string, updates: any): Promise<any | undefined> {
+  const db = getSQLiteDB();
+  const fields: string[] = [];
+  const values: any[] = [];
+
+  if (updates.quantity !== undefined) {
+    fields.push('quantity = ?');
+    values.push(updates.quantity);
+  }
+  if (updates.pricePerKg !== undefined) {
+    fields.push('price_per_kg = ?');
+    values.push(updates.pricePerKg);
+  }
+  if (updates.isActive !== undefined) {
+    fields.push('is_active = ?');
+    values.push(updates.isActive ? 1 : 0);
+  }
+  if (updates.expectedHarvestDate !== undefined) {
+    fields.push('expected_harvest_date = ?');
+    values.push(updates.expectedHarvestDate?.toISOString() || null);
+  }
+
+  if (fields.length === 0) return getListing(id);
+
+  values.push(id);
+  await db.run(
+    `UPDATE listings SET ${fields.join(', ')} WHERE id = ?`,
+    values
+  );
+  return getListing(id);
+}
+
+function mapRowToListing(row: any): any {
+  return {
+    id: row.id,
+    farmerId: row.farmer_id,
+    produceType: row.produce_type,
+    quantity: row.quantity,
+    pricePerKg: row.price_per_kg,
+    certificateId: row.certificate_id,
+    expectedHarvestDate: row.expected_harvest_date ? new Date(row.expected_harvest_date) : undefined,
+    isActive: row.is_active === 1,
+    createdAt: new Date(row.created_at)
+  };
+}
+
+// ============================================================================
+// Marketplace Operations - Transactions
+// ============================================================================
+
+export async function createTransaction(transaction: any): Promise<any> {
+  const db = getSQLiteDB();
+  await db.run(
+    `INSERT INTO transactions (
+      id, listing_id, farmer_id, buyer_id, amount, status, 
+      created_at, updated_at, dispatched_at, delivered_at, completed_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      transaction.id,
+      transaction.listingId,
+      transaction.farmerId,
+      transaction.buyerId,
+      transaction.amount,
+      transaction.status,
+      transaction.createdAt.toISOString(),
+      transaction.updatedAt.toISOString(),
+      transaction.dispatchedAt?.toISOString() || null,
+      transaction.deliveredAt?.toISOString() || null,
+      transaction.completedAt?.toISOString() || null
+    ]
+  );
+  return transaction;
+}
+
+export async function getTransaction(id: string): Promise<any | undefined> {
+  const db = getSQLiteDB();
+  const row = await db.get('SELECT * FROM transactions WHERE id = ?', [id]);
+  return row ? mapRowToTransaction(row) : undefined;
+}
+
+export async function updateTransaction(id: string, updates: any): Promise<any | undefined> {
+  const db = getSQLiteDB();
+  const fields: string[] = ['updated_at = ?'];
+  const values: any[] = [new Date().toISOString()];
+
+  if (updates.status !== undefined) {
+    fields.push('status = ?');
+    values.push(updates.status);
+  }
+  if (updates.dispatchedAt !== undefined) {
+    fields.push('dispatched_at = ?');
+    values.push(updates.dispatchedAt.toISOString());
+  }
+  if (updates.deliveredAt !== undefined) {
+    fields.push('delivered_at = ?');
+    values.push(updates.deliveredAt.toISOString());
+  }
+  if (updates.completedAt !== undefined) {
+    fields.push('completed_at = ?');
+    values.push(updates.completedAt.toISOString());
+  }
+
+  values.push(id);
+  await db.run(
+    `UPDATE transactions SET ${fields.join(', ')} WHERE id = ?`,
+    values
+  );
+  return getTransaction(id);
+}
+
+function mapRowToTransaction(row: any): any {
+  return {
+    id: row.id,
+    listingId: row.listing_id,
+    farmerId: row.farmer_id,
+    buyerId: row.buyer_id,
+    amount: row.amount,
+    status: row.status,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+    dispatchedAt: row.dispatched_at ? new Date(row.dispatched_at) : undefined,
+    deliveredAt: row.delivered_at ? new Date(row.delivered_at) : undefined,
+    completedAt: row.completed_at ? new Date(row.completed_at) : undefined
+  };
+}
+
+// ============================================================================
+// Marketplace Operations - Escrow Accounts
+// ============================================================================
+
+export async function createEscrow(escrow: any): Promise<any> {
+  const db = getSQLiteDB();
+  await db.run(
+    `INSERT INTO escrow_accounts (
+      id, transaction_id, amount, status, is_locked, created_at, released_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [
+      escrow.id,
+      escrow.transactionId,
+      escrow.amount,
+      escrow.status,
+      escrow.isLocked ? 1 : 0,
+      escrow.createdAt.toISOString(),
+      escrow.releasedAt?.toISOString() || null
+    ]
+  );
+  return escrow;
+}
+
+export async function getEscrow(id: string): Promise<any | undefined> {
+  const db = getSQLiteDB();
+  const row = await db.get('SELECT * FROM escrow_accounts WHERE id = ?', [id]);
+  return row ? mapRowToEscrow(row) : undefined;
+}
+
+export async function getEscrowByTransaction(transactionId: string): Promise<any | undefined> {
+  const db = getSQLiteDB();
+  const row = await db.get('SELECT * FROM escrow_accounts WHERE transaction_id = ?', [transactionId]);
+  return row ? mapRowToEscrow(row) : undefined;
+}
+
+export async function updateEscrow(id: string, updates: any): Promise<any | undefined> {
+  const db = getSQLiteDB();
+  const fields: string[] = [];
+  const values: any[] = [];
+
+  if (updates.status !== undefined) {
+    fields.push('status = ?');
+    values.push(updates.status);
+  }
+  if (updates.isLocked !== undefined) {
+    fields.push('is_locked = ?');
+    values.push(updates.isLocked ? 1 : 0);
+  }
+  if (updates.releasedAt !== undefined) {
+    fields.push('released_at = ?');
+    values.push(updates.releasedAt.toISOString());
+  }
+
+  if (fields.length === 0) return getEscrow(id);
+
+  values.push(id);
+  await db.run(
+    `UPDATE escrow_accounts SET ${fields.join(', ')} WHERE id = ?`,
+    values
+  );
+  return getEscrow(id);
+}
+
+function mapRowToEscrow(row: any): any {
+  return {
+    id: row.id,
+    transactionId: row.transaction_id,
+    amount: row.amount,
+    status: row.status,
+    isLocked: row.is_locked === 1,
+    createdAt: new Date(row.created_at),
+    releasedAt: row.released_at ? new Date(row.released_at) : undefined
+  };
 }

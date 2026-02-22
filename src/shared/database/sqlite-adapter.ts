@@ -1,5 +1,5 @@
 import * as sqliteHelpers from './sqlite-helpers';
-import { getSQLiteDB } from './sqlite-config';
+import { getSQLiteDB, openSQLiteDB } from './sqlite-config';
 import type { User, OTPSession } from '../../features/auth/auth.types';
 import type { Listing } from '../../features/marketplace/marketplace.types';
 import type { Transaction, EscrowAccount } from '../../features/transactions/transaction.types';
@@ -441,5 +441,37 @@ export class SQLiteAdapter implements DatabaseAdapter {
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at)
     };
+  }
+
+  /**
+   * Execute raw SQL query (for development/admin operations)
+   * @param sql - SQL query string
+   * @param params - Query parameters
+   * @returns Query result
+   */
+  async run(sql: string, params?: any[]): Promise<any> {
+    const db = await openSQLiteDB();
+    return new Promise((resolve, reject) => {
+      db.run(sql, params || [], function(this: any, err: any) {
+        if (err) reject(err);
+        else resolve({ changes: this.changes, lastID: this.lastID });
+      });
+    });
+  }
+
+  /**
+   * Get single row from SQLite (for development/admin operations)
+   * @param sql - SQL query string
+   * @param params - Query parameters
+   * @returns Single row result
+   */
+  async get(sql: string, params?: any[]): Promise<any> {
+    const db = await openSQLiteDB();
+    return new Promise((resolve, reject) => {
+      db.get(sql, params || [], (err: any, row: any) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
   }
 }

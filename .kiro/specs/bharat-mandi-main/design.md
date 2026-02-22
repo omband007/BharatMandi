@@ -4,7 +4,7 @@
 
 Bharat Mandi is a mobile-first agricultural platform that empowers farmers through AI-powered produce grading, secure escrow payments, ecosystem integration, and credit-building mechanisms. The platform operates on both Android and iOS devices with robust offline capabilities to serve rural areas with limited connectivity.
 
-### Use Case Diagram
+QDR56### Use Case Diagram
 
 ```mermaid
 graph TB

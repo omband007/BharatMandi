@@ -23,7 +23,7 @@ import {
   SmartAlert,
   TraceabilityRecord,
   AdListing
-} from '../types';
+} from '../../types';
 
 // ============================================================================
 // DOCUMENT INTERFACES (Mongoose Documents)

@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
-import { gradingService } from '../../services/grading.service';
+import { gradingService } from './grading.service';
 
 const router = Router();
 

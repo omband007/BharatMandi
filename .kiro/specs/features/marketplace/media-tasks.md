@@ -152,19 +152,19 @@ This implementation plan adds comprehensive media support to marketplace listing
     - Return MediaUploadResponse
     - _Requirements: 1.1, 1.2, 1.3, 1.5, 1.6, 1.7, 1.8_
   
-  - [ ] 6.2 Write property test for media count limit
+  - [x] 6.2 Write property test for media count limit
     - **Property 3: Media Count Limit**
     - Test that listings cannot exceed 10 media items
     - Test that 11th upload is rejected with clear error
     - **Validates: Requirements 1.8, 2.4**
   
-  - [ ] 6.3 Implement getListingMedia method
+  - [x] 6.3 Implement getListingMedia method
     - Fetch media from database (PostgreSQL or SQLite based on connectivity)
     - Return media sorted by display_order
     - Generate signed URLs for storage access
     - _Requirements: 4.2, 4.3_
   
-  - [ ] 6.4 Implement deleteMedia method
+  - [x] 6.4 Implement deleteMedia method
     - Verify user owns the listing
     - Delete file from storage
     - Delete media record from database
@@ -172,26 +172,26 @@ This implementation plan adds comprehensive media support to marketplace listing
     - Update listing's updated_at timestamp
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.7_
   
-  - [ ] 6.5 Write property test for primary media reassignment
+  - [x] 6.5 Write property test for primary media reassignment
     - **Property 4: Primary Media Reassignment on Delete**
     - Test that deleting primary photo sets next photo as primary
     - Test that deleting last photo sets primary to null
     - **Validates: Requirements 3.5, 3.6**
   
-  - [ ] 6.6 Implement reorderMedia method
+  - [x] 6.6 Implement reorderMedia method
     - Validate all media IDs belong to the listing
     - Update display_order for each media item
     - Update listing's updated_at timestamp
     - _Requirements: 8.1, 8.2, 8.5, 8.6_
   
-  - [ ] 6.7 Implement setPrimaryMedia method
+  - [x] 6.7 Implement setPrimaryMedia method
     - Verify media is a photo (not video or document)
     - Set is_primary = false for current primary
     - Set is_primary = true for selected media
     - Update listing's updated_at timestamp
     - _Requirements: 8.3, 8.4_
   
-  - [ ] 6.8 Write unit tests for media service
+  - [x] 6.8 Write unit tests for media service
     - Test upload flow (online and offline)
     - Test delete flow (online and offline)
     - Test reorder flow
@@ -201,7 +201,7 @@ This implementation plan adds comprehensive media support to marketplace listing
 
 
 - [ ] 7. API Controller Implementation
-  - [ ] 7.1 Implement upload media endpoint
+  - [x] 7.1 Implement upload media endpoint
     - POST /api/marketplace/listings/:listingId/media
     - Use Multer middleware for file upload
     - Validate user owns listing
@@ -210,34 +210,34 @@ This implementation plan adds comprehensive media support to marketplace listing
     - Handle errors with appropriate status codes
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
   
-  - [ ] 7.2 Implement get media endpoint
+  - [x] 7.2 Implement get media endpoint
     - GET /api/marketplace/listings/:listingId/media
     - Call mediaService.getListingMedia
     - Return array of media items
     - _Requirements: 4.2_
   
-  - [ ] 7.3 Implement delete media endpoint
+  - [x] 7.3 Implement delete media endpoint
     - DELETE /api/marketplace/listings/:listingId/media/:mediaId
     - Validate user owns listing
     - Call mediaService.deleteMedia
     - Return success response
     - _Requirements: 3.1, 3.2, 3.3_
   
-  - [ ] 7.4 Implement reorder media endpoint
+  - [x] 7.4 Implement reorder media endpoint
     - PUT /api/marketplace/listings/:listingId/media/reorder
     - Validate user owns listing
     - Call mediaService.reorderMedia
     - Return success response
     - _Requirements: 8.1, 8.2_
   
-  - [ ] 7.5 Implement set primary endpoint
+  - [x] 7.5 Implement set primary endpoint
     - PUT /api/marketplace/listings/:listingId/media/:mediaId/primary
     - Validate user owns listing
     - Call mediaService.setPrimaryMedia
     - Return success response
     - _Requirements: 8.3, 8.4_
   
-  - [ ] 7.6 Write integration tests for API endpoints
+  - [x] 7.6 Write integration tests for API endpoints
     - Test upload endpoint with valid file
     - Test upload endpoint with invalid file
     - Test get media endpoint

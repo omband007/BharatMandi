@@ -1,16 +1,25 @@
 // Marketplace service for listing management
 import { v4 as uuidv4 } from 'uuid';
-import { Listing } from '../types';
-import { db } from '../database/memory-db';
+import type { Listing } from './marketplace.types';
+import type { DatabaseManager } from '../../shared/database/db-abstraction';
+
+// Get the shared DatabaseManager instance from app.ts
+function getDbManager(): DatabaseManager {
+  const dbManager = (global as any).sharedDbManager;
+  if (!dbManager) {
+    throw new Error('DatabaseManager not initialized. This should be set by app.ts');
+  }
+  return dbManager;
+}
 
 export class MarketplaceService {
-  createListing(
+  async createListing(
     farmerId: string,
     produceType: string,
     quantity: number,
     pricePerKg: number,
     certificateId: string
-  ): Listing {
+  ): Promise<Listing> {
     const listing: Listing = {
       id: uuidv4(),
       farmerId,
@@ -22,19 +31,19 @@ export class MarketplaceService {
       isActive: true
     };
 
-    return db.createListing(listing);
+    return await getDbManager().createListing(listing);
   }
 
-  getActiveListings(): Listing[] {
-    return db.getActiveListings();
+  async getActiveListings(): Promise<Listing[]> {
+    return await getDbManager().getActiveListings();
   }
 
-  getListing(id: string): Listing | undefined {
-    return db.getListing(id);
+  async getListing(id: string): Promise<Listing | undefined> {
+    return await getDbManager().getListing(id);
   }
 
-  deactivateListing(id: string): Listing | undefined {
-    return db.updateListing(id, { isActive: false });
+  async deactivateListing(id: string): Promise<Listing | undefined> {
+    return await getDbManager().updateListing(id, { isActive: false });
   }
 }
 

@@ -7,38 +7,54 @@ const router = Router();
  * POST /api/marketplace/listings
  * Create a new listing
  */
-router.post('/listings', (req: Request, res: Response) => {
-  const { farmerId, produceType, quantity, pricePerKg, certificateId } = req.body;
+router.post('/listings', async (req: Request, res: Response) => {
+  try {
+    const { farmerId, produceType, quantity, pricePerKg, certificateId } = req.body;
 
-  const listing = marketplaceService.createListing(
-    farmerId,
-    produceType,
-    quantity,
-    pricePerKg,
-    certificateId
-  );
+    const listing = await marketplaceService.createListing(
+      farmerId,
+      produceType,
+      quantity,
+      pricePerKg,
+      certificateId
+    );
 
-  res.status(201).json(listing);
+    res.status(201).json(listing);
+  } catch (error) {
+    console.error('[Marketplace] Error creating listing:', error);
+    res.status(500).json({ error: 'Failed to create listing' });
+  }
 });
 
 /**
  * GET /api/marketplace/listings
  * Get all active listings
  */
-router.get('/listings', (req: Request, res: Response) => {
-  res.json(marketplaceService.getActiveListings());
+router.get('/listings', async (req: Request, res: Response) => {
+  try {
+    const listings = await marketplaceService.getActiveListings();
+    res.json(listings);
+  } catch (error) {
+    console.error('[Marketplace] Error fetching listings:', error);
+    res.status(500).json({ error: 'Failed to fetch listings' });
+  }
 });
 
 /**
  * GET /api/marketplace/listings/:id
  * Get listing by ID
  */
-router.get('/listings/:id', (req: Request, res: Response) => {
-  const listing = marketplaceService.getListing(req.params.id);
-  if (!listing) {
-    return res.status(404).json({ error: 'Listing not found' });
+router.get('/listings/:id', async (req: Request, res: Response) => {
+  try {
+    const listing = await marketplaceService.getListing(req.params.id);
+    if (!listing) {
+      return res.status(404).json({ error: 'Listing not found' });
+    }
+    res.json(listing);
+  } catch (error) {
+    console.error('[Marketplace] Error fetching listing:', error);
+    res.status(500).json({ error: 'Failed to fetch listing' });
   }
-  res.json(listing);
 });
 
 // Export as marketplaceController for feature-based architecture
