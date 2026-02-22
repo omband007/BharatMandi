@@ -588,6 +588,58 @@
             <!-- Step 5: Transaction Workflow -->
             <div class="card">
                 <h2><span class="step-number">5</span> Transaction Flow</h2>
+                
+                <!-- Transaction Status Display -->
+                <div id="transactionStatus" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: none;">
+                    <div style="font-weight: 600; color: #667eea; margin-bottom: 10px;">Current Status:</div>
+                    <div id="currentStatus" style="font-size: 18px; font-weight: 600; color: #333;"></div>
+                </div>
+                
+                <!-- Visual Transaction Diagram -->
+                <div id="transactionDiagram" style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; display: none;">
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div id="step1" class="flow-step" style="display: flex; align-items: center; padding: 12px; border-radius: 6px; background: #f0f0f0; transition: all 0.3s;">
+                            <div class="step-icon" style="width: 30px; height: 30px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: 600; color: white;">1</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #333;">Farmer Accepts Order</div>
+                                <div style="font-size: 12px; color: #666;">Transaction initiated</div>
+                            </div>
+                        </div>
+                        <div style="width: 2px; height: 15px; background: #ddd; margin-left: 15px;"></div>
+                        <div id="step2" class="flow-step" style="display: flex; align-items: center; padding: 12px; border-radius: 6px; background: #f0f0f0; transition: all 0.3s;">
+                            <div class="step-icon" style="width: 30px; height: 30px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: 600; color: white;">2</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #333;">Buyer Locks Payment</div>
+                                <div style="font-size: 12px; color: #666;">Funds secured in escrow</div>
+                            </div>
+                        </div>
+                        <div style="width: 2px; height: 15px; background: #ddd; margin-left: 15px;"></div>
+                        <div id="step3" class="flow-step" style="display: flex; align-items: center; padding: 12px; border-radius: 6px; background: #f0f0f0; transition: all 0.3s;">
+                            <div class="step-icon" style="width: 30px; height: 30px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: 600; color: white;">3</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #333;">Farmer Dispatches</div>
+                                <div style="font-size: 12px; color: #666;">Goods in transit</div>
+                            </div>
+                        </div>
+                        <div style="width: 2px; height: 15px; background: #ddd; margin-left: 15px;"></div>
+                        <div id="step4" class="flow-step" style="display: flex; align-items: center; padding: 12px; border-radius: 6px; background: #f0f0f0; transition: all 0.3s;">
+                            <div class="step-icon" style="width: 30px; height: 30px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: 600; color: white;">4</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #333;">Buyer Confirms Delivery</div>
+                                <div style="font-size: 12px; color: #666;">Goods received</div>
+                            </div>
+                        </div>
+                        <div style="width: 2px; height: 15px; background: #ddd; margin-left: 15px;"></div>
+                        <div id="step5" class="flow-step" style="display: flex; align-items: center; padding: 12px; border-radius: 6px; background: #f0f0f0; transition: all 0.3s;">
+                            <div class="step-icon" style="width: 30px; height: 30px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: 600; color: white;">5</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #333;">Release Funds</div>
+                                <div style="font-size: 12px; color: #666;">Payment completed</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <button onclick="acceptOrder()" id="acceptBtn" disabled style="margin-bottom: 10px;">
                     Farmer Accepts Order
                 </button>
@@ -612,14 +664,91 @@
                 <button onclick="viewAllUsers()" style="margin-bottom: 10px;">View All Users</button>
                 <button onclick="viewAllListings()" style="margin-bottom: 10px;">View All Listings</button>
                 <button onclick="viewTransaction()">View Transaction Details</button>
+                
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;">
+                
+                <button onclick="getStats()" style="margin-bottom: 10px; background: #2196f3;">
+                    📊 View Database Stats
+                </button>
+                <button onclick="window.open('/media-test.html', '_blank')" style="margin-bottom: 10px; background: #9c27b0;">
+                    🎨 Advanced Media Testing
+                </button>
+                <button onclick="window.open('/data-purge.html', '_blank')" style="background: #f44336;">
+                    🗑️ Data Purge (Danger Zone)
+                </button>
+                
                 <div id="viewResult" class="result"></div>
+                <div id="dataManagementResult" class="result"></div>
+            </div>
+
+            <!-- Step 7: Profile Management -->
+            <div class="card" id="profileManagementCard" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;"><span class="step-number">7</span> Profile Management</h2>
+                    <button onclick="closeProfileManagement()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #999; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;" title="Close">✕</button>
+                </div>
+                
+                <!-- Profile Form -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div id="profileAvatar" style="width: 60px; height: 60px; border-radius: 50%; background: #667eea; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 600;"></div>
+                            <div>
+                                <div id="profileTypeBadge" style="background: #667eea; color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: 600; display: inline-block;"></div>
+                            </div>
+                        </div>
+                        <button onclick="toggleEditMode()" id="editToggleBtn" style="background: #667eea; padding: 8px 16px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 600;">Edit</button>
+                    </div>
+                    
+                    <div style="display: grid; gap: 15px;">
+                        <div class="form-group">
+                            <label style="font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Name</label>
+                            <input type="text" id="profileName" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px;" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Phone Number</label>
+                            <input type="tel" id="profilePhone" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; background: #f0f0f0;" readonly>
+                            <small style="color: #999; font-size: 12px;">Phone number cannot be changed</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="font-weight: 600; color: #666; margin-bottom: 5px; display: block;">User Type</label>
+                            <input type="text" id="profileUserType" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; background: #f0f0f0;" readonly>
+                            <small style="color: #999; font-size: 12px;">User type cannot be changed</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Location</label>
+                            <input type="text" id="profileLocation" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px;" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="font-weight: 600; color: #666; margin-bottom: 5px; display: block;">User ID</label>
+                            <input type="text" id="profileUserId" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 12px; font-family: monospace; background: #f0f0f0;" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Member Since</label>
+                            <input type="text" id="profileMemberSince" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; background: #f0f0f0;" readonly>
+                        </div>
+                    </div>
+                    
+                    <div id="editActions" style="display: none; margin-top: 20px; display: flex; gap: 10px;">
+                        <button onclick="saveProfileChanges()" style="background: #4caf50; padding: 10px 20px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 600; flex: 1;">Save Changes</button>
+                        <button onclick="cancelEdit()" style="background: #666; padding: 10px 20px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 600; flex: 1;">Cancel</button>
+                    </div>
+                </div>
+                
+                <div id="profileResult" class="result"></div>
             </div>
         </div>
     </div>
 ""
 
     <script>
-        const API_BASE = 'http://localhost:3000/api';
+        // Auto-detect API base URL from current location
+        const API_BASE = `${window.location.protocol}//${window.location.hostname}:${window.location.port}/api`;
         let state = {
             farmerId: null,
             buyerId: null,
@@ -1040,6 +1169,26 @@
                     })
                 });
                 const data = await response.json();
+                
+                if (!response.ok) {
+                    // Handle duplicate phone number error
+                    if (response.status === 409 && data.existingUser) {
+                        showResult('farmerResult', 
+                            `❌ Phone number already registered!<br>
+                            <strong>Existing User:</strong><br>
+                            Name: ${data.existingUser.name}<br>
+                            Type: ${data.existingUser.userType}<br>
+                            Phone: ${data.existingUser.phoneNumber}<br>
+                            <br>
+                            Please use a different phone number or login with this number.`, 
+                            true
+                        );
+                    } else {
+                        showResult('farmerResult', `❌ Error: ${data.error}`, true);
+                    }
+                    return;
+                }
+                
                 state.farmerId = data.id;
                 updateStatus();
                 document.getElementById('gradeBtn').disabled = false;
@@ -1062,6 +1211,26 @@
                     })
                 });
                 const data = await response.json();
+                
+                if (!response.ok) {
+                    // Handle duplicate phone number error
+                    if (response.status === 409 && data.existingUser) {
+                        showResult('buyerResult', 
+                            `❌ Phone number already registered!<br>
+                            <strong>Existing User:</strong><br>
+                            Name: ${data.existingUser.name}<br>
+                            Type: ${data.existingUser.userType}<br>
+                            Phone: ${data.existingUser.phoneNumber}<br>
+                            <br>
+                            Please use a different phone number or login with this number.`, 
+                            true
+                        );
+                    } else {
+                        showResult('buyerResult', `❌ Error: ${data.error}`, true);
+                    }
+                    return;
+                }
+                
                 state.buyerId = data.id;
                 updateStatus();
                 showResult('buyerResult', `✅ Buyer created: ${data.name}<br>ID: ${data.id}`);
@@ -1141,7 +1310,7 @@
                 const pricePerKg = parseInt(document.getElementById('pricePerKg').value);
                 document.getElementById('amount').value = quantity * pricePerKg;
                 
-                const response = await fetch(`${API_BASE}/listings`, {
+                const response = await fetch(`${API_BASE}/marketplace/listings`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1197,16 +1366,58 @@
         }
 
         function updateTxStatus(status) {
-            const statusMap = {
-                'PENDING': 'pending',
-                'ACCEPTED': 'accepted',
-                'PAYMENT_LOCKED': 'locked',
-                'IN_TRANSIT': 'transit',
-                'DELIVERED': 'delivered',
-                'COMPLETED': 'completed'
+            // Show the status display and diagram
+            document.getElementById('transactionStatus').style.display = 'block';
+            document.getElementById('transactionDiagram').style.display = 'block';
+            
+            // Update current status text
+            const statusText = {
+                'PENDING': '⏳ Pending - Waiting for farmer to accept',
+                'ACCEPTED': '✅ Accepted - Waiting for payment lock',
+                'PAYMENT_LOCKED': '🔒 Payment Locked - Waiting for dispatch',
+                'IN_TRANSIT': '🚚 In Transit - Goods being delivered',
+                'DELIVERED': '📦 Delivered - Waiting for fund release',
+                'COMPLETED': '✨ Completed - Transaction finished'
             };
-            const badge = `<span class="badge ${statusMap[status]}">${status}</span>`;
-            document.getElementById('txStatusDisplay').innerHTML = badge;
+            document.getElementById('currentStatus').textContent = statusText[status] || status;
+            
+            // Update visual diagram
+            const stepMap = {
+                'PENDING': 0,
+                'ACCEPTED': 1,
+                'PAYMENT_LOCKED': 2,
+                'IN_TRANSIT': 3,
+                'DELIVERED': 4,
+                'COMPLETED': 5
+            };
+            
+            const currentStep = stepMap[status] || 0;
+            
+            // Reset all steps
+            for (let i = 1; i <= 5; i++) {
+                const stepEl = document.getElementById(`step${i}`);
+                const iconEl = stepEl.querySelector('.step-icon');
+                
+                if (i <= currentStep) {
+                    // Completed step
+                    stepEl.style.background = '#e8f5e9';
+                    stepEl.style.borderLeft = '4px solid #4caf50';
+                    iconEl.style.background = '#4caf50';
+                    iconEl.innerHTML = '✓';
+                } else if (i === currentStep + 1) {
+                    // Current step
+                    stepEl.style.background = '#fff3e0';
+                    stepEl.style.borderLeft = '4px solid #ff9800';
+                    iconEl.style.background = '#ff9800';
+                    iconEl.textContent = i;
+                } else {
+                    // Pending step
+                    stepEl.style.background = '#f0f0f0';
+                    stepEl.style.borderLeft = 'none';
+                    iconEl.style.background = '#ccc';
+                    iconEl.textContent = i;
+                }
+            }
         }
 
         async function acceptOrder() {
@@ -1257,7 +1468,7 @@
                 document.getElementById('dispatchBtn').disabled = true;
                 document.getElementById('deliverBtn').disabled = false;
                 showResult('workflowResult', 
-                    `✅ Produce Dispatched!<br>
+                    `✅ Dispatched!<br>
                     Status: ${data.status}`
                 );
             } catch (error) {
@@ -1275,7 +1486,7 @@
                 document.getElementById('deliverBtn').disabled = true;
                 document.getElementById('releaseBtn').disabled = false;
                 showResult('workflowResult', 
-                    `✅ Delivery Confirmed!<br>
+                    `✅ Delivered!<br>
                     Status: ${data.status}`
                 );
             } catch (error) {
@@ -1292,10 +1503,9 @@
                 updateTxStatus(data.transaction.status);
                 document.getElementById('releaseBtn').disabled = true;
                 showResult('workflowResult', 
-                    `✅ Funds Released! Transaction Complete!<br>
+                    `✅ Funds Released!<br>
                     Status: ${data.transaction.status}<br>
-                    Escrow Unlocked: ${!data.escrow.isLocked}<br>
-                    <strong>🎉 Workflow Complete!</strong>`
+                    Escrow Released: ${data.escrow.isReleased}`
                 );
             } catch (error) {
                 showResult('workflowResult', `❌ Error: ${error.message}`, true);
@@ -1330,7 +1540,8 @@
                         'SUPPLIER': '#f44336'
                     };
                     
-                    const color = userTypeColor[user.type] || '#666';
+                    const color = userTypeColor[user.userType] || '#666';
+                    const locationStr = typeof user.location === 'object' ? user.location.address : user.location;
                     
                     userListHTML += `
                         <div onclick="viewUserProfile('${user.id}')" 
@@ -1344,16 +1555,16 @@
                                         ${user.name}
                                     </div>
                                     <div style="font-size: 14px; color: #666;">
-                                        📱 ${user.phone}
+                                        📱 ${user.phoneNumber}
                                     </div>
                                 </div>
                                 <div style="text-align: right;">
                                     <div style="background: ${color}; color: white; padding: 5px 12px; border-radius: 20px; 
                                                 font-size: 12px; font-weight: 600; margin-bottom: 5px;">
-                                        ${user.type}
+                                        ${user.userType}
                                     </div>
                                     <div style="font-size: 12px; color: #999;">
-                                        📍 ${user.location}
+                                        📍 ${locationStr}
                                     </div>
                                 </div>
                             </div>
@@ -1369,6 +1580,9 @@
             }
         }
 
+        let selectedUserForEdit = null;
+        let isEditMode = false;
+
         async function viewUserProfile(userId) {
             try {
                 const response = await fetch(`${API_BASE}/auth/profile/${userId}`);
@@ -1378,24 +1592,195 @@
                     throw new Error(data.error || 'Failed to load profile');
                 }
 
-                // Store the user for profile card and mark as admin view
-                const tempCurrentUser = state.currentUser;
-                state.currentUser = data.user;
+                // Store the selected user
+                selectedUserForEdit = data.user;
                 
-                // Show profile card in admin view mode
-                await showProfileCard(true);
-                
-                // Restore original current user
-                state.currentUser = tempCurrentUser;
+                // Show profile in Tile 7
+                showProfileInManagementTile(data.user);
 
             } catch (error) {
                 showResult('viewResult', `❌ Error: ${error.message}`, true);
             }
         }
 
+        function showProfileInManagementTile(user) {
+            // Show Tile 7
+            document.getElementById('profileManagementCard').style.display = 'block';
+            
+            // Scroll to Tile 7
+            document.getElementById('profileManagementCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // Get location string
+            const locationStr = typeof user.location === 'object' ? user.location.address : user.location;
+            
+            // Set user type color
+            const userTypeColor = {
+                'FARMER': '#4caf50',
+                'BUYER': '#2196f3',
+                'LOGISTICS_PROVIDER': '#ff9800',
+                'COLD_STORAGE_PROVIDER': '#9c27b0',
+                'SUPPLIER': '#f44336'
+            };
+            
+            const color = userTypeColor[user.userType] || '#666';
+            
+            // Update avatar and badge
+            document.getElementById('profileAvatar').textContent = user.name.charAt(0).toUpperCase();
+            document.getElementById('profileAvatar').style.background = color;
+            document.getElementById('profileTypeBadge').textContent = user.userType;
+            document.getElementById('profileTypeBadge').style.background = color;
+            
+            // Populate form fields
+            document.getElementById('profileName').value = user.name;
+            document.getElementById('profilePhone').value = user.phoneNumber;
+            document.getElementById('profileUserType').value = user.userType;
+            document.getElementById('profileLocation').value = locationStr;
+            document.getElementById('profileUserId').value = user.id;
+            document.getElementById('profileMemberSince').value = new Date(user.createdAt).toLocaleDateString();
+            
+            // Reset to view mode
+            isEditMode = false;
+            setEditMode(false);
+        }
+
+        function closeProfileManagement() {
+            document.getElementById('profileManagementCard').style.display = 'none';
+            selectedUserForEdit = null;
+            isEditMode = false;
+            setEditMode(false);
+        }
+
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            setEditMode(isEditMode);
+        }
+
+        function setEditMode(enabled) {
+            const nameField = document.getElementById('profileName');
+            const locationField = document.getElementById('profileLocation');
+            const editToggleBtn = document.getElementById('editToggleBtn');
+            const editActions = document.getElementById('editActions');
+            
+            if (enabled) {
+                // Enable editing
+                nameField.removeAttribute('readonly');
+                nameField.style.background = 'white';
+                nameField.style.borderColor = '#667eea';
+                
+                locationField.removeAttribute('readonly');
+                locationField.style.background = 'white';
+                locationField.style.borderColor = '#667eea';
+                
+                editToggleBtn.style.display = 'none';
+                editActions.style.display = 'flex';
+            } else {
+                // Disable editing
+                nameField.setAttribute('readonly', 'readonly');
+                nameField.style.background = '#f8f9fa';
+                nameField.style.borderColor = '#ddd';
+                
+                locationField.setAttribute('readonly', 'readonly');
+                locationField.style.background = '#f8f9fa';
+                locationField.style.borderColor = '#ddd';
+                
+                editToggleBtn.style.display = 'block';
+                editActions.style.display = 'none';
+            }
+        }
+
+        function cancelEdit() {
+            if (!selectedUserForEdit) return;
+            
+            // Restore original values
+            const locationStr = typeof selectedUserForEdit.location === 'object' 
+                ? selectedUserForEdit.location.address 
+                : selectedUserForEdit.location;
+            
+            document.getElementById('profileName').value = selectedUserForEdit.name;
+            document.getElementById('profileLocation').value = locationStr;
+            
+            // Exit edit mode
+            isEditMode = false;
+            setEditMode(false);
+            
+            // Clear any messages
+            document.getElementById('profileResult').innerHTML = '';
+        }
+
+        async function saveProfileChanges() {
+            if (!selectedUserForEdit) return;
+            
+            try {
+                const updatedName = document.getElementById('profileName').value;
+                const updatedLocation = document.getElementById('profileLocation').value;
+                
+                if (!updatedName || !updatedLocation) {
+                    showResult('profileResult', '❌ Please fill in all fields', true);
+                    return;
+                }
+                
+                showResult('profileResult', '🔄 Saving changes...', false);
+                
+                // Create location object
+                const locationObj = typeof selectedUserForEdit.location === 'object'
+                    ? { ...selectedUserForEdit.location, address: updatedLocation }
+                    : { address: updatedLocation, latitude: 0, longitude: 0 };
+                
+                // Call API to update user profile
+                const response = await fetch(`${API_BASE}/auth/profile/${selectedUserForEdit.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: updatedName,
+                        location: locationObj
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    // If profile update endpoint returns not implemented, try direct database update
+                    if (data.message && data.message.includes('not yet fully implemented')) {
+                        // For now, just update the display
+                        selectedUserForEdit.name = updatedName;
+                        selectedUserForEdit.location = locationObj;
+                        
+                        // Update avatar with new name
+                        document.getElementById('profileAvatar').textContent = updatedName.charAt(0).toUpperCase();
+                        
+                        // Exit edit mode
+                        isEditMode = false;
+                        setEditMode(false);
+                        
+                        showResult('profileResult', '⚠️ Profile updated in display only<br><small>Database persistence not yet implemented. Changes will be lost on refresh.</small>', false);
+                        return;
+                    }
+                    
+                    throw new Error(data.error || 'Failed to update profile');
+                }
+                
+                // Update successful
+                selectedUserForEdit.name = updatedName;
+                selectedUserForEdit.location = locationObj;
+                
+                // Update avatar with new name
+                document.getElementById('profileAvatar').textContent = updatedName.charAt(0).toUpperCase();
+                
+                // Exit edit mode
+                isEditMode = false;
+                setEditMode(false);
+                
+                showResult('profileResult', '✅ Profile updated successfully!', false);
+                
+            } catch (error) {
+                showResult('profileResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+
         async function viewAllListings() {
             try {
-                const response = await fetch(`${API_BASE}/listings`);
+                const response = await fetch(`${API_BASE}/marketplace/listings`);
                 const data = await response.json();
                 showResult('viewResult', 
                     `<strong>All Listings (${data.length}):</strong><br>
@@ -2012,6 +2397,204 @@
 
             } catch (error) {
                 showResult('editProfileCardResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        // Data Management Functions
+        async function deleteAllMedia() {
+            if (!confirm('⚠️ Delete ALL media files and records?\n\nThis will permanently delete all photos, videos, and PDFs from the system.\n\nThis action cannot be undone!')) {
+                return;
+            }
+
+            try {
+                showResult('dataManagementResult', '🔄 Deleting all media...', false);
+
+                const response = await fetch(`${API_BASE}/dev/delete-media`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to delete media');
+                }
+
+                // Clear the view result display
+                document.getElementById('viewResult').className = 'result';
+                document.getElementById('viewResult').innerHTML = '';
+
+                showResult('dataManagementResult', `✅ ${data.message}<br><small>All media files and database records have been removed.</small>`);
+            } catch (error) {
+                showResult('dataManagementResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function deleteAllListings() {
+            if (!confirm('⚠️ Delete ALL listings?\n\nThis will permanently delete:\n• All marketplace listings\n• All associated media files\n\nThis action cannot be undone!')) {
+                return;
+            }
+
+            try {
+                showResult('dataManagementResult', '🔄 Deleting all listings...', false);
+
+                const response = await fetch(`${API_BASE}/dev/delete-listings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to delete listings');
+                }
+
+                // Clear listing state
+                state.listingId = null;
+                updateStatus();
+
+                // Clear the view result display
+                document.getElementById('viewResult').className = 'result';
+                document.getElementById('viewResult').innerHTML = '';
+
+                showResult('dataManagementResult', `✅ ${data.message}<br><small>All listings and their media have been removed.</small>`);
+            } catch (error) {
+                showResult('dataManagementResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function deleteAllData() {
+            if (!confirm('🚨 DELETE ALL DATA?\n\nThis will permanently delete:\n• All users\n• All listings\n• All media files\n• All transactions\n• All escrow accounts\n• All authentication data\n\nTHIS WILL RESET THE ENTIRE SYSTEM!\n\nThis action cannot be undone!')) {
+                return;
+            }
+
+            // Double confirmation for safety
+            if (!confirm('Are you absolutely sure?\n\nType YES in the next prompt to confirm.')) {
+                return;
+            }
+
+            const confirmation = prompt('Type YES to confirm deletion of all data:');
+            if (confirmation !== 'YES') {
+                showResult('dataManagementResult', '❌ Deletion cancelled. Confirmation text did not match.', true);
+                return;
+            }
+
+            try {
+                showResult('dataManagementResult', '🔄 Deleting all data... This may take a moment...', false);
+
+                const response = await fetch(`${API_BASE}/dev/clean-all-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to clean data');
+                }
+
+                // Reset all state
+                state = {
+                    farmerId: null,
+                    buyerId: null,
+                    certificateId: null,
+                    listingId: null,
+                    transactionId: null,
+                    currentUser: null,
+                    authPhone: null,
+                    authToken: null
+                };
+                updateStatus();
+
+                // Clear the view result display
+                document.getElementById('viewResult').className = 'result';
+                document.getElementById('viewResult').innerHTML = '';
+
+                showResult('dataManagementResult', 
+                    `✅ ${data.message}<br>
+                    <div style="margin-top: 10px; padding: 10px; background: #e8f5e9; border-radius: 5px;">
+                        <strong>Cleaned:</strong><br>
+                        <small>
+                        • PostgreSQL: ${data.cleaned.postgresql.join(', ')}<br>
+                        • SQLite: ${data.cleaned.sqlite.join(', ')}<br>
+                        • Files: ${data.cleaned.filesystem.join(', ')}
+                        </small>
+                    </div>
+                    <div style="margin-top: 10px; padding: 10px; background: #fff3e0; border-radius: 5px;">
+                        <strong>⚠️ Page reload recommended</strong><br>
+                        <button onclick="location.reload()" style="margin-top: 10px; background: #667eea;">
+                            🔄 Reload Page
+                        </button>
+                    </div>`
+                );
+            } catch (error) {
+                showResult('dataManagementResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function getStats() {
+            try {
+                showResult('dataManagementResult', '🔄 Loading database statistics...', false);
+
+                const response = await fetch(`${API_BASE}/dev/stats`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to get stats');
+                }
+
+                showResult('dataManagementResult', 
+                    `<div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <strong style="color: #667eea; font-size: 16px;">📊 Database Statistics</strong>
+                        
+                        <div style="margin-top: 15px; padding: 10px; background: white; border-radius: 5px; border-left: 4px solid #2196f3;">
+                            <strong style="color: #2196f3;">PostgreSQL (Primary)</strong>
+                            <div style="margin-top: 10px; display: grid; gap: 5px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Users:</span>
+                                    <strong>${data.postgresql.users}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Listings:</span>
+                                    <strong>${data.postgresql.listings}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Media:</span>
+                                    <strong>${data.postgresql.media}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Transactions:</span>
+                                    <strong>${data.postgresql.transactions}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 5px; border-left: 4px solid #4caf50;">
+                            <strong style="color: #4caf50;">SQLite (Cache)</strong>
+                            <div style="margin-top: 10px; display: grid; gap: 5px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Users:</span>
+                                    <strong>${data.sqlite.users}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Listings:</span>
+                                    <strong>${data.sqlite.listings}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Media Cache:</span>
+                                    <strong>${data.sqlite.mediaCache}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Sync Queue:</span>
+                                    <strong>${data.sqlite.syncQueue}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`,
+                    false
+                );
+            } catch (error) {
+                showResult('dataManagementResult', `❌ Error: ${error.message}`, true);
             }
         }
     </script>

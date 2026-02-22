@@ -39,6 +39,9 @@ export async function openSQLiteDB(): Promise<Database> {
   
   // Enable WAL mode for better concurrency
   await db.exec('PRAGMA journal_mode = WAL;');
+  
+  // Set busy timeout to 5 seconds (5000ms) to handle lock contention
+  await db.exec('PRAGMA busy_timeout = 5000;');
 
   console.log(`✓ SQLite database opened: ${DB_PATH}`);
   return db;
