@@ -22,11 +22,16 @@ data/media/
 *-STATUS.md
 *-REQUIRED.md
 *-RESOLVED.md
+*-FEATURE.md
+*-IMPROVEMENTS.md
+*-TEST.md
 QUICK-*.md
 SERVER-*.md
 PERSISTENT-*.md
 PORT-*.md
 REFACTORING-*.md
+CLEAN-*.md
+MEDIA-*.md
 
 # One-time scripts (diagnostic, migration, testing)
 check-*.js
