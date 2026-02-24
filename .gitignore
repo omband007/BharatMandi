@@ -4,3 +4,40 @@ dist/
 .env
 .DS_Store
 coverage/
+
+# Database files
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/media/
+
+# Temporary documentation and fix notes
+*-FIX.md
+*-FIX-*.md
+*-FIXED.md
+*-COMPLETE.md
+*-SUMMARY.md
+*-RESULTS.md
+*-GUIDE.md
+*-STATUS.md
+*-REQUIRED.md
+*-RESOLVED.md
+QUICK-*.md
+SERVER-*.md
+PERSISTENT-*.md
+PORT-*.md
+REFACTORING-*.md
+
+# One-time scripts (diagnostic, migration, testing)
+check-*.js
+diagnose-*.js
+test-*.js
+fix-*.js
+migrate-*.js
+setup-*.js
+run-*.js
+add-*.js
+clear-*.js
+
+# Temporary HTML pages for debugging
+public/db-status.html
