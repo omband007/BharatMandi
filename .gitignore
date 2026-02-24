@@ -5,6 +5,9 @@ dist/
 .DS_Store
 coverage/
 
+# Archive folder for old scripts and notes
+archive/
+
 # Database files
 data/*.db
 data/*.db-shm
