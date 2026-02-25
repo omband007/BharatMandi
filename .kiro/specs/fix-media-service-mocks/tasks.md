@@ -1,0 +1,91 @@
+# Implementation Plan
+
+- [ ] 1. Write bug condition exploration test
+  - **Property 1: Fault Condition** - Mock Methods Available and Graceful Thumbnail Failure
+  - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
+  - **DO NOT attempt to fix the test or the code when it fails**
+  - **NOTE**: This test encodes the expected behavior - it will validate the fix when it passes after implementation
+  - **GOAL**: Surface counterexamples that demonstrate the bugs exist
+  - **Scoped PBT Approach**: Scope the property to the concrete failing test cases (7 authorization tests + 1 thumbnail test)
+  - Test that authorization-related tests fail with "getListing is not a function" error
+  - Test that thumbnail failure test returns success=false instead of true
+  - Run test on UNFIXED code
+  - **EXPECTED OUTCOME**: Test FAILS (this is correct - it proves the bugs exist)
+  - Document counterexamples found:
+    - "should successfully delete media" throws "sqliteAdapter.getListing is not a function"
+    - "should reject unauthorized deletion" throws "sqliteAdapter.getListing is not a function"
+    - "should reassign primary when deleting primary photo" throws "sqliteAdapter.getListing is not a function"
+    - "should successfully reorder media" throws "sqliteAdapter.getListing is not a function"
+    - "should reject unauthorized reorder" throws "sqliteAdapter.getListing is not a function"
+    - "should successfully set primary media" throws "sqliteAdapter.getListing is not a function"
+    - "should reject unauthorized set primary" throws "sqliteAdapter.getListing is not a function"
+    - "should handle thumbnail generation failure gracefully" returns result.success=false
+  - Mark task complete when test is written, run, and failures are documented
+  - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8_
+
+- [ ] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** - Existing Test Behavior
+  - **IMPORTANT**: Follow observation-first methodology
+  - Observe behavior on UNFIXED code for non-buggy tests (upload tests, getListingMedia tests)
+  - Write property-based tests capturing observed behavior patterns:
+    - Upload tests without thumbnail failures continue to pass
+    - GetListingMedia tests continue to pass
+    - File validation tests continue to pass
+    - Media count limit tests continue to pass
+  - Property-based testing generates many test cases for stronger guarantees
+  - Run tests on UNFIXED code
+  - **EXPECTED OUTCOME**: Tests PASS (this confirms baseline behavior to preserve)
+  - Mark task complete when tests are written, run, and passing on unfixed code
+  - _Requirements: 3.1, 3.2, 3.3_
+
+- [ ] 3. Fix for media service mock configuration and thumbnail handling
+
+  - [ ] 3.1 Add getListing method to mockSqliteAdapter
+    - Open `src/features/marketplace/__tests__/media.service.test.ts`
+    - Locate the `beforeEach` block where mockSqliteAdapter is defined
+    - Add `getListing: jest.fn()` to the mockSqliteAdapter object
+    - Configure default return value: `mockSqliteAdapter.getListing.mockResolvedValue({ id: 'listing-1', farmerId: 'farmer-1' })`
+    - Ensure the mock returns appropriate listing objects for authorization checks
+    - _Bug_Condition: isBugCondition(input) where input.testName requires authorization check AND mockSqliteAdapter.getListing IS undefined_
+    - _Expected_Behavior: Tests execute without "method not found" errors (Property 1)_
+    - _Preservation: All other tests continue to pass with unchanged behavior (Property 3)_
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
+
+  - [ ] 3.2 Review and fix thumbnail error handling in uploadMedia
+    - Open `src/features/marketplace/media.service.ts`
+    - Locate the `uploadMedia` method
+    - Review the thumbnail generation try-catch block
+    - Verify that thumbnail errors are properly isolated and don't propagate to outer catch
+    - Ensure no errors occur after thumbnail catch that would cause outer catch to return success=false
+    - If needed, add additional error handling or adjust the error flow
+    - _Bug_Condition: isBugCondition(input) where input.testName = 'should handle thumbnail generation failure gracefully' AND result.success = false_
+    - _Expected_Behavior: Upload succeeds (result.success = true) despite thumbnail failure (Property 1)_
+    - _Preservation: All other upload tests continue to pass (Property 3)_
+    - _Requirements: 2.8_
+
+  - [ ] 3.3 Verify bug condition exploration test now passes
+    - **Property 1: Expected Behavior** - Mock Methods Available and Graceful Thumbnail Failure
+    - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
+    - The test from task 1 encodes the expected behavior
+    - When this test passes, it confirms the expected behavior is satisfied
+    - Run bug condition exploration test from step 1
+    - **EXPECTED OUTCOME**: Test PASSES (confirms bugs are fixed)
+    - Verify all 7 authorization tests now pass without "method not found" errors
+    - Verify thumbnail failure test returns result.success = true
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8_
+
+  - [ ] 3.4 Verify preservation tests still pass
+    - **Property 2: Preservation** - Existing Test Behavior
+    - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
+    - Run preservation property tests from step 2
+    - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions)
+    - Confirm all tests still pass after fix (no regressions)
+    - Verify upload tests, getListingMedia tests, and validation tests are unchanged
+    - _Requirements: 3.1, 3.2, 3.3_
+
+- [ ] 4. Checkpoint - Ensure all tests pass
+  - Run the full media service test suite
+  - Verify all 8 previously failing tests now pass
+  - Verify all previously passing tests still pass
+  - Ensure no new test failures introduced
+  - Ask the user if questions arise

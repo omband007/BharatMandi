@@ -413,6 +413,9 @@ describe('SyncEngine - Queue Management', () => {
       const mockUpdateSyncQueueRetry = jest.mocked(sqliteHelpers.updateSyncQueueRetry);
       const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
       
+      // Mock connection status
+      mockConnectionMonitor.isConnected.mockReturnValue(true);
+      
       const mockItems = [
         {
           id: 1,
@@ -541,8 +544,11 @@ describe('SyncEngine - Queue Management', () => {
 
     it('should mark item as failed after 3 attempts', async () => {
       const mockGetPendingSyncItems = jest.mocked(sqliteHelpers.getPendingSyncItems);
-      const mockUpdateSyncQueueRetry = jest.mocked(sqliteHelpers.updateSyncQueueRetry);
+      const mockRemoveSyncQueueItem = jest.mocked(sqliteHelpers.removeSyncQueueItem);
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      
+      // Mock connection status
+      mockConnectionMonitor.isConnected.mockReturnValue(true);
       
       const mockItems = [
         {
@@ -564,15 +570,13 @@ describe('SyncEngine - Queue Management', () => {
       ];
 
       mockGetPendingSyncItems.mockResolvedValue(mockItems);
-      mockUpdateSyncQueueRetry.mockResolvedValue();
+      mockRemoveSyncQueueItem.mockResolvedValue();
       mockPgAdapter.createUser = jest.fn().mockRejectedValue(new Error('Permanent failure'));
 
       await syncEngine.processSyncQueue();
 
-      expect(mockUpdateSyncQueueRetry).toHaveBeenCalledWith(
-        1, 
-        'Failed after 3 attempts: Permanent failure'
-      );
+      // After 3 attempts, item should be removed (not updated with retry)
+      expect(mockRemoveSyncQueueItem).toHaveBeenCalledWith(1);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('failed after 3 attempts'),
         'Permanent failure'
@@ -625,6 +629,9 @@ describe('SyncEngine - Queue Management', () => {
     it('should track retry count correctly across multiple failures', async () => {
       const mockGetPendingSyncItems = jest.mocked(sqliteHelpers.getPendingSyncItems);
       const mockUpdateSyncQueueRetry = jest.mocked(sqliteHelpers.updateSyncQueueRetry);
+      
+      // Mock connection status
+      mockConnectionMonitor.isConnected.mockReturnValue(true);
       
       // Simulate item with no previous retries
       const mockItems = [

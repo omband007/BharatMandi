@@ -1,0 +1,93 @@
+# Implementation Plan
+
+- [ ] 1. Write bug condition exploration test
+  - **Property 1: Fault Condition** - Video Files Within Size Limits Are Rejected
+  - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
+  - **DO NOT attempt to fix the test or the code when it fails**
+  - **NOTE**: This test encodes the expected behavior - it will validate the fix when it passes after implementation
+  - **GOAL**: Surface counterexamples that demonstrate the bug exists
+  - **Scoped PBT Approach**: Scope the property to video files with MIME type 'video/mp4', valid extensions, and sizes between 1KB and 50MB
+  - Test that validateMediaFile(file, fileName, 'video/mp4', 'video') returns valid=true for all video files where:
+    - file.length > 0 AND file.length <= 52428800 (50MB)
+    - fileName matches '*.mp4' pattern
+    - mimeType is 'video/mp4'
+  - Add debug logging to trace which validation method is failing (validateFileSize, validateMimeType, or validateFileExtension)
+  - Run test on UNFIXED code
+  - **EXPECTED OUTCOME**: Test FAILS (this is correct - it proves the bug exists)
+  - Document counterexamples found (e.g., "validateMediaFile with 1KB video/mp4 file returns valid=false instead of valid=true")
+  - Examine error messages to identify root cause (MIME type issue, extension issue, or size comparison issue)
+  - Mark task complete when test is written, run, and failure is documented
+  - _Requirements: 2.1, 2.2_
+
+- [ ] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** - Non-Video Validation Behavior
+  - **IMPORTANT**: Follow observation-first methodology
+  - Observe behavior on UNFIXED code for non-buggy inputs:
+    - Photo validation: image/jpeg files within 5MB should return valid=true
+    - Document validation: application/pdf files within 10MB should return valid=true
+    - Oversized rejection: files exceeding size limits should return valid=false with appropriate error
+    - Invalid MIME type rejection: unsupported MIME types should return valid=false
+    - Extension mismatch rejection: mismatched extensions should return valid=false
+    - Empty file rejection: 0-byte files should return valid=false
+  - Write property-based tests capturing observed behavior patterns:
+    - For all photo files (JPEG, PNG, WebP) within 5MB, validation result matches unfixed behavior
+    - For all document files (PDF) within 10MB, validation result matches unfixed behavior
+    - For all oversized files (>max size for type), validation result matches unfixed behavior
+    - For all invalid MIME types, validation result matches unfixed behavior
+  - Property-based testing generates many test cases for stronger guarantees
+  - Run tests on UNFIXED code
+  - **EXPECTED OUTCOME**: Tests PASS (this confirms baseline behavior to preserve)
+  - Mark task complete when tests are written, run, and passing on unfixed code
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
+
+- [ ] 3. Fix video file validation logic
+
+  - [ ] 3.1 Debug and identify root cause
+    - Review debug logs from exploration test to identify which validation method is failing
+    - Check validateFileSize for correct size comparison logic (should use > not >=)
+    - Check validateMimeType for correct MIME type allowlist checking
+    - Check validateFileExtension for correct extension-to-MIME mapping
+    - Verify media.constants.ts has correct values:
+      - MAX_FILE_SIZES.video = 50 * 1024 * 1024 (52428800 bytes)
+      - ALLOWED_MIME_TYPES.video includes 'video/mp4' and 'video/quicktime'
+      - FILE_EXTENSION_TO_MIME['.mp4'] = 'video/mp4'
+    - _Bug_Condition: isBugCondition(input) where input.mediaType == 'video' AND input.mimeType IN ['video/mp4', 'video/quicktime'] AND input.file.length > 0 AND input.file.length <= 52428800 AND validateMediaFile returns valid=false_
+    - _Expected_Behavior: For all inputs satisfying bug condition, validateMediaFile SHALL return result.valid = true_
+    - _Preservation: All non-video validation behavior (photos, documents, oversized files, invalid MIME types, mismatched extensions, empty files) must remain unchanged_
+    - _Requirements: 2.1, 2.2, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
+
+  - [ ] 3.2 Apply the fix to validation.service.ts
+    - Fix the identified validation method (validateFileSize, validateMimeType, or validateFileExtension)
+    - Ensure size comparison uses correct operator (file.length > maxSize for rejection)
+    - Ensure MIME type checking correctly validates against ALLOWED_MIME_TYPES
+    - Ensure extension validation correctly maps extensions to MIME types
+    - Update constants if needed to include missing video MIME types or extensions
+    - _Bug_Condition: isBugCondition(input) from design_
+    - _Expected_Behavior: expectedBehavior(result) where result.valid = true for video files within limits_
+    - _Preservation: Preservation Requirements from design_
+    - _Requirements: 2.1, 2.2, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
+
+  - [ ] 3.3 Verify bug condition exploration test now passes
+    - **Property 1: Expected Behavior** - Video Files Within Size Limits Are Accepted
+    - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
+    - The test from task 1 encodes the expected behavior
+    - When this test passes, it confirms the expected behavior is satisfied
+    - Run bug condition exploration test from step 1
+    - **EXPECTED OUTCOME**: Test PASSES (confirms bug is fixed)
+    - Verify all 100 property test runs pass for video files
+    - _Requirements: 2.1, 2.2_
+
+  - [ ] 3.4 Verify preservation tests still pass
+    - **Property 2: Preservation** - Non-Video Validation Behavior
+    - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
+    - Run preservation property tests from step 2
+    - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions)
+    - Confirm all tests still pass after fix (no regressions in photo, document, oversized, invalid MIME type, extension mismatch, or empty file validation)
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
+
+- [ ] 4. Checkpoint - Ensure all tests pass
+  - Run the full property-based test suite for media validation
+  - Verify the failing test "should accept all files within size limits with valid types" now passes for all 100 runs
+  - Verify all existing unit tests continue to pass
+  - Verify no regressions in photo, document, or other validation scenarios
+  - Ensure all tests pass, ask the user if questions arise
