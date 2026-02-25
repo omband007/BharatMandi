@@ -39,7 +39,7 @@
   - Mark task complete when tests are written, run, and passing on unfixed code
   - _Requirements: 3.1, 3.2, 3.3_
 
-- [ ] 3. Fix for media controller integration tests returning 500 errors
+- [x] 3. Fix for media controller integration tests returning 500 errors
 
   - [x] 3.1 Add service mocks to test file
     - Add jest.mock() calls at top of test file for MediaService, StorageService, ValidationService
@@ -98,7 +98,7 @@
     - Verify set primary non-photo test expects 400
     - _Requirements: 2.12, 2.13, 2.14_
 
-  - [ ] 3.7 Verify bug condition exploration test now passes
+  - [x] 3.7 Verify bug condition exploration test now passes
     - **Property 1: Expected Behavior** - Tests Return Expected HTTP Status Codes
     - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
     - The test from task 1 encodes the expected behavior
@@ -108,7 +108,7 @@
     - Verify all 14 integration tests now pass with expected status codes
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 2.11, 2.12, 2.13, 2.14_
 
-  - [ ] 3.8 Verify preservation tests still pass
+  - [x] 3.8 Verify preservation tests still pass
     - **Property 2: Preservation** - Production Controller Behavior Unchanged
     - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
     - Run preservation property tests from step 2
@@ -118,7 +118,7 @@
     - Confirm service mocks are isolated to test file
     - Confirm all tests still pass after fix (no regressions)
 
-- [ ] 4. Checkpoint - Ensure all tests pass
+- [x] 4. Checkpoint - Ensure all tests pass
   - Run the full test suite: npm test src/features/marketplace/__tests__/media.controller.test.ts
   - Verify all 14 integration tests pass with expected status codes
   - Verify no controller code was modified

@@ -299,6 +299,9 @@ describe('SyncEngine - Queue Management', () => {
       const mockGetPendingSyncItems = jest.mocked(sqliteHelpers.getPendingSyncItems);
       const mockRemoveSyncQueueItem = jest.mocked(sqliteHelpers.removeSyncQueueItem);
       
+      // Mock connection as connected
+      mockConnectionMonitor.isConnected.mockReturnValue(true);
+      
       const mockItems = [
         {
           id: 1,
@@ -346,6 +349,9 @@ describe('SyncEngine - Queue Management', () => {
     it('should handle empty queue gracefully', async () => {
       const mockGetPendingSyncItems = jest.mocked(sqliteHelpers.getPendingSyncItems);
       mockGetPendingSyncItems.mockResolvedValue([]);
+      
+      // Mock connection as connected
+      mockConnectionMonitor.isConnected.mockReturnValue(true);
 
       await syncEngine.processSyncQueue();
 
@@ -357,6 +363,9 @@ describe('SyncEngine - Queue Management', () => {
     it('should process CREATE operations with pinHash', async () => {
       const mockGetPendingSyncItems = jest.mocked(sqliteHelpers.getPendingSyncItems);
       const mockRemoveSyncQueueItem = jest.mocked(sqliteHelpers.removeSyncQueueItem);
+      
+      // Mock connection as connected
+      mockConnectionMonitor.isConnected.mockReturnValue(true);
       
       const userData = {
         id: 'user-123',
@@ -392,6 +401,9 @@ describe('SyncEngine - Queue Management', () => {
 
     it('should skip processing if already syncing', async () => {
       const mockGetPendingSyncItems = jest.mocked(sqliteHelpers.getPendingSyncItems);
+      
+      // Mock connection as connected
+      mockConnectionMonitor.isConnected.mockReturnValue(true);
       
       // Start first sync (will be slow)
       mockGetPendingSyncItems.mockImplementation(() => 
@@ -468,6 +480,9 @@ describe('SyncEngine - Queue Management', () => {
       const mockGetPendingSyncItems = jest.mocked(sqliteHelpers.getPendingSyncItems);
       const mockUpdateSyncQueueRetry = jest.mocked(sqliteHelpers.updateSyncQueueRetry);
       
+      // Mock connection as connected
+      mockConnectionMonitor.isConnected.mockReturnValue(true);
+      
       const mockItems = [
         {
           id: 1,
@@ -506,6 +521,9 @@ describe('SyncEngine - Queue Management', () => {
     it('should apply exponential backoff on second retry (2^2 = 4 seconds)', async () => {
       const mockGetPendingSyncItems = jest.mocked(sqliteHelpers.getPendingSyncItems);
       const mockUpdateSyncQueueRetry = jest.mocked(sqliteHelpers.updateSyncQueueRetry);
+      
+      // Mock connection as connected
+      mockConnectionMonitor.isConnected.mockReturnValue(true);
       
       const mockItems = [
         {
@@ -589,6 +607,9 @@ describe('SyncEngine - Queue Management', () => {
       const mockGetPendingSyncItems = jest.mocked(sqliteHelpers.getPendingSyncItems);
       const mockUpdateSyncQueueRetry = jest.mocked(sqliteHelpers.updateSyncQueueRetry);
       
+      // Mock connection as connected
+      mockConnectionMonitor.isConnected.mockReturnValue(true);
+      
       const mockItems = [
         {
           id: 1,
@@ -667,6 +688,9 @@ describe('SyncEngine - Queue Management', () => {
       const mockRemoveSyncQueueItem = jest.mocked(sqliteHelpers.removeSyncQueueItem);
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
       
+      // Mock connection as connected
+      mockConnectionMonitor.isConnected.mockReturnValue(true);
+      
       mockGetPendingSyncItems.mockResolvedValue([
         {
           id: 1,
@@ -694,6 +718,9 @@ describe('SyncEngine - Queue Management', () => {
       const mockGetPendingSyncItems = jest.mocked(sqliteHelpers.getPendingSyncItems);
       const mockRemoveSyncQueueItem = jest.mocked(sqliteHelpers.removeSyncQueueItem);
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      
+      // Mock connection as connected
+      mockConnectionMonitor.isConnected.mockReturnValue(true);
       
       mockGetPendingSyncItems.mockResolvedValue([
         {
