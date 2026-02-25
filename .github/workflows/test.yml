@@ -1,0 +1,253 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 2 * * *'  # Nightly at 2 AM UTC
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run TypeScript compiler
+        run: npx tsc --noEmit
+      
+      - name: Run linter (if configured)
+        run: npm run lint || echo "Linting not configured"
+        continue-on-error: true
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run unit tests
+        run: npm run test:unit
+      
+      - name: Upload unit test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-test-results
+          path: coverage/
+
+  property-based-tests:
+    name: Property-Based Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run property-based tests
+        run: npm run test:pbt
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [unit-tests, property-based-tests]
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: bharat_mandi_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+      
+      mongodb:
+        image: mongo:7
+        env:
+          MONGO_INITDB_ROOT_USERNAME: test
+          MONGO_INITDB_ROOT_PASSWORD: test
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 27017:27017
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Setup test databases
+        run: |
+          npm run db:setup || echo "Database setup not configured"
+          npm run mongodb:setup || echo "MongoDB setup not configured"
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/bharat_mandi_test
+          MONGODB_URI: mongodb://test:test@localhost:27017/bharat_mandi_test
+          REDIS_URL: redis://localhost:6379
+      
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/bharat_mandi_test
+          MONGODB_URI: mongodb://test:test@localhost:27017/bharat_mandi_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: integration-tests
+    if: github.event_name == 'schedule' || github.ref == 'refs/heads/main'
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: bharat_mandi_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Setup test database
+        run: npm run db:setup || echo "Database setup not configured"
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/bharat_mandi_test
+      
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/bharat_mandi_test
+          NODE_ENV: test
+
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    needs: [unit-tests, property-based-tests]
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests with coverage
+        run: npm run test:coverage
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/coverage-final.json
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+      
+      - name: Check coverage thresholds
+        run: |
+          COVERAGE=$(cat coverage/coverage-summary.json | jq '.total.lines.pct')
+          echo "Coverage: $COVERAGE%"
+          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+            echo "Coverage is below 80%"
+            exit 1
+          fi
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [unit-tests, property-based-tests, integration-tests, coverage]
+    if: always()
+    steps:
+      - name: Check test results
+        run: |
+          echo "Unit Tests: ${{ needs.unit-tests.result }}"
+          echo "Property-Based Tests: ${{ needs.property-based-tests.result }}"
+          echo "Integration Tests: ${{ needs.integration-tests.result }}"
+          echo "Coverage: ${{ needs.coverage.result }}"
+          
+          if [[ "${{ needs.unit-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.property-based-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.integration-tests.result }}" != "success" && "${{ needs.integration-tests.result }}" != "skipped" ]] || \
+             [[ "${{ needs.coverage.result }}" != "success" ]]; then
+            echo "Some tests failed!"
+            exit 1
+          fi
+          
+          echo "All tests passed!"
