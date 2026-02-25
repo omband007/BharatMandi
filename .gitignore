@@ -4,6 +4,7 @@ dist/
 .env
 .DS_Store
 coverage/
+diagrams_output/
 
 # Archive folder for old scripts and notes
 archive/
