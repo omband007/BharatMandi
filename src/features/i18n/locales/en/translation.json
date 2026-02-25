@@ -1,0 +1,78 @@
+{
+  "common": {
+    "welcome": "Welcome to Bharat Mandi",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "close": "Close"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "phone": "Phone Number",
+    "otp": "OTP",
+    "verifyOtp": "Verify OTP",
+    "requestOtp": "Request OTP",
+    "enterPhone": "Enter your phone number",
+    "enterOtp": "Enter OTP",
+    "invalidPhone": "Invalid phone number",
+    "invalidOtp": "Invalid OTP"
+  },
+  "marketplace": {
+    "listings": "Listings",
+    "myListings": "My Listings",
+    "createListing": "Create Listing",
+    "viewListing": "View Listing",
+    "editListing": "Edit Listing",
+    "deleteListing": "Delete Listing",
+    "title": "Title",
+    "description": "Description",
+    "price": "Price",
+    "quantity": "Quantity",
+    "crop": "Crop",
+    "grade": "Grade",
+    "location": "Location",
+    "photos": "Photos",
+    "addPhotos": "Add Photos",
+    "noListings": "No listings found"
+  },
+  "grading": {
+    "gradeProduce": "Grade Produce",
+    "takePhoto": "Take Photo",
+    "analyzing": "Analyzing...",
+    "gradeResult": "Grade: {{grade}}",
+    "confidence": "Confidence: {{confidence}}%",
+    "certificate": "Certificate Generated"
+  },
+  "transactions": {
+    "orders": "Orders",
+    "myOrders": "My Orders",
+    "orderDetails": "Order Details",
+    "orderStatus": "Status",
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "rejected": "Rejected",
+    "inTransit": "In Transit",
+    "delivered": "Delivered",
+    "completed": "Completed"
+  },
+  "errors": {
+    "networkError": "Network error. Please check your connection.",
+    "serverError": "Server error. Please try again later.",
+    "notFound": "Not found",
+    "unauthorized": "Unauthorized access",
+    "validationError": "Please check your input"
+  }
+}
