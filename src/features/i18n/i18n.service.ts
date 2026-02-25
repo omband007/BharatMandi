@@ -1,5 +1,5 @@
 import i18next from 'i18next';
-import { getDatabaseManager } from '../../shared/database/db-abstraction';
+import type { DatabaseManager } from '../../shared/database/db-abstraction';
 
 export interface LanguageConfig {
   code: string; // ISO 639-1 code (e.g., 'hi', 'en', 'pa')
@@ -71,17 +71,21 @@ export class I18nService {
     await i18next.changeLanguage(languageCode);
     
     // Persist preference to database
-    const db = getDatabaseManager();
-    await db.updateUser(userId, { 
-      language_preference: languageCode,
-      updated_at: new Date()
-    });
+    const db = (global as any).sharedDbManager as DatabaseManager;
+    if (db) {
+      await db.updateUser(userId, { 
+        languagePreference: languageCode,
+        updatedAt: new Date()
+      });
+    }
   }
 
   async getUserLanguagePreference(userId: string): Promise<string> {
-    const db = getDatabaseManager();
+    const db = (global as any).sharedDbManager as DatabaseManager;
+    if (!db) return 'en';
+    
     const user = await db.getUserById(userId);
-    return user?.language_preference || 'en';
+    return user?.languagePreference || 'en';
   }
 
   async updateUserLanguagePreference(userId: string, languageCode: string): Promise<void> {
@@ -89,11 +93,13 @@ export class I18nService {
       throw new Error(`Unsupported language: ${languageCode}`);
     }
 
-    const db = getDatabaseManager();
-    await db.updateUser(userId, { 
-      language_preference: languageCode,
-      updated_at: new Date()
-    });
+    const db = (global as any).sharedDbManager as DatabaseManager;
+    if (db) {
+      await db.updateUser(userId, { 
+        languagePreference: languageCode,
+        updatedAt: new Date()
+      });
+    }
   }
 
   translate(key: string, options?: any): string {
@@ -104,7 +110,7 @@ export class I18nService {
       console.warn(`[I18n] Missing translation key: ${key}`);
     }
     
-    return translation;
+    return String(translation);
   }
 
   formatDate(date: Date, languageCode: string): string {
