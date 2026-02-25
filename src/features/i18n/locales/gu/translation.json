@@ -1,0 +1,78 @@
+{
+  "common": {
+    "welcome": "ભારત મંડીમાં આપનું સ્વાગત છે",
+    "loading": "લોડ થઈ રહ્યું છે...",
+    "error": "એક ભૂલ આવી",
+    "success": "સફળતા",
+    "cancel": "રદ કરો",
+    "confirm": "પુષ્ટિ કરો",
+    "save": "સાચવો",
+    "delete": "કાઢી નાખો",
+    "edit": "સંપાદિત કરો",
+    "back": "પાછળ",
+    "next": "આગળ",
+    "submit": "સબમિટ કરો",
+    "search": "શોધો",
+    "filter": "ફિલ્ટર",
+    "sort": "ક્રમમાં ગોઠવો",
+    "close": "બંધ કરો"
+  },
+  "auth": {
+    "login": "લોગિન",
+    "logout": "લોગઆઉટ",
+    "register": "નોંધણી",
+    "phone": "ફોન નંબર",
+    "otp": "ઓટીપી",
+    "verifyOtp": "ઓટીપી ચકાસો",
+    "requestOtp": "ઓટીપી વિનંતી કરો",
+    "enterPhone": "તમારો ફોન નંબર દાખલ કરો",
+    "enterOtp": "ઓટીપી દાખલ કરો",
+    "invalidPhone": "અમાન્ય ફોન નંબર",
+    "invalidOtp": "અમાન્ય ઓટીપી"
+  },
+  "marketplace": {
+    "listings": "લિસ્ટિંગ",
+    "myListings": "મારી લિસ્ટિંગ",
+    "createListing": "લિસ્ટિંગ બનાવો",
+    "viewListing": "લિસ્ટિંગ જુઓ",
+    "editListing": "લિસ્ટિંગ સંપાદિત કરો",
+    "deleteListing": "લિસ્ટિંગ કાઢી નાખો",
+    "title": "શીર્ષક",
+    "description": "વર્ણન",
+    "price": "કિંમત",
+    "quantity": "જથ્થો",
+    "crop": "પાક",
+    "grade": "ગ્રેડ",
+    "location": "સ્થાન",
+    "photos": "ફોટા",
+    "addPhotos": "ફોટા ઉમેરો",
+    "noListings": "કોઈ લિસ્ટિંગ મળી નથી"
+  },
+  "grading": {
+    "gradeProduce": "ઉત્પાદનનું ગ્રેડિંગ કરો",
+    "takePhoto": "ફોટો લો",
+    "analyzing": "વિશ્લેષણ કરી રહ્યું છે...",
+    "gradeResult": "ગ્રેડ: {{grade}}",
+    "confidence": "વિશ્વાસ: {{confidence}}%",
+    "certificate": "પ્રમાણપત્ર જારી કર્યું"
+  },
+  "transactions": {
+    "orders": "ઓર્ડર",
+    "myOrders": "મારા ઓર્ડર",
+    "orderDetails": "ઓર્ડર વિગતો",
+    "orderStatus": "સ્થિતિ",
+    "pending": "બાકી",
+    "accepted": "સ્વીકૃત",
+    "rejected": "નકારી કાઢ્યું",
+    "inTransit": "પરિવહનમાં",
+    "delivered": "વિતરિત",
+    "completed": "પૂર્ણ"
+  },
+  "errors": {
+    "networkError": "નેટવર્ક ભૂલ. કૃપા કરીને તમારું કનેક્શન તપાસો.",
+    "serverError": "સર્વર ભૂલ. કૃપા કરીને પછીથી ફરી પ્રયાસ કરો.",
+    "notFound": "મળ્યું નથી",
+    "unauthorized": "અનધિકૃત પ્રવેશ",
+    "validationError": "કૃપા કરીને તમારું ઇનપુટ તપાસો"
+  }
+}

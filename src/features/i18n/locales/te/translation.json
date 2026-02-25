@@ -1,0 +1,78 @@
+{
+  "common": {
+    "welcome": "భారత్ మండికి స్వాగతం",
+    "loading": "లోడ్ అవుతోంది...",
+    "error": "ఒక లోపం సంభవించింది",
+    "success": "విజయం",
+    "cancel": "రద్దు చేయి",
+    "confirm": "నిర్ధారించు",
+    "save": "సేవ్ చేయి",
+    "delete": "తొలగించు",
+    "edit": "సవరించు",
+    "back": "వెనుకకు",
+    "next": "తదుపరి",
+    "submit": "సమర్పించు",
+    "search": "వెతుకు",
+    "filter": "ఫిల్టర్",
+    "sort": "క్రమబద్ధీకరించు",
+    "close": "మూసివేయి"
+  },
+  "auth": {
+    "login": "లాగిన్",
+    "logout": "లాగౌట్",
+    "register": "నమోదు",
+    "phone": "ఫోన్ నంబర్",
+    "otp": "ఓటీపీ",
+    "verifyOtp": "ఓటీపీని ధృవీకరించు",
+    "requestOtp": "ఓటీపీ అభ్యర్థన",
+    "enterPhone": "మీ ఫోన్ నంబర్‌ను నమోదు చేయండి",
+    "enterOtp": "ఓటీపీని నమోదు చేయండి",
+    "invalidPhone": "చెల్లని ఫోన్ నంబర్",
+    "invalidOtp": "చెల్లని ఓటీపీ"
+  },
+  "marketplace": {
+    "listings": "జాబితాలు",
+    "myListings": "నా జాబితాలు",
+    "createListing": "జాబితా సృష్టించు",
+    "viewListing": "జాబితా చూడు",
+    "editListing": "జాబితా సవరించు",
+    "deleteListing": "జాబితా తొలగించు",
+    "title": "శీర్షిక",
+    "description": "వివరణ",
+    "price": "ధర",
+    "quantity": "పరిమాణం",
+    "crop": "పంట",
+    "grade": "గ్రేడ్",
+    "location": "స్థానం",
+    "photos": "ఫోటోలు",
+    "addPhotos": "ఫోటోలు జోడించు",
+    "noListings": "జాబితాలు కనుగొనబడలేదు"
+  },
+  "grading": {
+    "gradeProduce": "ఉత్పత్తిని గ్రేడ్ చేయండి",
+    "takePhoto": "ఫోటో తీయండి",
+    "analyzing": "విశ్లేషిస్తోంది...",
+    "gradeResult": "గ్రేడ్: {{grade}}",
+    "confidence": "విశ్వాసం: {{confidence}}%",
+    "certificate": "సర్టిఫికేట్ జారీ చేయబడింది"
+  },
+  "transactions": {
+    "orders": "ఆర్డర్లు",
+    "myOrders": "నా ఆర్డర్లు",
+    "orderDetails": "ఆర్డర్ వివరాలు",
+    "orderStatus": "స్థితి",
+    "pending": "పెండింగ్",
+    "accepted": "అంగీకరించబడింది",
+    "rejected": "తిరస్కరించబడింది",
+    "inTransit": "రవాణాలో",
+    "delivered": "డెలివరీ చేయబడింది",
+    "completed": "పూర్తయింది"
+  },
+  "errors": {
+    "networkError": "నెట్‌వర్క్ లోపం. దయచేసి మీ కనెక్షన్‌ను తనిఖీ చేయండి.",
+    "serverError": "సర్వర్ లోపం. దయచేసి తర్వాత మళ్లీ ప్రయత్నించండి.",
+    "notFound": "కనుగొనబడలేదు",
+    "unauthorized": "అనధికార ప్రవేశం",
+    "validationError": "దయచేసి మీ ఇన్‌పుట్‌ను తనిఖీ చేయండి"
+  }
+}

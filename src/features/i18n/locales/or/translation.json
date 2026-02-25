@@ -1,0 +1,78 @@
+{
+  "common": {
+    "welcome": "ଭାରତ ମଣ୍ଡିକୁ ସ୍ୱାଗତ",
+    "loading": "ଲୋଡ୍ ହେଉଛି...",
+    "error": "ଏକ ତ୍ରୁଟି ଘଟିଛି",
+    "success": "ସଫଳତା",
+    "cancel": "ବାତିଲ୍ କରନ୍ତୁ",
+    "confirm": "ନିଶ୍ଚିତ କରନ୍ତୁ",
+    "save": "ସଂରକ୍ଷଣ କରନ୍ତୁ",
+    "delete": "ବିଲୋପ କରନ୍ତୁ",
+    "edit": "ସମ୍ପାଦନା କରନ୍ତୁ",
+    "back": "ପଛକୁ",
+    "next": "ପରବର୍ତ୍ତୀ",
+    "submit": "ଦାଖଲ କରନ୍ତୁ",
+    "search": "ଖୋଜନ୍ତୁ",
+    "filter": "ଫିଲ୍ଟର୍",
+    "sort": "ସଜାଡନ୍ତୁ",
+    "close": "ବନ୍ଦ କରନ୍ତୁ"
+  },
+  "auth": {
+    "login": "ଲଗଇନ୍",
+    "logout": "ଲଗଆଉଟ୍",
+    "register": "ପଞ୍ଜୀକରଣ",
+    "phone": "ଫୋନ୍ ନମ୍ବର",
+    "otp": "ଓଟିପି",
+    "verifyOtp": "ଓଟିପି ଯାଞ୍ଚ କରନ୍ତୁ",
+    "requestOtp": "ଓଟିପି ଅନୁରୋଧ କରନ୍ତୁ",
+    "enterPhone": "ଆପଣଙ୍କ ଫୋନ୍ ନମ୍ବର ପ୍ରବେଶ କରନ୍ତୁ",
+    "enterOtp": "ଓଟିପି ପ୍ରବେଶ କରନ୍ତୁ",
+    "invalidPhone": "ଅବୈଧ ଫୋନ୍ ନମ୍ବର",
+    "invalidOtp": "ଅବୈଧ ଓଟିପି"
+  },
+  "marketplace": {
+    "listings": "ତାଲିକା",
+    "myListings": "ମୋର ତାଲିକା",
+    "createListing": "ତାଲିକା ସୃଷ୍ଟି କରନ୍ତୁ",
+    "viewListing": "ତାଲିକା ଦେଖନ୍ତୁ",
+    "editListing": "ତାଲିକା ସମ୍ପାଦନା କରନ୍ତୁ",
+    "deleteListing": "ତାଲିକା ବିଲୋପ କରନ୍ତୁ",
+    "title": "ଶୀର୍ଷକ",
+    "description": "ବର୍ଣ୍ଣନା",
+    "price": "ମୂଲ୍ୟ",
+    "quantity": "ପରିମାଣ",
+    "crop": "ଫସଲ",
+    "grade": "ଗ୍ରେଡ୍",
+    "location": "ସ୍ଥାନ",
+    "photos": "ଫଟୋ",
+    "addPhotos": "ଫଟୋ ଯୋଡନ୍ତୁ",
+    "noListings": "କୌଣସି ତାଲିକା ମିଳିଲା ନାହିଁ"
+  },
+  "grading": {
+    "gradeProduce": "ଉତ୍ପାଦ ଗ୍ରେଡ୍ କରନ୍ତୁ",
+    "takePhoto": "ଫଟୋ ନିଅନ୍ତୁ",
+    "analyzing": "ବିଶ୍ଳେଷଣ କରୁଛି...",
+    "gradeResult": "ଗ୍ରେଡ୍: {{grade}}",
+    "confidence": "ବିଶ୍ୱାସ: {{confidence}}%",
+    "certificate": "ପ୍ରମାଣପତ୍ର ଜାରି କରାଯାଇଛି"
+  },
+  "transactions": {
+    "orders": "ଅର୍ଡର",
+    "myOrders": "ମୋର ଅର୍ଡର",
+    "orderDetails": "ଅର୍ଡର ବିବରଣୀ",
+    "orderStatus": "ସ୍ଥିତି",
+    "pending": "ବିଚାରାଧୀନ",
+    "accepted": "ଗ୍ରହଣ କରାଯାଇଛି",
+    "rejected": "ପ୍ରତ୍ୟାଖ୍ୟାନ କରାଯାଇଛି",
+    "inTransit": "ପରିବହନରେ",
+    "delivered": "ବିତରଣ କରାଯାଇଛି",
+    "completed": "ସମ୍ପୂର୍ଣ୍ଣ"
+  },
+  "errors": {
+    "networkError": "ନେଟୱାର୍କ ତ୍ରୁଟି। ଦୟାକରି ଆପଣଙ୍କ ସଂଯୋଗ ଯାଞ୍ଚ କରନ୍ତୁ।",
+    "serverError": "ସର୍ଭର ତ୍ରୁଟି। ଦୟାକରି ପରେ ପୁନର୍ବାର ଚେଷ୍ଟା କରନ୍ତୁ।",
+    "notFound": "ମିଳିଲା ନାହିଁ",
+    "unauthorized": "ଅନଧିକୃତ ପ୍ରବେଶ",
+    "validationError": "ଦୟାକରି ଆପଣଙ୍କ ଇନପୁଟ୍ ଯାଞ୍ଚ କରନ୍ତୁ"
+  }
+}

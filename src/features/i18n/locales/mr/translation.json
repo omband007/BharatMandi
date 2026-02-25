@@ -1,0 +1,78 @@
+{
+  "common": {
+    "welcome": "भारत मंडीमध्ये आपले स्वागत आहे",
+    "loading": "लोड होत आहे...",
+    "error": "एक त्रुटी आली",
+    "success": "यश",
+    "cancel": "रद्द करा",
+    "confirm": "पुष्टी करा",
+    "save": "जतन करा",
+    "delete": "हटवा",
+    "edit": "संपादित करा",
+    "back": "मागे",
+    "next": "पुढे",
+    "submit": "सबमिट करा",
+    "search": "शोधा",
+    "filter": "फिल्टर",
+    "sort": "क्रमवारी लावा",
+    "close": "बंद करा"
+  },
+  "auth": {
+    "login": "लॉगिन",
+    "logout": "लॉगआउट",
+    "register": "नोंदणी",
+    "phone": "फोन नंबर",
+    "otp": "ओटीपी",
+    "verifyOtp": "ओटीपी सत्यापित करा",
+    "requestOtp": "ओटीपी विनंती करा",
+    "enterPhone": "आपला फोन नंबर प्रविष्ट करा",
+    "enterOtp": "ओटीपी प्रविष्ट करा",
+    "invalidPhone": "अवैध फोन नंबर",
+    "invalidOtp": "अवैध ओटीपी"
+  },
+  "marketplace": {
+    "listings": "लिस्टिंग",
+    "myListings": "माझी लिस्टिंग",
+    "createListing": "लिस्टिंग तयार करा",
+    "viewListing": "लिस्टिंग पहा",
+    "editListing": "लिस्टिंग संपादित करा",
+    "deleteListing": "लिस्टिंग हटवा",
+    "title": "शीर्षक",
+    "description": "वर्णन",
+    "price": "किंमत",
+    "quantity": "प्रमाण",
+    "crop": "पीक",
+    "grade": "ग्रेड",
+    "location": "स्थान",
+    "photos": "फोटो",
+    "addPhotos": "फोटो जोडा",
+    "noListings": "कोणतीही लिस्टिंग आढळली नाही"
+  },
+  "grading": {
+    "gradeProduce": "उत्पादनाचे ग्रेडिंग करा",
+    "takePhoto": "फोटो घ्या",
+    "analyzing": "विश्लेषण करत आहे...",
+    "gradeResult": "ग्रेड: {{grade}}",
+    "confidence": "विश्वास: {{confidence}}%",
+    "certificate": "प्रमाणपत्र जारी केले"
+  },
+  "transactions": {
+    "orders": "ऑर्डर",
+    "myOrders": "माझे ऑर्डर",
+    "orderDetails": "ऑर्डर तपशील",
+    "orderStatus": "स्थिती",
+    "pending": "प्रलंबित",
+    "accepted": "स्वीकारले",
+    "rejected": "नाकारले",
+    "inTransit": "वाहतुकीत",
+    "delivered": "वितरित",
+    "completed": "पूर्ण"
+  },
+  "errors": {
+    "networkError": "नेटवर्क त्रुटी. कृपया आपले कनेक्शन तपासा.",
+    "serverError": "सर्व्हर त्रुटी. कृपया नंतर पुन्हा प्रयत्न करा.",
+    "notFound": "आढळले नाही",
+    "unauthorized": "अनधिकृत प्रवेश",
+    "validationError": "कृपया आपले इनपुट तपासा"
+  }
+}

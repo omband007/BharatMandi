@@ -1,0 +1,78 @@
+{
+  "common": {
+    "welcome": "भारत मंडी में आपका स्वागत है",
+    "loading": "लोड हो रहा है...",
+    "error": "एक त्रुटि हुई",
+    "success": "सफलता",
+    "cancel": "रद्द करें",
+    "confirm": "पुष्टि करें",
+    "save": "सहेजें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "back": "वापस",
+    "next": "आगे",
+    "submit": "जमा करें",
+    "search": "खोजें",
+    "filter": "फ़िल्टर",
+    "sort": "क्रमबद्ध करें",
+    "close": "बंद करें"
+  },
+  "auth": {
+    "login": "लॉगिन",
+    "logout": "लॉगआउट",
+    "register": "पंजीकरण",
+    "phone": "फ़ोन नंबर",
+    "otp": "ओटीपी",
+    "verifyOtp": "ओटीपी सत्यापित करें",
+    "requestOtp": "ओटीपी का अनुरोध करें",
+    "enterPhone": "अपना फ़ोन नंबर दर्ज करें",
+    "enterOtp": "ओटीपी दर्ज करें",
+    "invalidPhone": "अमान्य फ़ोन नंबर",
+    "invalidOtp": "अमान्य ओटीपी"
+  },
+  "marketplace": {
+    "listings": "लिस्टिंग",
+    "myListings": "मेरी लिस्टिंग",
+    "createListing": "लिस्टिंग बनाएं",
+    "viewListing": "लिस्टिंग देखें",
+    "editListing": "लिस्टिंग संपादित करें",
+    "deleteListing": "लिस्टिंग हटाएं",
+    "title": "शीर्षक",
+    "description": "विवरण",
+    "price": "मूल्य",
+    "quantity": "मात्रा",
+    "crop": "फसल",
+    "grade": "ग्रेड",
+    "location": "स्थान",
+    "photos": "फोटो",
+    "addPhotos": "फोटो जोड़ें",
+    "noListings": "कोई लिस्टिंग नहीं मिली"
+  },
+  "grading": {
+    "gradeProduce": "उपज की ग्रेडिंग करें",
+    "takePhoto": "फोटो लें",
+    "analyzing": "विश्लेषण हो रहा है...",
+    "gradeResult": "ग्रेड: {{grade}}",
+    "confidence": "विश्वास: {{confidence}}%",
+    "certificate": "प्रमाणपत्र जारी किया गया"
+  },
+  "transactions": {
+    "orders": "ऑर्डर",
+    "myOrders": "मेरे ऑर्डर",
+    "orderDetails": "ऑर्डर विवरण",
+    "orderStatus": "स्थिति",
+    "pending": "लंबित",
+    "accepted": "स्वीकृत",
+    "rejected": "अस्वीकृत",
+    "inTransit": "ट्रांजिट में",
+    "delivered": "डिलीवर किया गया",
+    "completed": "पूर्ण"
+  },
+  "errors": {
+    "networkError": "नेटवर्क त्रुटि। कृपया अपना कनेक्शन जांचें।",
+    "serverError": "सर्वर त्रुटि। कृपया बाद में पुनः प्रयास करें।",
+    "notFound": "नहीं मिला",
+    "unauthorized": "अनधिकृत पहुंच",
+    "validationError": "कृपया अपना इनपुट जांचें"
+  }
+}

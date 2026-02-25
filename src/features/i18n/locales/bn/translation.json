@@ -1,0 +1,78 @@
+{
+  "common": {
+    "welcome": "ভারত মন্ডিতে স্বাগতম",
+    "loading": "লোড হচ্ছে...",
+    "error": "একটি ত্রুটি ঘটেছে",
+    "success": "সফলতা",
+    "cancel": "বাতিল করুন",
+    "confirm": "নিশ্চিত করুন",
+    "save": "সংরক্ষণ করুন",
+    "delete": "মুছুন",
+    "edit": "সম্পাদনা করুন",
+    "back": "পিছনে",
+    "next": "পরবর্তী",
+    "submit": "জমা দিন",
+    "search": "অনুসন্ধান করুন",
+    "filter": "ফিল্টার",
+    "sort": "সাজান",
+    "close": "বন্ধ করুন"
+  },
+  "auth": {
+    "login": "লগইন",
+    "logout": "লগআউট",
+    "register": "নিবন্ধন",
+    "phone": "ফোন নম্বর",
+    "otp": "ওটিপি",
+    "verifyOtp": "ওটিপি যাচাই করুন",
+    "requestOtp": "ওটিপি অনুরোধ করুন",
+    "enterPhone": "আপনার ফোন নম্বর লিখুন",
+    "enterOtp": "ওটিপি লিখুন",
+    "invalidPhone": "অবৈধ ফোন নম্বর",
+    "invalidOtp": "অবৈধ ওটিপি"
+  },
+  "marketplace": {
+    "listings": "তালিকা",
+    "myListings": "আমার তালিকা",
+    "createListing": "তালিকা তৈরি করুন",
+    "viewListing": "তালিকা দেখুন",
+    "editListing": "তালিকা সম্পাদনা করুন",
+    "deleteListing": "তালিকা মুছুন",
+    "title": "শিরোনাম",
+    "description": "বিবরণ",
+    "price": "মূল্য",
+    "quantity": "পরিমাণ",
+    "crop": "ফসল",
+    "grade": "গ্রেড",
+    "location": "অবস্থান",
+    "photos": "ফটো",
+    "addPhotos": "ফটো যোগ করুন",
+    "noListings": "কোনো তালিকা পাওয়া যায়নি"
+  },
+  "grading": {
+    "gradeProduce": "উৎপাদন গ্রেড করুন",
+    "takePhoto": "ফটো তুলুন",
+    "analyzing": "বিশ্লেষণ করা হচ্ছে...",
+    "gradeResult": "গ্রেড: {{grade}}",
+    "confidence": "আত্মবিশ্বাস: {{confidence}}%",
+    "certificate": "সার্টিফিকেট জারি করা হয়েছে"
+  },
+  "transactions": {
+    "orders": "অর্ডার",
+    "myOrders": "আমার অর্ডার",
+    "orderDetails": "অর্ডার বিবরণ",
+    "orderStatus": "অবস্থা",
+    "pending": "মুলতুবি",
+    "accepted": "গৃহীত",
+    "rejected": "প্রত্যাখ্যাত",
+    "inTransit": "পরিবহনে",
+    "delivered": "বিতরণ করা হয়েছে",
+    "completed": "সম্পন্ন"
+  },
+  "errors": {
+    "networkError": "নেটওয়ার্ক ত্রুটি। অনুগ্রহ করে আপনার সংযোগ পরীক্ষা করুন।",
+    "serverError": "সার্ভার ত্রুটি। অনুগ্রহ করে পরে আবার চেষ্টা করুন।",
+    "notFound": "পাওয়া যায়নি",
+    "unauthorized": "অননুমোদিত প্রবেশ",
+    "validationError": "অনুগ্রহ করে আপনার ইনপুট পরীক্ষা করুন"
+  }
+}

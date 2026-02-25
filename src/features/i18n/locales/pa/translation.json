@@ -1,0 +1,78 @@
+{
+  "common": {
+    "welcome": "ਭਾਰਤ ਮੰਡੀ ਵਿੱਚ ਤੁਹਾਡਾ ਸੁਆਗਤ ਹੈ",
+    "loading": "ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ...",
+    "error": "ਇੱਕ ਗਲਤੀ ਹੋਈ",
+    "success": "ਸਫਲਤਾ",
+    "cancel": "ਰੱਦ ਕਰੋ",
+    "confirm": "ਪੁਸ਼ਟੀ ਕਰੋ",
+    "save": "ਸੁਰੱਖਿਅਤ ਕਰੋ",
+    "delete": "ਮਿਟਾਓ",
+    "edit": "ਸੰਪਾਦਿਤ ਕਰੋ",
+    "back": "ਵਾਪਸ",
+    "next": "ਅੱਗੇ",
+    "submit": "ਜਮ੍ਹਾਂ ਕਰੋ",
+    "search": "ਖੋਜੋ",
+    "filter": "ਫਿਲਟਰ",
+    "sort": "ਕ੍ਰਮਬੱਧ ਕਰੋ",
+    "close": "ਬੰਦ ਕਰੋ"
+  },
+  "auth": {
+    "login": "ਲੌਗਇਨ",
+    "logout": "ਲੌਗਆਉਟ",
+    "register": "ਰਜਿਸਟਰ",
+    "phone": "ਫ਼ੋਨ ਨੰਬਰ",
+    "otp": "ਓਟੀਪੀ",
+    "verifyOtp": "ਓਟੀਪੀ ਪੁਸ਼ਟੀ ਕਰੋ",
+    "requestOtp": "ਓਟੀਪੀ ਦੀ ਬੇਨਤੀ ਕਰੋ",
+    "enterPhone": "ਆਪਣਾ ਫ਼ੋਨ ਨੰਬਰ ਦਰਜ ਕਰੋ",
+    "enterOtp": "ਓਟੀਪੀ ਦਰਜ ਕਰੋ",
+    "invalidPhone": "ਅਵੈਧ ਫ਼ੋਨ ਨੰਬਰ",
+    "invalidOtp": "ਅਵੈਧ ਓਟੀਪੀ"
+  },
+  "marketplace": {
+    "listings": "ਲਿਸਟਿੰਗਾਂ",
+    "myListings": "ਮੇਰੀਆਂ ਲਿਸਟਿੰਗਾਂ",
+    "createListing": "ਲਿਸਟਿੰਗ ਬਣਾਓ",
+    "viewListing": "ਲਿਸਟਿੰਗ ਦੇਖੋ",
+    "editListing": "ਲਿਸਟਿੰਗ ਸੰਪਾਦਿਤ ਕਰੋ",
+    "deleteListing": "ਲਿਸਟਿੰਗ ਮਿਟਾਓ",
+    "title": "ਸਿਰਲੇਖ",
+    "description": "ਵੇਰਵਾ",
+    "price": "ਕੀਮਤ",
+    "quantity": "ਮਾਤਰਾ",
+    "crop": "ਫਸਲ",
+    "grade": "ਗ੍ਰੇਡ",
+    "location": "ਸਥਾਨ",
+    "photos": "ਫੋਟੋਆਂ",
+    "addPhotos": "ਫੋਟੋਆਂ ਸ਼ਾਮਲ ਕਰੋ",
+    "noListings": "ਕੋਈ ਲਿਸਟਿੰਗ ਨਹੀਂ ਮਿਲੀ"
+  },
+  "grading": {
+    "gradeProduce": "ਉਪਜ ਦੀ ਗ੍ਰੇਡਿੰਗ ਕਰੋ",
+    "takePhoto": "ਫੋਟੋ ਲਓ",
+    "analyzing": "ਵਿਸ਼ਲੇਸ਼ਣ ਹੋ ਰਿਹਾ ਹੈ...",
+    "gradeResult": "ਗ੍ਰੇਡ: {{grade}}",
+    "confidence": "ਵਿਸ਼ਵਾਸ: {{confidence}}%",
+    "certificate": "ਸਰਟੀਫਿਕੇਟ ਜਾਰੀ ਕੀਤਾ ਗਿਆ"
+  },
+  "transactions": {
+    "orders": "ਆਰਡਰ",
+    "myOrders": "ਮੇਰੇ ਆਰਡਰ",
+    "orderDetails": "ਆਰਡਰ ਵੇਰਵੇ",
+    "orderStatus": "ਸਥਿਤੀ",
+    "pending": "ਲੰਬਿਤ",
+    "accepted": "ਸਵੀਕਾਰ ਕੀਤਾ",
+    "rejected": "ਅਸਵੀਕਾਰ ਕੀਤਾ",
+    "inTransit": "ਆਵਾਜਾਈ ਵਿੱਚ",
+    "delivered": "ਡਿਲੀਵਰ ਕੀਤਾ ਗਿਆ",
+    "completed": "ਪੂਰਾ ਹੋਇਆ"
+  },
+  "errors": {
+    "networkError": "ਨੈੱਟਵਰਕ ਗਲਤੀ। ਕਿਰਪਾ ਕਰਕੇ ਆਪਣਾ ਕਨੈਕਸ਼ਨ ਜਾਂਚੋ।",
+    "serverError": "ਸਰਵਰ ਗਲਤੀ। ਕਿਰਪਾ ਕਰਕੇ ਬਾਅਦ ਵਿੱਚ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+    "notFound": "ਨਹੀਂ ਮਿਲਿਆ",
+    "unauthorized": "ਅਣਅਧਿਕਾਰਤ ਪਹੁੰਚ",
+    "validationError": "ਕਿਰਪਾ ਕਰਕੇ ਆਪਣਾ ਇਨਪੁੱਟ ਜਾਂਚੋ"
+  }
+}

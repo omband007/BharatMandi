@@ -1,0 +1,78 @@
+{
+  "common": {
+    "welcome": "ಭಾರತ್ ಮಂಡಿಗೆ ಸ್ವಾಗತ",
+    "loading": "ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+    "error": "ದೋಷ ಸಂಭವಿಸಿದೆ",
+    "success": "ಯಶಸ್ಸು",
+    "cancel": "ರದ್ದುಮಾಡಿ",
+    "confirm": "ದೃಢೀಕರಿಸಿ",
+    "save": "ಉಳಿಸಿ",
+    "delete": "ಅಳಿಸಿ",
+    "edit": "ಸಂಪಾದಿಸಿ",
+    "back": "ಹಿಂದೆ",
+    "next": "ಮುಂದೆ",
+    "submit": "ಸಲ್ಲಿಸಿ",
+    "search": "ಹುಡುಕಿ",
+    "filter": "ಫಿಲ್ಟರ್",
+    "sort": "ವಿಂಗಡಿಸಿ",
+    "close": "ಮುಚ್ಚಿ"
+  },
+  "auth": {
+    "login": "ಲಾಗಿನ್",
+    "logout": "ಲಾಗೌಟ್",
+    "register": "ನೋಂದಣಿ",
+    "phone": "ಫೋನ್ ಸಂಖ್ಯೆ",
+    "otp": "ಓಟಿಪಿ",
+    "verifyOtp": "ಓಟಿಪಿ ಪರಿಶೀಲಿಸಿ",
+    "requestOtp": "ಓಟಿಪಿ ವಿನಂತಿಸಿ",
+    "enterPhone": "ನಿಮ್ಮ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ",
+    "enterOtp": "ಓಟಿಪಿ ನಮೂದಿಸಿ",
+    "invalidPhone": "ಅಮಾನ್ಯ ಫೋನ್ ಸಂಖ್ಯೆ",
+    "invalidOtp": "ಅಮಾನ್ಯ ಓಟಿಪಿ"
+  },
+  "marketplace": {
+    "listings": "ಪಟ್ಟಿಗಳು",
+    "myListings": "ನನ್ನ ಪಟ್ಟಿಗಳು",
+    "createListing": "ಪಟ್ಟಿ ರಚಿಸಿ",
+    "viewListing": "ಪಟ್ಟಿ ವೀಕ್ಷಿಸಿ",
+    "editListing": "ಪಟ್ಟಿ ಸಂಪಾದಿಸಿ",
+    "deleteListing": "ಪಟ್ಟಿ ಅಳಿಸಿ",
+    "title": "ಶೀರ್ಷಿಕೆ",
+    "description": "ವಿವರಣೆ",
+    "price": "ಬೆಲೆ",
+    "quantity": "ಪ್ರಮಾಣ",
+    "crop": "ಬೆಳೆ",
+    "grade": "ಗ್ರೇಡ್",
+    "location": "ಸ್ಥಳ",
+    "photos": "ಫೋಟೋಗಳು",
+    "addPhotos": "ಫೋಟೋಗಳನ್ನು ಸೇರಿಸಿ",
+    "noListings": "ಯಾವುದೇ ಪಟ್ಟಿಗಳು ಕಂಡುಬಂದಿಲ್ಲ"
+  },
+  "grading": {
+    "gradeProduce": "ಉತ್ಪನ್ನವನ್ನು ಗ್ರೇಡ್ ಮಾಡಿ",
+    "takePhoto": "ಫೋಟೋ ತೆಗೆಯಿರಿ",
+    "analyzing": "ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ...",
+    "gradeResult": "ಗ್ರೇಡ್: {{grade}}",
+    "confidence": "ವಿಶ್ವಾಸ: {{confidence}}%",
+    "certificate": "ಪ್ರಮಾಣಪತ್ರ ನೀಡಲಾಗಿದೆ"
+  },
+  "transactions": {
+    "orders": "ಆರ್ಡರ್‌ಗಳು",
+    "myOrders": "ನನ್ನ ಆರ್ಡರ್‌ಗಳು",
+    "orderDetails": "ಆರ್ಡರ್ ವಿವರಗಳು",
+    "orderStatus": "ಸ್ಥಿತಿ",
+    "pending": "ಬಾಕಿ",
+    "accepted": "ಸ್ವೀಕರಿಸಲಾಗಿದೆ",
+    "rejected": "ತಿರಸ್ಕರಿಸಲಾಗಿದೆ",
+    "inTransit": "ಸಾಗಣೆಯಲ್ಲಿ",
+    "delivered": "ವಿತರಿಸಲಾಗಿದೆ",
+    "completed": "ಪೂರ್ಣಗೊಂಡಿದೆ"
+  },
+  "errors": {
+    "networkError": "ನೆಟ್‌ವರ್ಕ್ ದೋಷ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ.",
+    "serverError": "ಸರ್ವರ್ ದೋಷ. ದಯವಿಟ್ಟು ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "notFound": "ಕಂಡುಬಂದಿಲ್ಲ",
+    "unauthorized": "ಅನಧಿಕೃತ ಪ್ರವೇಶ",
+    "validationError": "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಇನ್‌ಪುಟ್ ಪರಿಶೀಲಿಸಿ"
+  }
+}
