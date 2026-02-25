@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Write bug condition exploration test
+- [x] 1. Write bug condition exploration test
   - **Property 1: Fault Condition** - Mock Methods Available and Graceful Thumbnail Failure
   - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -40,7 +40,7 @@
 
 - [ ] 3. Fix for media service mock configuration and thumbnail handling
 
-  - [ ] 3.1 Add getListing method to mockSqliteAdapter
+  - [x] 3.1 Add getListing method to mockSqliteAdapter
     - Open `src/features/marketplace/__tests__/media.service.test.ts`
     - Locate the `beforeEach` block where mockSqliteAdapter is defined
     - Add `getListing: jest.fn()` to the mockSqliteAdapter object
@@ -83,7 +83,7 @@
     - Verify upload tests, getListingMedia tests, and validation tests are unchanged
     - _Requirements: 3.1, 3.2, 3.3_
 
-- [ ] 4. Checkpoint - Ensure all tests pass
+- [x] 4. Checkpoint - Ensure all tests pass
   - Run the full media service test suite
   - Verify all 8 previously failing tests now pass
   - Verify all previously passing tests still pass

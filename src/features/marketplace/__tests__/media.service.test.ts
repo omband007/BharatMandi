@@ -30,7 +30,20 @@ describe('MediaService', () => {
       getMediaCount: jest.fn(),
       getListingMedia: jest.fn(),
       createListingMedia: jest.fn(),
-      getListing: jest.fn(),
+      getListing: jest.fn().mockResolvedValue({
+        id: 'listing-1',
+        farmerId: 'farmer-1',
+        title: 'Test Listing',
+        description: 'Test Description',
+        category: 'vegetables',
+        quantity: 100,
+        unit: 'kg',
+        pricePerUnit: 50,
+        location: { latitude: 28.7041, longitude: 77.1025, address: 'Delhi' },
+        status: 'active',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }),
       getMediaById: jest.fn(),
       deleteListingMedia: jest.fn(),
       setPrimaryMedia: jest.fn(),
@@ -40,7 +53,21 @@ describe('MediaService', () => {
     mockSqliteAdapter = {
       cacheListingMedia: jest.fn(),
       getCachedListingMedia: jest.fn(),
-      deleteCachedMedia: jest.fn()
+      deleteCachedMedia: jest.fn(),
+      getListing: jest.fn().mockResolvedValue({
+        id: 'listing-1',
+        farmerId: 'farmer-1',
+        title: 'Test Listing',
+        description: 'Test Description',
+        category: 'vegetables',
+        quantity: 100,
+        unit: 'kg',
+        pricePerUnit: 50,
+        location: { latitude: 28.7041, longitude: 77.1025, address: 'Delhi' },
+        status: 'active',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
     };
 
     // Setup mock database manager
