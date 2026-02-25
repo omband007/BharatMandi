@@ -52,7 +52,7 @@ This document outlines the implementation tasks for comprehensive multi-language
     - Verify completeness for all bundles against English base
     - _Requirements: 1.2, 2.4_
   
-  - [ ]* 2.4 Write property test for translation completeness
+  - [x]* 2.4 Write property test for translation completeness
     - **Property 2: Translation Key Completeness**
     - **Validates: Requirements 2.4**
     - Test that all keys in English bundle exist in all other language bundles
@@ -83,12 +83,12 @@ This document outlines the implementation tasks for comprehensive multi-language
     - Implement formatCurrency() for INR with locale-specific formatting
     - _Requirements: 1.10, 1.11, 1.12_
   
-  - [ ]* 3.5 Write property test for locale formatting round-trip
+  - [x]* 3.5 Write property test for locale formatting round-trip
     - **Property 4: Number Formatting Round-Trip**
     - **Validates: Requirements 2.9**
     - Test that formatting and parsing numbers preserves values within precision
   
-  - [ ]* 3.6 Write unit tests for I18nService
+  - [x]* 3.6 Write unit tests for I18nService
     - Test language switching
     - Test translation lookup with missing keys
     - Test locale formatting for all supported languages
@@ -107,7 +107,7 @@ This document outlines the implementation tasks for comprehensive multi-language
     - Implement getUserLanguagePreference() and updateUserLanguagePreference() methods
     - _Requirements: 1.6, 1.7_
   
-  - [ ]* 4.3 Write property test for language preference persistence
+  - [x]* 4.3 Write property test for language preference persistence
     - **Property 7: Language Preference Persistence**
     - **Validates: Requirements 1.6, 1.7**
     - Test that storing and retrieving language preference returns same value
