@@ -65,6 +65,25 @@ function generateOTP(): string {
 }
 
 /**
+ * Normalize phone number - remove +91 prefix if present
+ * Converts +919876543210 or 919876543210 to 9876543210
+ */
+function normalizePhoneNumber(phoneNumber: string): string {
+  let normalized = phoneNumber.trim();
+  
+  // Remove +91 prefix
+  if (normalized.startsWith('+91')) {
+    normalized = normalized.substring(3);
+  } 
+  // Remove 91 prefix if it's a 12-digit number starting with 91
+  else if (normalized.startsWith('91') && normalized.length === 12) {
+    normalized = normalized.substring(2);
+  }
+  
+  return normalized;
+}
+
+/**
  * Send OTP via SMS (mock implementation)
  * In production, integrate with AWS Pinpoint or similar service
  */
@@ -77,9 +96,12 @@ async function sendOTP(phoneNumber: string, otp: string): Promise<void> {
  * Request OTP for phone number
  */
 export async function requestOTP(phoneNumber: string): Promise<{ success: boolean; message: string }> {
-  // Validate phone number format (Indian mobile numbers)
+  // Normalize phone number (remove +91 prefix if present)
+  const normalizedPhone = normalizePhoneNumber(phoneNumber);
+  
+  // Validate phone number format (Indian mobile numbers - 10 digits starting with 6-9)
   const phoneRegex = /^[6-9]\d{9}$/;
-  if (!phoneRegex.test(phoneNumber)) {
+  if (!phoneRegex.test(normalizedPhone)) {
     return { success: false, message: 'Invalid phone number format' };
   }
 
@@ -87,16 +109,16 @@ export async function requestOTP(phoneNumber: string): Promise<{ success: boolea
   const otp = generateOTP();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-  // Store OTP session in SQLite
+  // Store OTP session in SQLite using normalized phone
   await sqliteHelpers.createOTPSession({
-    phoneNumber,
+    phoneNumber: normalizedPhone,
     otp,
     expiresAt,
     attempts: 0
   });
 
   // Send OTP
-  await sendOTP(phoneNumber, otp);
+  await sendOTP(normalizedPhone, otp);
 
   return { success: true, message: 'OTP sent successfully' };
 }
@@ -105,7 +127,10 @@ export async function requestOTP(phoneNumber: string): Promise<{ success: boolea
  * Verify OTP
  */
 export async function verifyOTP(phoneNumber: string, otp: string): Promise<{ success: boolean; message: string }> {
-  const session = await sqliteHelpers.getOTPSession(phoneNumber);
+  // Normalize phone number
+  const normalizedPhone = normalizePhoneNumber(phoneNumber);
+  
+  const session = await sqliteHelpers.getOTPSession(normalizedPhone);
 
   if (!session) {
     return { success: false, message: 'No OTP session found. Please request a new OTP.' };
@@ -113,29 +138,29 @@ export async function verifyOTP(phoneNumber: string, otp: string): Promise<{ suc
 
   // Check expiration
   if (new Date() > session.expiresAt) {
-    await sqliteHelpers.deleteOTPSession(phoneNumber);
+    await sqliteHelpers.deleteOTPSession(normalizedPhone);
     return { success: false, message: 'OTP expired. Please request a new OTP.' };
   }
 
   // Check attempts
   if (session.attempts >= 3) {
-    await sqliteHelpers.deleteOTPSession(phoneNumber);
+    await sqliteHelpers.deleteOTPSession(normalizedPhone);
     return { success: false, message: 'Too many failed attempts. Please request a new OTP.' };
   }
 
   // Verify OTP
   if (session.otp !== otp) {
-    await sqliteHelpers.updateOTPAttempts(phoneNumber, session.attempts + 1);
+    await sqliteHelpers.updateOTPAttempts(normalizedPhone, session.attempts + 1);
     return { success: false, message: 'Invalid OTP. Please try again.' };
   }
 
   // OTP verified successfully - mark phone number as verified
-  await sqliteHelpers.deleteOTPSession(phoneNumber);
-  verifiedPhoneNumbers.add(phoneNumber);
+  await sqliteHelpers.deleteOTPSession(normalizedPhone);
+  verifiedPhoneNumbers.add(normalizedPhone);
   
   // Set TTL for verified status (5 minutes to complete registration)
   setTimeout(() => {
-    verifiedPhoneNumbers.delete(phoneNumber);
+    verifiedPhoneNumbers.delete(normalizedPhone);
   }, 5 * 60 * 1000);
 
   return { success: true, message: 'OTP verified successfully' };
@@ -162,8 +187,11 @@ export async function createUser(userData: {
   };
 }): Promise<{ success: boolean; user?: User; message: string }> {
   try {
+    // Normalize phone number
+    const normalizedPhone = normalizePhoneNumber(userData.phoneNumber);
+    
     // Property 13: Enforce OTP verification requirement
-    if (!verifiedPhoneNumbers.has(userData.phoneNumber)) {
+    if (!verifiedPhoneNumbers.has(normalizedPhone)) {
       return { 
         success: false, 
         message: 'Phone number not verified. Please complete OTP verification first.' 
@@ -171,16 +199,16 @@ export async function createUser(userData: {
     }
 
     // Check if user already exists
-    const existingUser = await getDbManager().getUserByPhone(userData.phoneNumber);
+    const existingUser = await getDbManager().getUserByPhone(normalizedPhone);
 
     if (existingUser) {
       return { success: false, message: 'User with this phone number already exists' };
     }
 
-    // Create user
+    // Create user with normalized phone
     const user: User = {
       id: uuidv4(),
-      phoneNumber: userData.phoneNumber,
+      phoneNumber: normalizedPhone,
       name: userData.name,
       userType: userData.userType,
       location: userData.location,
@@ -197,6 +225,7 @@ export async function createUser(userData: {
     }
 
     // Remove from verified set after successful registration
+    verifiedPhoneNumbers.delete(normalizedPhone);
     verifiedPhoneNumbers.delete(userData.phoneNumber);
 
     return { success: true, user, message: 'User created successfully' };
@@ -211,7 +240,9 @@ export async function createUser(userData: {
  */
 export async function getUserByPhone(phoneNumber: string): Promise<User | null> {
   try {
-    const user = await getDbManager().getUserByPhone(phoneNumber);
+    // Normalize phone number
+    const normalizedPhone = normalizePhoneNumber(phoneNumber);
+    const user = await getDbManager().getUserByPhone(normalizedPhone);
     return user || null;
   } catch (error) {
     console.error('Error getting user:', error);
@@ -227,7 +258,8 @@ export async function getOTPForTesting(phoneNumber: string): Promise<string | nu
   if (process.env.NODE_ENV !== 'test') {
     throw new Error('getOTPForTesting can only be called in test environment');
   }
-  const session = await sqliteHelpers.getOTPSession(phoneNumber);
+  const normalizedPhone = normalizePhoneNumber(phoneNumber);
+  const session = await sqliteHelpers.getOTPSession(normalizedPhone);
   return session ? session.otp : null;
 }
 
@@ -247,6 +279,9 @@ export function clearVerifiedPhoneNumbers(): void {
  */
 export async function setupPIN(phoneNumber: string, pin: string): Promise<{ success: boolean; message: string }> {
   try {
+    // Normalize phone number
+    const normalizedPhone = normalizePhoneNumber(phoneNumber);
+    
     // Validate PIN format (4-6 digits)
     const pinRegex = /^\d{4,6}$/;
     if (!pinRegex.test(pin)) {
@@ -254,7 +289,7 @@ export async function setupPIN(phoneNumber: string, pin: string): Promise<{ succ
     }
 
     // Check if user exists
-    const user = await getDbManager().getUserByPhone(phoneNumber);
+    const user = await getDbManager().getUserByPhone(normalizedPhone);
 
     if (!user) {
       return { success: false, message: 'User not found' };
@@ -284,21 +319,24 @@ export async function setupPIN(phoneNumber: string, pin: string): Promise<{ succ
  */
 export async function loginWithPIN(phoneNumber: string, pin: string): Promise<LoginResponse> {
   try {
+    // Normalize phone number
+    const normalizedPhone = normalizePhoneNumber(phoneNumber);
+    
     // Validate phone number format
     const phoneRegex = /^[6-9]\d{9}$/;
-    if (!phoneRegex.test(phoneNumber)) {
+    if (!phoneRegex.test(normalizedPhone)) {
       return { success: false, message: 'Invalid phone number format' };
     }
 
     // Get user from database
-    const user = await getDbManager().getUserByPhone(phoneNumber);
+    const user = await getDbManager().getUserByPhone(normalizedPhone);
 
     if (!user) {
       return { success: false, message: 'User not found' };
     }
 
     // Check if account is locked (using sqliteHelpers for now - local security feature)
-    const lockInfo = await sqliteHelpers.getFailedAttempts(phoneNumber);
+    const lockInfo = await sqliteHelpers.getFailedAttempts(normalizedPhone);
     if (lockInfo?.locked_until && new Date() < new Date(lockInfo.locked_until)) {
       const lockTimeRemaining = Math.ceil((new Date(lockInfo.locked_until).getTime() - Date.now()) / 60000);
       return { 
@@ -308,7 +346,7 @@ export async function loginWithPIN(phoneNumber: string, pin: string): Promise<Lo
     }
 
     // Get PIN hash (using sqliteHelpers for now - will be added to DatabaseManager later)
-    const pinHash = await sqliteHelpers.getUserPinHash(phoneNumber);
+    const pinHash = await sqliteHelpers.getUserPinHash(normalizedPhone);
 
     // Check if PIN is set
     if (!pinHash) {
@@ -325,14 +363,14 @@ export async function loginWithPIN(phoneNumber: string, pin: string): Promise<Lo
       if (failedAttempts >= 3) {
         // Lock account for 30 minutes
         const lockUntil = new Date(Date.now() + 30 * 60 * 1000);
-        await sqliteHelpers.lockAccount(phoneNumber, lockUntil);
+        await sqliteHelpers.lockAccount(normalizedPhone, lockUntil);
         return { 
           success: false, 
           message: 'Too many failed attempts. Account locked for 30 minutes.' 
         };
       } else {
         // Update failed attempts
-        await sqliteHelpers.incrementFailedAttempts(phoneNumber);
+        await sqliteHelpers.incrementFailedAttempts(normalizedPhone);
         return { 
           success: false, 
           message: `Invalid PIN. ${3 - failedAttempts} attempts remaining.` 
@@ -394,21 +432,24 @@ export function verifyToken(token: string): { valid: boolean; userId?: string; p
  */
 export async function loginWithBiometric(phoneNumber: string): Promise<LoginResponse> {
   try {
+    // Normalize phone number
+    const normalizedPhone = normalizePhoneNumber(phoneNumber);
+    
     // Validate phone number format
     const phoneRegex = /^[6-9]\d{9}$/;
-    if (!phoneRegex.test(phoneNumber)) {
+    if (!phoneRegex.test(normalizedPhone)) {
       return { success: false, message: 'Invalid phone number format' };
     }
 
     // Get user from database
-    const user = await getDbManager().getUserByPhone(phoneNumber);
+    const user = await getDbManager().getUserByPhone(normalizedPhone);
 
     if (!user) {
       return { success: false, message: 'User not found' };
     }
 
     // Check if account is locked (using sqliteHelpers for now - local security feature)
-    const lockInfo = await sqliteHelpers.getFailedAttempts(phoneNumber);
+    const lockInfo = await sqliteHelpers.getFailedAttempts(normalizedPhone);
     if (lockInfo?.locked_until && new Date() < new Date(lockInfo.locked_until)) {
       const lockTimeRemaining = Math.ceil((new Date(lockInfo.locked_until).getTime() - Date.now()) / 60000);
       return { 

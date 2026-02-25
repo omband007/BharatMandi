@@ -257,9 +257,9 @@
                 <div id="authStep1" style="display: block;">
                     <div class="form-group">
                         <label>Phone Number</label>
-                        <input type="tel" id="authPhone" placeholder="9876543210" maxlength="10">
+                        <input type="tel" id="authPhone" placeholder="+919876543210 or 9876543210" maxlength="13">
                         <small style="color: #666; display: block; margin-top: 5px;">
-                            Enter 10-digit mobile number
+                            Enter phone number (with or without +91)
                         </small>
                     </div>
                     <button onclick="showLoginOptions()" style="margin-bottom: 10px;">Login with PIN/Biometric</button>
@@ -757,7 +757,8 @@
             transactionId: null,
             currentUser: null,
             authPhone: null,
-            authToken: null
+            authToken: null,
+            produceType: null  // Store AI-detected or user-selected produce type
         };
 
         // Load token from localStorage on page load
@@ -853,8 +854,20 @@
         }
 
         // Authentication Functions
+        // Helper function to normalize phone number (remove +91 prefix if present)
+        function normalizePhoneNumber(phone) {
+            phone = phone.trim();
+            // Remove +91 prefix if present
+            if (phone.startsWith('+91')) {
+                phone = phone.substring(3);
+            } else if (phone.startsWith('91') && phone.length === 12) {
+                phone = phone.substring(2);
+            }
+            return phone;
+        }
+
         function showLoginOptions() {
-            const phone = document.getElementById('authPhone').value.trim();
+            const phone = normalizePhoneNumber(document.getElementById('authPhone').value);
             
             if (!/^[6-9]\d{9}$/.test(phone)) {
                 showResult('otpRequestResult', '❌ Invalid phone number. Must be 10 digits starting with 6-9', true);
@@ -876,7 +889,7 @@
 
         async function requestOTP() {
             try {
-                const phone = document.getElementById('authPhone').value.trim();
+                const phone = normalizePhoneNumber(document.getElementById('authPhone').value);
                 
                 if (!/^[6-9]\d{9}$/.test(phone)) {
                     showResult('otpRequestResult', '❌ Invalid phone number. Must be 10 digits starting with 6-9', true);
@@ -1282,11 +1295,30 @@
                 }
                 
                 state.certificateId = data.certificate.id;
+                
+                // Store the detected/selected produce type for listing creation
+                const finalCrop = data.certificate.produceType;
+                state.produceType = finalCrop;
+                
+                // Update the produce type dropdown to show the detected crop
+                if (produceTypeSelect) {
+                    // If it's a dropdown, try to select the detected value
+                    const options = Array.from(produceTypeSelect.options);
+                    const matchingOption = options.find(opt => 
+                        opt.value.toLowerCase() === finalCrop.toLowerCase()
+                    );
+                    if (matchingOption) {
+                        produceTypeSelect.value = matchingOption.value;
+                    } else {
+                        // If not in dropdown, set it anyway (for text input)
+                        produceTypeSelect.value = finalCrop;
+                    }
+                }
+                
                 updateStatus();
                 document.getElementById('listingBtn').disabled = false;
                 
                 // Show detected crop or user-selected crop
-                const finalCrop = data.certificate.produceType;
                 const wasDetected = autoDetect && data.analysis.detectedCrop !== 'unknown';
                 
                 showResult('gradeResult', 
@@ -1310,12 +1342,20 @@
                 const pricePerKg = parseInt(document.getElementById('pricePerKg').value);
                 document.getElementById('amount').value = quantity * pricePerKg;
                 
+                // Get produce type from input field, or fall back to state (from AI grading)
+                const produceType = document.getElementById('produceType').value || state.produceType;
+                
+                if (!produceType) {
+                    showResult('listingResult', '❌ Produce type is missing. Please grade the produce first.', true);
+                    return;
+                }
+                
                 const response = await fetch(`${API_BASE}/marketplace/listings`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         farmerId: state.farmerId,
-                        produceType: document.getElementById('produceType').value,
+                        produceType: produceType,
                         quantity: quantity,
                         pricePerKg: pricePerKg,
                         certificateId: state.certificateId
@@ -1328,6 +1368,7 @@
                 showResult('listingResult', 
                     `✅ Listing Created!<br>
                     Listing ID: ${data.id}<br>
+                    Produce: ${data.produceType}<br>
                     Quantity: ${data.quantity} kg<br>
                     Price: ₹${data.pricePerKg}/kg<br>
                     Total: ₹${quantity * pricePerKg}`

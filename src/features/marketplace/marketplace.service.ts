@@ -31,7 +31,14 @@ export class MarketplaceService {
       isActive: true
     };
 
-    return await getDbManager().createListing(listing);
+    const dbManager = getDbManager();
+    console.log('[MarketplaceService] Creating listing with DatabaseManager instance:', (dbManager as any).instanceId);
+    console.log('[MarketplaceService] PostgreSQL connected:', (dbManager as any).connectionMonitor?.isConnected());
+    
+    const result = await dbManager.createListing(listing);
+    console.log('[MarketplaceService] Listing created:', result.id);
+    
+    return result;
   }
 
   async getActiveListings(): Promise<Listing[]> {

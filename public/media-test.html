@@ -180,7 +180,10 @@
             <h2>1. Create New Listing</h2>
             <div class="form-group">
                 <label>Farmer ID</label>
-                <input type="text" id="farmerId" value="77360bb0-0584-4bfe-8be8-1c729b05c06f" placeholder="Enter farmer ID">
+                <input type="text" id="farmerId" value="" placeholder="Loading farmer...">
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    Auto-loaded from database
+                </small>
             </div>
             <div class="form-group">
                 <label>Produce Type</label>
@@ -202,39 +205,46 @@
                 </p>
             </div>
             <button onclick="createNewListing()">Create New Listing</button>
-            <button onclick="useExistingListing()">Use Existing Listing</button>
             <div id="listingResult" class="result"></div>
         </div>
 
-        <!-- Step 2: Upload Additional Media -->
+        <!-- Step 2: Work with Existing Listing -->
         <div class="card">
-            <h2>2. Upload Additional Media</h2>
-            <div class="form-group">
-                <label>Listing ID</label>
-                <input type="text" id="listingId" placeholder="Listing ID from step 1" readonly>
+            <h2>2. Work with Existing Listing</h2>
+            <p style="color: #666; margin-bottom: 15px;">Load a random listing from database to view and manage its media</p>
+            <button onclick="loadRandomListing()">Load Random Listing</button>
+            <div id="existingListingResult" class="result"></div>
+            
+            <!-- Listing Details (shown after loading) -->
+            <div id="listingDetails" style="display: none; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <h3 style="color: #667eea; margin-bottom: 10px;">Listing Details</h3>
+                <div id="listingInfo"></div>
+                
+                <!-- Media Grid -->
+                <div style="margin-top: 20px;">
+                    <h4 style="color: #667eea; margin-bottom: 10px;">Media Files</h4>
+                    <div id="mediaGrid" class="media-grid"></div>
+                </div>
+                
+                <!-- Upload Additional Media -->
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+                    <h4 style="color: #667eea; margin-bottom: 10px;">Upload Additional Media</h4>
+                    <div class="form-group">
+                        <label>Select Files (Photos, Videos, PDFs)</label>
+                        <input type="file" id="mediaFile" accept="image/*,video/*,.pdf" multiple>
+                        <p style="color: #666; font-size: 12px; margin-top: 5px;">
+                            Select multiple files. Type will be auto-detected.
+                        </p>
+                    </div>
+                    <button onclick="uploadMedia()">Upload Media</button>
+                    <div id="uploadResult" class="result"></div>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Select Files (Photos, Videos, PDFs)</label>
-                <input type="file" id="mediaFile" accept="image/*,video/*,.pdf" multiple>
-                <p style="color: #666; font-size: 12px; margin-top: 5px;">
-                    Select multiple files. Type will be auto-detected.
-                </p>
-            </div>
-            <button onclick="uploadMedia()" id="uploadBtn" disabled>Upload Media</button>
-            <div id="uploadResult" class="result"></div>
         </div>
 
-        <!-- Step 3: View Media -->
+        <!-- Step 3: Media Operations -->
         <div class="card">
-            <h2>3. View Listing Media</h2>
-            <button onclick="viewMedia()" id="viewBtn" disabled>Load Media</button>
-            <div id="mediaGrid" class="media-grid"></div>
-            <div id="viewResult" class="result"></div>
-        </div>
-
-        <!-- Step 4: Media Operations -->
-        <div class="card">
-            <h2>4. Media Operations</h2>
+            <h2>3. Media Operations</h2>
             <div class="form-group">
                 <label>Media ID</label>
                 <input type="text" id="mediaId" placeholder="Select media from grid above">
@@ -244,9 +254,9 @@
             <div id="operationResult" class="result"></div>
         </div>
 
-        <!-- Step 5: Reorder Media -->
+        <!-- Step 4: Reorder Media -->
         <div class="card">
-            <h2>5. Reorder Media</h2>
+            <h2>4. Reorder Media</h2>
             <p style="color: #666; margin-bottom: 15px;">Enter media IDs in desired order (comma-separated)</p>
             <div class="form-group">
                 <label>Media Order</label>
@@ -265,30 +275,89 @@
             certificateId: 'cert-test-123' // Mock certificate for testing
         };
 
+        // Load first farmer from database on page load
+        async function loadFirstFarmer() {
+            try {
+                const response = await fetch(`${API_BASE}/users`);
+                const users = await response.json();
+                
+                // Find first farmer
+                const farmer = users.find(u => u.userType === 'FARMER');
+                
+                if (farmer) {
+                    document.getElementById('farmerId').value = farmer.id;
+                    document.getElementById('farmerId').placeholder = 'Farmer loaded';
+                    state.farmerId = farmer.id;
+                    console.log('[Test] Auto-loaded farmer:', farmer.id, farmer.name);
+                } else {
+                    document.getElementById('farmerId').placeholder = 'No farmers found - create one first';
+                    console.warn('[Test] No farmers found in database');
+                }
+            } catch (error) {
+                console.error('[Test] Failed to load farmer:', error);
+                document.getElementById('farmerId').placeholder = 'Failed to load - enter manually';
+            }
+        }
+
+        // Load farmer when page loads
+        window.addEventListener('DOMContentLoaded', loadFirstFarmer);
+
         function showResult(elementId, message, isError = false) {
             const el = document.getElementById(elementId);
             el.className = `result ${isError ? 'error' : 'success'}`;
             el.innerHTML = message;
         }
 
-        function useExistingListing() {
-            const listingId = 'b612288c-fc34-4576-bc70-89e1e836abdb';
-            const farmerId = '77360bb0-0584-4bfe-8be8-1c729b05c06f';
-            
-            state.listingId = listingId;
-            state.farmerId = farmerId;
-            document.getElementById('listingId').value = listingId;
-            document.getElementById('uploadBtn').disabled = false;
-            document.getElementById('viewBtn').disabled = false;
-            
-            showResult('listingResult', 
-                `✅ Using existing listing!<br>
-                <strong>Listing ID:</strong> ${listingId}<br>
-                <strong>Produce:</strong> Tomato<br>
-                <strong>Quantity:</strong> 100 kg<br>
-                <strong>Price:</strong> ₹25/kg<br>
-                <em>This listing exists in PostgreSQL</em>`
-            );
+        async function loadRandomListing() {
+            try {
+                showResult('existingListingResult', '🔄 Loading random listing from database...', false);
+                
+                // Fetch all listings from PostgreSQL
+                const response = await fetch(`${API_BASE}/marketplace/listings`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch listings');
+                }
+                
+                const listings = await response.json();
+                
+                if (!listings || listings.length === 0) {
+                    showResult('existingListingResult', 
+                        '❌ No listings found in database.<br>Please create a new listing first.', 
+                        true);
+                    return;
+                }
+                
+                // Pick a random listing
+                const randomIndex = Math.floor(Math.random() * listings.length);
+                const listing = listings[randomIndex];
+                
+                state.listingId = listing.id;
+                state.farmerId = listing.farmerId;
+                
+                // Show listing details
+                document.getElementById('listingInfo').innerHTML = `
+                    <p><strong>Listing ID:</strong> ${listing.id}</p>
+                    <p><strong>Farmer ID:</strong> ${listing.farmerId}</p>
+                    <p><strong>Produce:</strong> ${listing.produceType}</p>
+                    <p><strong>Quantity:</strong> ${listing.quantity} kg</p>
+                    <p><strong>Price:</strong> ₹${listing.pricePerKg}/kg</p>
+                    <p><strong>Status:</strong> ${listing.isActive ? 'Active' : 'Inactive'}</p>
+                `;
+                
+                // Show the listing details section
+                document.getElementById('listingDetails').style.display = 'block';
+                
+                showResult('existingListingResult', 
+                    `✅ Loaded listing from PostgreSQL (${randomIndex + 1} of ${listings.length})`, 
+                    false);
+                
+                // Auto-load media for this listing
+                await viewMedia();
+                
+            } catch (error) {
+                console.error('[Test] Load random listing error:', error);
+                showResult('existingListingResult', `❌ Error: ${error.message}`, true);
+            }
         }
 
         // Helper function to detect media type from MIME type
@@ -311,43 +380,88 @@
                     return;
                 }
 
-                console.log('[Test] Creating listing with:', { farmerId, produceType, quantity, pricePerKg });
-                showResult('listingResult', '🔄 Creating listing...', false);
-
-                const response = await fetch(`${API_BASE}/marketplace/listings`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        farmerId,
-                        produceType,
-                        quantity,
-                        pricePerKg,
-                        certificateId: state.certificateId
-                    })
-                });
-
-                const data = await response.json();
-                console.log('[Test] Create listing response:', data);
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to create listing');
-                }
-
-                state.listingId = data.id;
-                state.farmerId = farmerId;
-                document.getElementById('listingId').value = data.id;
-                document.getElementById('uploadBtn').disabled = false;
-                document.getElementById('viewBtn').disabled = false;
-
                 // Check if user selected media files
                 const mediaFiles = document.getElementById('listingMediaFiles').files;
+                
                 if (mediaFiles && mediaFiles.length > 0) {
-                    showResult('listingResult', 
-                        `✅ Listing created! Now uploading ${mediaFiles.length} media file(s)...`, false);
+                    // Use the production-quality endpoint that handles both listing and media atomically
+                    console.log('[Test] Creating listing with media using atomic endpoint...');
+                    showResult('listingResult', `🔄 Creating listing with ${mediaFiles.length} media file(s)...`, false);
+
+                    const formData = new FormData();
+                    formData.append('farmerId', farmerId);
+                    formData.append('produceType', produceType);
+                    formData.append('quantity', quantity.toString());
+                    formData.append('pricePerKg', pricePerKg.toString());
+                    formData.append('certificateId', state.certificateId);
+
+                    // Append all media files
+                    for (let i = 0; i < mediaFiles.length; i++) {
+                        formData.append('media', mediaFiles[i]);
+                    }
+
+                    const response = await fetch(`${API_BASE}/marketplace/listings/with-media`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    console.log('[Test] Create listing with media response:', data);
+
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Failed to create listing with media');
+                    }
+
+                    state.listingId = data.listing.id;
+                    state.farmerId = farmerId;
+
+                    // Show results
+                    let resultMessage = `✅ Listing created successfully!<br>`;
+                    resultMessage += `<strong>Listing ID:</strong> ${data.listing.id}<br>`;
+                    resultMessage += `<strong>Produce:</strong> ${data.listing.produceType}<br>`;
+                    resultMessage += `<strong>Quantity:</strong> ${data.listing.quantity} kg<br>`;
+                    resultMessage += `<strong>Price:</strong> ₹${data.listing.pricePerKg}/kg<br>`;
                     
-                    // Upload media files
-                    await uploadListingMedia(data.id, mediaFiles);
+                    if (data.media.total > 0) {
+                        resultMessage += `<br><strong>Media Upload:</strong> ${data.media.successful} succeeded`;
+                        if (data.media.failed > 0) {
+                            resultMessage += `, ${data.media.failed} failed`;
+                            const failedFiles = data.media.results.filter(r => !r.success);
+                            resultMessage += `<br><strong>Failed:</strong> ${failedFiles.map(f => f.fileName).join(', ')}`;
+                        }
+                    }
+
+                    showResult('listingResult', resultMessage, data.media.failed > 0);
+
+                    // Auto-refresh media grid
+                    setTimeout(() => viewMedia(), 500);
                 } else {
+                    // No media files - use the simple endpoint
+                    console.log('[Test] Creating listing without media...');
+                    showResult('listingResult', '🔄 Creating listing...', false);
+
+                    const response = await fetch(`${API_BASE}/marketplace/listings`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            farmerId,
+                            produceType,
+                            quantity,
+                            pricePerKg,
+                            certificateId: state.certificateId
+                        })
+                    });
+
+                    const data = await response.json();
+                    console.log('[Test] Create listing response:', data);
+
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Failed to create listing');
+                    }
+
+                    state.listingId = data.id;
+                    state.farmerId = farmerId;
+
                     showResult('listingResult', 
                         `✅ Listing created successfully!<br>
                         <strong>Listing ID:</strong> ${data.id}<br>
@@ -362,26 +476,39 @@
             }
         }
 
+        // Legacy function kept for backward compatibility with "Upload Additional Media" section
         async function uploadListingMedia(listingId, files) {
             let successCount = 0;
             let failCount = 0;
             const errors = [];
 
-            // Wait for listing to be fully committed to database
-            // This prevents foreign key constraint violations
+            // Wait for listing to be fully committed to database with retry logic
             console.log('[Test] Waiting for listing to be committed...');
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Verify listing exists before uploading media
-            try {
-                const verifyResponse = await fetch(`${API_BASE}/marketplace/listings/${listingId}`);
-                if (!verifyResponse.ok) {
-                    throw new Error('Listing not found in database yet');
+            let listingVerified = false;
+            let retries = 0;
+            const maxRetries = 5;
+            
+            while (!listingVerified && retries < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 500 * (retries + 1))); // Exponential backoff
+                
+                try {
+                    const verifyResponse = await fetch(`${API_BASE}/marketplace/listings/${listingId}`);
+                    if (verifyResponse.ok) {
+                        listingVerified = true;
+                        console.log('[Test] Listing verified, proceeding with media upload');
+                    } else {
+                        retries++;
+                        console.log(`[Test] Listing not found yet, retry ${retries}/${maxRetries}...`);
+                    }
+                } catch (error) {
+                    retries++;
+                    console.log(`[Test] Verification error, retry ${retries}/${maxRetries}:`, error);
                 }
-                console.log('[Test] Listing verified, proceeding with media upload');
-            } catch (error) {
+            }
+            
+            if (!listingVerified) {
                 showResult('listingResult', 
-                    `✅ Listing created but media upload failed: ${error.message}<br>
+                    `✅ Listing created but media upload failed: Listing not found in database after ${maxRetries} retries.<br>
                     Please use "Upload Additional Media" section to add media.`, 
                     true);
                 return;
@@ -444,8 +571,13 @@
 
         async function uploadMedia() {
             try {
-                const listingId = document.getElementById('listingId').value.trim();
+                const listingId = state.listingId;
                 const fileInput = document.getElementById('mediaFile');
+
+                if (!listingId) {
+                    showResult('uploadResult', '❌ Please load a listing first using "Load Random Listing" button', true);
+                    return;
+                }
 
                 if (!fileInput.files || fileInput.files.length === 0) {
                     showResult('uploadResult', '❌ Please select at least one file', true);
@@ -516,11 +648,10 @@
 
         async function viewMedia() {
             try {
-                const listingId = document.getElementById('listingId').value.trim();
+                const listingId = state.listingId;
 
                 if (!listingId) {
-                    showResult('viewResult', '❌ Please create a listing first', true);
-                    return;
+                    return; // Silently return if no listing loaded
                 }
 
                 const response = await fetch(`${API_BASE}/marketplace/listings/${listingId}/media`);
@@ -573,10 +704,10 @@
                     </div>
                 `}).join('');
 
-                showResult('viewResult', `✅ Loaded ${data.media.length} media item(s)`, false);
             } catch (error) {
                 console.error('View media error:', error);
-                showResult('viewResult', `❌ Error: ${error.message}`, true);
+                const mediaGrid = document.getElementById('mediaGrid');
+                mediaGrid.innerHTML = `<p style="color: #dc3545; text-align: center; padding: 20px;">Error loading media: ${error.message}</p>`;
             }
         }
 
@@ -587,8 +718,13 @@
 
         async function setPrimary() {
             try {
-                const listingId = document.getElementById('listingId').value.trim();
+                const listingId = state.listingId;
                 const mediaId = document.getElementById('mediaId').value.trim();
+
+                if (!listingId) {
+                    showResult('operationResult', '❌ Please load a listing first', true);
+                    return;
+                }
 
                 if (!mediaId) {
                     showResult('operationResult', '❌ Please select a media item', true);
@@ -618,8 +754,13 @@
 
         async function deleteMedia() {
             try {
-                const listingId = document.getElementById('listingId').value.trim();
+                const listingId = state.listingId;
                 const mediaId = document.getElementById('mediaId').value.trim();
+
+                if (!listingId) {
+                    showResult('operationResult', '❌ Please load a listing first', true);
+                    return;
+                }
 
                 if (!mediaId) {
                     showResult('operationResult', '❌ Please select a media item', true);
@@ -654,8 +795,13 @@
 
         async function reorderMedia() {
             try {
-                const listingId = document.getElementById('listingId').value.trim();
+                const listingId = state.listingId;
                 const mediaOrderStr = document.getElementById('mediaOrder').value.trim();
+
+                if (!listingId) {
+                    showResult('reorderResult', '❌ Please load a listing first', true);
+                    return;
+                }
 
                 if (!mediaOrderStr) {
                     showResult('reorderResult', '❌ Please enter media IDs', true);

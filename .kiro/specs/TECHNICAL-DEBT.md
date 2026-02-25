@@ -29,7 +29,60 @@ This document tracks known issues, technical debt, and future improvements for t
 
 ---
 
+## 🟢 Recently Fixed
+
+### Phone Number Format Compatibility
+**Status:** ✅ Fixed  
+**Priority:** High  
+**Description:** Authentication tile only accepted 10-digit phone numbers (9876543210), but "Create Users" section used international format with country code (+919876543210). This caused incompatibility where users created with +91 prefix couldn't login.
+
+**Solution Implemented:**
+- Added `normalizePhoneNumber()` helper function in auth service
+- Strips +91 or 91 prefix from phone numbers before validation
+- Updated all auth functions: `requestOTP`, `verifyOTP`, `createUser`, `getUserByPhone`, `loginWithPIN`, `loginWithBiometric`, `setupPIN`
+- Updated frontend validation to accept both formats
+- Changed placeholder text to show both formats are accepted
+- All phone numbers are now stored in normalized 10-digit format internally
+
+**Benefits:**
+- Users can enter phone numbers with or without +91 prefix
+- Consistent storage format in database (10 digits)
+- No breaking changes to existing data
+- Better user experience
+
+**Related Files:**
+- `src/features/auth/auth.service.ts` - Added normalization logic
+- `public/index.html` - Updated validation and placeholder text
+
+---
+
 ## 🟡 Medium Priority
+
+### Listing Creation with Media - Race Condition
+**Status:** ✅ Fixed with Production Solution  
+**Priority:** Medium  
+**Description:** When creating a listing with photos, there was a race condition where the listing was created in PostgreSQL but media upload would fail because the listing wasn't immediately visible for verification.
+
+**Previous Workaround:** Frontend retry logic with exponential backoff (temporary fix)
+
+**Production Solution Implemented:**
+- Created new atomic endpoint `/api/marketplace/listings/with-media`
+- Handles both listing creation and media upload in a single request
+- Eliminates race conditions and timing issues completely
+- Frontend automatically uses this endpoint when media files are selected
+- Falls back to simple endpoint when no media is provided
+
+**Benefits:**
+- No race conditions or timing issues
+- Better user experience (single request)
+- Proper error handling for partial failures
+- Production-ready solution
+
+**Related Files:**
+- `src/features/marketplace/marketplace.controller.ts` (new atomic endpoint)
+- `public/media-test.html` (updated to use atomic endpoint)
+
+---
 
 ### User Creation - JSON Parsing
 **Status:** Fixed  
@@ -116,6 +169,53 @@ This document tracks known issues, technical debt, and future improvements for t
 ---
 
 ## 📋 Backlog / Nice to Have
+
+### International Phone Number Support
+**Status:** Not Implemented (India-only)  
+**Priority:** Medium (for international expansion)  
+**Description:** Current implementation only supports Indian phone numbers (+91). Phone numbers are normalized by stripping the +91 prefix and storing only 10 digits. This creates a **collision risk** if the platform expands to other countries.
+
+**Current Behavior:**
+- `+919876543210` (India) → stored as `9876543210` ✅
+- `+449876543210` (UK) → would also normalize to `9876543210` ❌ **COLLISION!**
+- Validation enforces Indian format: 10 digits starting with 6-9
+
+**Limitation:**
+- Cannot support users from multiple countries with the same phone number
+- Risk of data collision if scope expands internationally
+
+**Future Implementation Options:**
+
+**Option A: Store Full International Format (Recommended)**
+- Store phone numbers WITH country code: `+919876543210`
+- Update validation to accept any country code
+- Add country code dropdown in UI
+- Database already supports VARCHAR(15) - no schema change needed
+- Migration: Prepend +91 to all existing numbers
+
+**Option B: Separate Country Code Field**
+- Add `country_code` column (e.g., "91", "44", "1")
+- Store phone number without country code
+- Enforce uniqueness on (country_code, phone_number) pair
+- Requires schema migration
+
+**Migration Considerations:**
+- Existing data: All current numbers are Indian (+91)
+- Can safely prepend +91 to all existing records
+- Update validation logic to handle multiple country codes
+- Update UI to show country code selector
+
+**Related Files:**
+- `src/features/auth/auth.service.ts` - `normalizePhoneNumber()` function
+- `public/index.html` - Phone number input validation
+- `src/shared/database/pg-schema.sql` - Phone number column (already VARCHAR(15))
+- `src/shared/database/sqlite-schema.sql` - Phone number column
+
+**Business Impact:**
+- Low: Current POC targets Indian market only
+- High: If expanding to international markets
+
+---
 
 ### Offline Mode Testing
 **Status:** Not Implemented  
