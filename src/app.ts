@@ -4,6 +4,7 @@ import cors from 'cors';
 import fs from 'fs';
 import { openSQLiteDB, initializeSQLiteSchema } from './shared/database/sqlite-config';
 import { DatabaseManager } from './shared/database/db-abstraction';
+import { i18nextMiddleware } from './features/i18n/i18n-backend.config';
 
 // Feature controllers
 import { authController } from './features/auth';
@@ -53,6 +54,7 @@ process.on('SIGTERM', () => {
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(i18nextMiddleware); // Add i18n middleware for language detection
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, '../public')));
