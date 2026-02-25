@@ -72,7 +72,28 @@ export class I18nService {
     
     // Persist preference to database
     const db = getDatabaseManager();
-    await db.updateUser(userId, { language_preference: languageCode });
+    await db.updateUser(userId, { 
+      language_preference: languageCode,
+      updated_at: new Date()
+    });
+  }
+
+  async getUserLanguagePreference(userId: string): Promise<string> {
+    const db = getDatabaseManager();
+    const user = await db.getUserById(userId);
+    return user?.language_preference || 'en';
+  }
+
+  async updateUserLanguagePreference(userId: string, languageCode: string): Promise<void> {
+    if (!SUPPORTED_LANGUAGES.find(l => l.code === languageCode)) {
+      throw new Error(`Unsupported language: ${languageCode}`);
+    }
+
+    const db = getDatabaseManager();
+    await db.updateUser(userId, { 
+      language_preference: languageCode,
+      updated_at: new Date()
+    });
   }
 
   translate(key: string, options?: any): string {

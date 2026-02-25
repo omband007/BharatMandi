@@ -12,6 +12,9 @@ CREATE TABLE IF NOT EXISTS users (
   pin_hash VARCHAR(255),
   failed_attempts INTEGER DEFAULT 0,
   locked_until TIMESTAMP,
+  language_preference VARCHAR(10) DEFAULT 'en',
+  voice_language_preference VARCHAR(10) DEFAULT 'en',
+  recent_languages TEXT,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -19,6 +22,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone_number);
 CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at);
+CREATE INDEX IF NOT EXISTS idx_users_language_preference ON users(language_preference);
 
 -- OTP sessions table
 CREATE TABLE IF NOT EXISTS otp_sessions (

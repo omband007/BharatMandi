@@ -76,12 +76,16 @@ CREATE TABLE IF NOT EXISTS users (
   pin_hash TEXT, -- Hashed PIN for authentication
   failed_attempts INTEGER DEFAULT 0,
   locked_until TEXT, -- ISO timestamp when account lock expires
+  language_preference TEXT DEFAULT 'en', -- User preferred UI language (ISO 639-1 code)
+  voice_language_preference TEXT DEFAULT 'en', -- User preferred voice interface language
+  recent_languages TEXT, -- JSON array of recently used language codes
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_phone_number ON users(phone_number);
 CREATE INDEX IF NOT EXISTS idx_users_user_type ON users(user_type);
+CREATE INDEX IF NOT EXISTS idx_users_language_preference ON users(language_preference);
 
 -- ============================================================================
 -- OTP SESSIONS TABLE (For phone verification)

@@ -7,6 +7,9 @@ export interface User {
   userType: UserType;
   location: Location;
   bankAccount?: BankAccount;
+  languagePreference?: string;
+  voiceLanguagePreference?: string;
+  recentLanguages?: string[];
   createdAt: Date;
   updatedAt?: Date;
 }
@@ -24,6 +27,9 @@ export interface UpdateUserDTO {
   location?: Location;
   phoneNumber?: string;
   bankAccount?: string;
+  languagePreference?: string;
+  voiceLanguagePreference?: string;
+  recentLanguages?: string[];
 }
 
 export interface OTPSession {
