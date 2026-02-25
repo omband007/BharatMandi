@@ -114,6 +114,11 @@ export class I18nService {
   }
 
   formatDate(date: Date, languageCode: string): string {
+    // Validate date is not invalid (NaN)
+    if (!date || isNaN(date.getTime())) {
+      return 'Invalid Date';
+    }
+    
     const config = SUPPORTED_LANGUAGES.find(l => l.code === languageCode);
     if (!config) return date.toLocaleDateString();
     
