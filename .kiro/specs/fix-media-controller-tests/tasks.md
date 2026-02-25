@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Write bug condition exploration test
+- [x] 1. Write bug condition exploration test
   - **Property 1: Fault Condition** - Tests Return 500 Without Service Mocks
   - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -41,7 +41,7 @@
 
 - [ ] 3. Fix for media controller integration tests returning 500 errors
 
-  - [ ] 3.1 Add service mocks to test file
+  - [x] 3.1 Add service mocks to test file
     - Add jest.mock() calls at top of test file for MediaService, StorageService, ValidationService
     - Create mockMediaService with methods: uploadMedia, getListingMedia, deleteMedia, reorderMedia, setPrimaryMedia
     - Create mockStorageService (if needed)
@@ -55,7 +55,7 @@
     - _Preservation: Controller code remains unchanged, only test file is modified, mocks are isolated to tests_
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 2.11, 2.12, 2.13, 2.14, 3.1, 3.2, 3.3_
 
-  - [ ] 3.2 Configure mock behavior for upload tests
+  - [x] 3.2 Configure mock behavior for upload tests
     - Configure mockMediaService.uploadMedia.mockResolvedValue() for success case (returns { success: true, mediaId: 'mock-id' })
     - Configure controller validation to catch missing file (no mock needed, controller handles this)
     - Configure controller validation to catch invalid mediaType (no mock needed, controller handles this)
@@ -64,14 +64,14 @@
     - Verify upload invalid type test expects 400
     - _Requirements: 2.1, 2.2, 2.3_
 
-  - [ ] 3.3 Configure mock behavior for get media tests
+  - [x] 3.3 Configure mock behavior for get media tests
     - Configure mockMediaService.getListingMedia.mockResolvedValue() to return array of media objects
     - Configure mockMediaService.getListingMedia.mockResolvedValue() to return empty array for empty case
     - Verify get media success test expects 200 with array
     - Verify get media empty test expects 200 with empty array
     - _Requirements: 2.4, 2.5_
 
-  - [ ] 3.4 Configure mock behavior for delete tests
+  - [x] 3.4 Configure mock behavior for delete tests
     - Configure mockMediaService.deleteMedia.mockResolvedValue(true) for success case
     - Configure mockMediaService.deleteMedia.mockRejectedValue() with "not found" error message for 404 case
     - Configure mockMediaService.deleteMedia.mockRejectedValue() with "Unauthorized" error message for 403 case
@@ -80,7 +80,7 @@
     - Verify delete unauthorized test expects 403
     - _Requirements: 2.6, 2.7, 2.8_
 
-  - [ ] 3.5 Configure mock behavior for reorder tests
+  - [x] 3.5 Configure mock behavior for reorder tests
     - Configure mockMediaService.reorderMedia.mockResolvedValue(true) for success case
     - Configure controller validation to catch invalid mediaOrder format (no mock needed, controller handles this)
     - Configure mockMediaService.reorderMedia.mockRejectedValue() with "Unauthorized" error message for 403 case
@@ -89,7 +89,7 @@
     - Verify reorder unauthorized test expects 403
     - _Requirements: 2.9, 2.10, 2.11_
 
-  - [ ] 3.6 Configure mock behavior for set primary tests
+  - [x] 3.6 Configure mock behavior for set primary tests
     - Configure mockMediaService.setPrimaryMedia.mockResolvedValue(true) for success case
     - Configure mockMediaService.setPrimaryMedia.mockRejectedValue() with "not found" error message for 404 case
     - Configure mockMediaService.setPrimaryMedia.mockRejectedValue() with "Only photos" error message for 400 case
