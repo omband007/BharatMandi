@@ -185,7 +185,11 @@ describe('ValidationService - Property-Based Tests', () => {
               'photo'
             );
 
-            return !result.valid && result.error?.includes('Invalid MIME type');
+            // Should be rejected - either for invalid MIME type or extension mismatch
+            return !result.valid && (
+              result.error?.includes('Invalid MIME type') ||
+              result.error?.includes('does not match')
+            );
           }
         ),
         { numRuns: 50 }

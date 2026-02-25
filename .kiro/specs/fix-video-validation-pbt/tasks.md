@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Write bug condition exploration test
+- [x] 1. Write bug condition exploration test
   - **Property 1: Fault Condition** - Video Files Within Size Limits Are Rejected
   - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -85,7 +85,7 @@
     - Confirm all tests still pass after fix (no regressions in photo, document, oversized, invalid MIME type, extension mismatch, or empty file validation)
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-- [ ] 4. Checkpoint - Ensure all tests pass
+- [x] 4. Checkpoint - Ensure all tests pass
   - Run the full property-based test suite for media validation
   - Verify the failing test "should accept all files within size limits with valid types" now passes for all 100 runs
   - Verify all existing unit tests continue to pass
