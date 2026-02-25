@@ -177,19 +177,20 @@ describe('ConnectionMonitor', () => {
       jest.useFakeTimers();
       mockPgAdapter.checkConnection.mockResolvedValue(true);
 
-      monitor.start();
+      await monitor.start();
 
       // Initial check
-      await Promise.resolve();
       expect(mockPgAdapter.checkConnection).toHaveBeenCalledTimes(1);
 
-      // Advance 30 seconds
+      // Advance 30 seconds and flush promises
       jest.advanceTimersByTime(30000);
-      await Promise.resolve();
+      await Promise.resolve(); // Flush microtasks
+      await Promise.resolve(); // Flush again for async operations
       expect(mockPgAdapter.checkConnection).toHaveBeenCalledTimes(2);
 
-      // Advance another 30 seconds
+      // Advance another 30 seconds and flush promises
       jest.advanceTimersByTime(30000);
+      await Promise.resolve();
       await Promise.resolve();
       expect(mockPgAdapter.checkConnection).toHaveBeenCalledTimes(3);
 
