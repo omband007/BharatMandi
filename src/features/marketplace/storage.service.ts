@@ -248,12 +248,19 @@ export class StorageService {
 
   /**
    * Get file size
-   * @param filePath - File path
+   * @param filePath - File path (can be URL path or relative path)
    * @returns File size in bytes
    */
   getFileSize(filePath: string): number {
     try {
-      const stats = fs.statSync(filePath);
+      // Convert URL path to file system path if needed
+      let fsPath = filePath;
+      if (filePath.startsWith('/data/media/')) {
+        fsPath = filePath.replace('/data/media/', '');
+      }
+      
+      const fullPath = path.join(this.localStoragePath, fsPath);
+      const stats = fs.statSync(fullPath);
       return stats.size;
     } catch (error) {
       return 0;
@@ -262,11 +269,22 @@ export class StorageService {
 
   /**
    * Check if file exists
-   * @param filePath - File path
+   * @param filePath - File path (can be URL path or relative path)
    * @returns Boolean indicating if file exists
    */
   fileExists(filePath: string): boolean {
-    return fs.existsSync(filePath);
+    try {
+      // Convert URL path to file system path if needed
+      let fsPath = filePath;
+      if (filePath.startsWith('/data/media/')) {
+        fsPath = filePath.replace('/data/media/', '');
+      }
+      
+      const fullPath = path.join(this.localStoragePath, fsPath);
+      return fs.existsSync(fullPath);
+    } catch (error) {
+      return false;
+    }
   }
 }
 
