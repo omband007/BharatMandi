@@ -18,4 +18,16 @@ router.post('/change-language', (req, res) => i18nController.changeLanguage(req,
 // Get user language preference
 router.get('/user-language/:userId', (req, res) => i18nController.getUserLanguage(req, res));
 
+// Translate text using AWS Translate
+router.post('/translate', (req, res) => i18nController.translateText(req, res));
+
+// Translate multiple texts in batch
+router.post('/translate-batch', (req, res) => i18nController.translateBatch(req, res));
+
+// Detect language of text
+router.post('/detect-language', (req, res) => i18nController.detectLanguage(req, res));
+
+// Get cache statistics
+router.get('/cache-stats', (req, res) => i18nController.getCacheStats(req, res));
+
 export default router;

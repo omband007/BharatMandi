@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translation Service Test - Bharat Mandi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .test-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #f5f5f5;
+            border-left: 4px solid #667eea;
+        }
+
+        .result.success {
+            background: #e8f5e9;
+            border-left-color: #4caf50;
+        }
+
+        .result.error {
+            background: #ffebee;
+            border-left-color: #f44336;
+        }
+
+        .result h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .result pre {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge.cached {
+            background: #4caf50;
+            color: white;
+        }
+
+        .badge.uncached {
+            background: #ff9800;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .info-box strong {
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 Translation Service Test</h1>
+            <p>Test AWS Translate integration with Redis caching</p>
+        </div>
+
+        <div class="info-box">
+            <strong>⚠️ Prerequisites:</strong> Make sure Redis is running (<code>docker-compose up -d redis</code>) and AWS credentials are configured in <code>.env</code>
+        </div>
+
+        <!-- Single Translation Test -->
+        <div class="test-section">
+            <h2>1. Single Text Translation</h2>
+            <div class="form-group">
+                <label for="singleText">Text to Translate:</label>
+                <textarea id="singleText" placeholder="Enter text to translate...">Welcome to Bharat Mandi</textarea>
+            </div>
+            <div class="form-group">
+                <label for="singleSource">Source Language (optional - auto-detect if empty):</label>
+                <select id="singleSource">
+                    <option value="">Auto-detect</option>
+                    <option value="en" selected>English</option>
+                    <option value="hi">Hindi (हिन्दी)</option>
+                    <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+                    <option value="mr">Marathi (मराठी)</option>
+                    <option value="ta">Tamil (தமிழ்)</option>
+                    <option value="te">Telugu (తెలుగు)</option>
+                    <option value="bn">Bengali (বাংলা)</option>
+                    <option value="gu">Gujarati (ગુજરાતી)</option>
+                    <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                    <option value="ml">Malayalam (മലയാളം)</option>
+                    <option value="or">Odia (ଓଡ଼ିଆ)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="singleTarget">Target Language:</label>
+                <select id="singleTarget">
+                    <option value="hi" selected>Hindi (हिन्दी)</option>
+                    <option value="en">English</option>
+                    <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+                    <option value="mr">Marathi (मराठी)</option>
+                    <option value="ta">Tamil (தமிழ்)</option>
+                    <option value="te">Telugu (తెలుగు)</option>
+                    <option value="bn">Bengali (বাংলা)</option>
+                    <option value="gu">Gujarati (ગુજરાતી)</option>
+                    <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                    <option value="ml">Malayalam (മലയാളം)</option>
+                    <option value="or">Odia (ଓଡ଼ିଆ)</option>
+                </select>
+            </div>
+            <button onclick="testSingleTranslation()" id="singleBtn">Translate</button>
+            <div id="singleResult"></div>
+        </div>
+
+        <!-- Language Detection Test -->
+        <div class="test-section">
+            <h2>2. Language Detection</h2>
+            <div class="form-group">
+                <label for="detectText">Text to Detect:</label>
+                <textarea id="detectText" placeholder="Enter text in any language...">नमस्ते दुनिया</textarea>
+            </div>
+            <button onclick="testLanguageDetection()" id="detectBtn">Detect Language</button>
+            <div id="detectResult"></div>
+        </div>
+
+        <!-- Batch Translation Test -->
+        <div class="test-section">
+            <h2>3. Batch Translation</h2>
+            <div class="form-group">
+                <label for="batchTexts">Texts (one per line):</label>
+                <textarea id="batchTexts" placeholder="Enter multiple texts, one per line...">Hello
+Thank you
+Goodbye
+How are you?
+Welcome</textarea>
+            </div>
+            <div class="form-group">
+                <label for="batchSource">Source Language:</label>
+                <select id="batchSource">
+                    <option value="en" selected>English</option>
+                    <option value="hi">Hindi (हिन्दी)</option>
+                    <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="batchTarget">Target Language:</label>
+                <select id="batchTarget">
+                    <option value="hi" selected>Hindi (हिन्दी)</option>
+                    <option value="en">English</option>
+                    <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+                </select>
+            </div>
+            <button onclick="testBatchTranslation()" id="batchBtn">Translate Batch</button>
+            <div id="batchResult"></div>
+        </div>
+
+        <!-- Cache Statistics -->
+        <div class="test-section">
+            <h2>4. Cache Statistics</h2>
+            <button onclick="getCacheStats()" id="statsBtn">Get Cache Stats</button>
+            <div id="statsResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api/i18n';
+
+        async function testSingleTranslation() {
+            const btn = document.getElementById('singleBtn');
+            const resultDiv = document.getElementById('singleResult');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Translating...';
+            
+            try {
+                const text = document.getElementById('singleText').value;
+                const sourceLanguage = document.getElementById('singleSource').value || undefined;
+                const targetLanguage = document.getElementById('singleTarget').value;
+
+                const response = await fetch(`${API_BASE}/translate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, sourceLanguage, targetLanguage })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const cached = data.translation.cached;
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <h3>Translation Result <span class="badge ${cached ? 'cached' : 'uncached'}">${cached ? 'CACHED' : 'NEW'}</span></h3>
+                            <p><strong>Original:</strong> ${text}</p>
+                            <p><strong>Translated:</strong> ${data.translation.translatedText}</p>
+                            <p><strong>Source Language:</strong> ${data.translation.sourceLanguage}</p>
+                            <p><strong>Target Language:</strong> ${data.translation.targetLanguage}</p>
+                            <p><strong>Confidence:</strong> ${(data.translation.confidence * 100).toFixed(1)}%</p>
+                            <p><strong>Cached:</strong> ${cached ? 'Yes (from Redis)' : 'No (from AWS Translate)'}</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h3>Error</h3>
+                            <p>${data.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>Error</h3>
+                        <p>${error.message}</p>
+                        <p><small>Make sure the server is running and Redis is available</small></p>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Translate';
+            }
+        }
+
+        async function testLanguageDetection() {
+            const btn = document.getElementById('detectBtn');
+            const resultDiv = document.getElementById('detectResult');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Detecting...';
+            
+            try {
+                const text = document.getElementById('detectText').value;
+
+                const response = await fetch(`${API_BASE}/detect-language`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <h3>Detection Result</h3>
+                            <p><strong>Text:</strong> ${text}</p>
+                            <p><strong>Detected Language:</strong> ${data.language}</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h3>Error</h3>
+                            <p>${data.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Detect Language';
+            }
+        }
+
+        async function testBatchTranslation() {
+            const btn = document.getElementById('batchBtn');
+            const resultDiv = document.getElementById('batchResult');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Translating...';
+            
+            try {
+                const textsInput = document.getElementById('batchTexts').value;
+                const texts = textsInput.split('\n').filter(t => t.trim());
+                const sourceLanguage = document.getElementById('batchSource').value;
+                const targetLanguage = document.getElementById('batchTarget').value;
+
+                const response = await fetch(`${API_BASE}/translate-batch`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ texts, sourceLanguage, targetLanguage })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const results = texts.map((text, i) => 
+                        `<tr><td>${text}</td><td>${data.translations[i]}</td></tr>`
+                    ).join('');
+
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <h3>Batch Translation Results</h3>
+                            <p><strong>Translated ${texts.length} texts</strong></p>
+                            <table style="width: 100%; margin-top: 10px; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background: #f5f5f5;">
+                                        <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Original</th>
+                                        <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Translation</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${results}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h3>Error</h3>
+                            <p>${data.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Translate Batch';
+            }
+        }
+
+        async function getCacheStats() {
+            const btn = document.getElementById('statsBtn');
+            const resultDiv = document.getElementById('statsResult');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Loading...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/cache-stats`);
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <h3>Cache Statistics</h3>
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="value">${data.stats.size}</div>
+                                    <div class="label">Cached Translations</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="value">${data.stats.hitRate}%</div>
+                                    <div class="label">Cache Hit Rate</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h3>Error</h3>
+                            <p>${data.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Get Cache Stats';
+            }
+        }
+
+        // Auto-load cache stats on page load
+        window.addEventListener('load', () => {
+            setTimeout(getCacheStats, 500);
+        });
+    </script>
+</body>
+</html>

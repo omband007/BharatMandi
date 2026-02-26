@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { i18nService, SUPPORTED_LANGUAGES } from './i18n.service';
+import { translationService } from './translation.service';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -133,6 +134,131 @@ export class I18nController {
       res.status(500).json({
         success: false,
         message: 'Failed to get user language preference'
+      });
+    }
+  }
+
+  /**
+   * Translate text using AWS Translate
+   * POST /api/i18n/translate
+   * Body: { text, sourceLanguage?, targetLanguage }
+   */
+  async translateText(req: Request, res: Response): Promise<void> {
+    try {
+      const { text, sourceLanguage, targetLanguage } = req.body;
+
+      if (!text || !targetLanguage) {
+        res.status(400).json({
+          success: false,
+          message: 'text and targetLanguage are required'
+        });
+        return;
+      }
+
+      const result = await translationService.translateText({
+        text,
+        sourceLanguage,
+        targetLanguage
+      });
+
+      res.json({
+        success: true,
+        translation: result
+      });
+    } catch (error: any) {
+      console.error('Error translating text:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Translation failed'
+      });
+    }
+  }
+
+  /**
+   * Translate multiple texts in batch
+   * POST /api/i18n/translate-batch
+   * Body: { texts: string[], sourceLanguage, targetLanguage }
+   */
+  async translateBatch(req: Request, res: Response): Promise<void> {
+    try {
+      const { texts, sourceLanguage, targetLanguage } = req.body;
+
+      if (!texts || !Array.isArray(texts) || !sourceLanguage || !targetLanguage) {
+        res.status(400).json({
+          success: false,
+          message: 'texts (array), sourceLanguage, and targetLanguage are required'
+        });
+        return;
+      }
+
+      const translations = await translationService.translateBatch(
+        texts,
+        sourceLanguage,
+        targetLanguage
+      );
+
+      res.json({
+        success: true,
+        translations
+      });
+    } catch (error: any) {
+      console.error('Error translating batch:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Batch translation failed'
+      });
+    }
+  }
+
+  /**
+   * Detect language of text
+   * POST /api/i18n/detect-language
+   * Body: { text }
+   */
+  async detectLanguage(req: Request, res: Response): Promise<void> {
+    try {
+      const { text } = req.body;
+
+      if (!text) {
+        res.status(400).json({
+          success: false,
+          message: 'text is required'
+        });
+        return;
+      }
+
+      const language = await translationService.detectLanguage(text);
+
+      res.json({
+        success: true,
+        language
+      });
+    } catch (error: any) {
+      console.error('Error detecting language:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Language detection failed'
+      });
+    }
+  }
+
+  /**
+   * Get cache statistics
+   * GET /api/i18n/cache-stats
+   */
+  async getCacheStats(req: Request, res: Response): Promise<void> {
+    try {
+      const stats = await translationService.getCacheStats();
+
+      res.json({
+        success: true,
+        stats
+      });
+    } catch (error: any) {
+      console.error('Error getting cache stats:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to get cache stats'
       });
     }
   }
