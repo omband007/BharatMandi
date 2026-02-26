@@ -201,5 +201,30 @@ router.get('/listings/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Multer error handling middleware
+router.use((err: any, req: Request, res: Response, next: any) => {
+  if (err instanceof multer.MulterError) {
+    // Handle multer-specific errors
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: `File too large. Maximum size is 50MB.` });
+    }
+    if (err.code === 'LIMIT_FILE_COUNT') {
+      return res.status(400).json({ error: `Too many files. Maximum is 10 files.` });
+    }
+    if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+      return res.status(400).json({ error: `Unexpected file field.` });
+    }
+    return res.status(400).json({ error: err.message });
+  }
+  
+  // Handle file filter errors (invalid file types)
+  if (err.message && err.message.includes('Invalid file type')) {
+    return res.status(400).json({ error: err.message });
+  }
+  
+  // Pass other errors to the next error handler
+  next(err);
+});
+
 // Export as marketplaceController for feature-based architecture
 export const marketplaceController = router;
