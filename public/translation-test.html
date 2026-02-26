@@ -229,6 +229,11 @@
         <!-- Single Translation Test -->
         <div class="test-section">
             <h2>1. Single Text Translation</h2>
+            <div class="info-box" style="background: #fff3cd; border-left-color: #ffc107; margin-bottom: 15px;">
+                <strong>💡 Test Caching:</strong> Translate "Welcome to Bharat Mandi" from English to Hindi<br>
+                • <strong>First time:</strong> Badge shows "NEW" (from AWS Translate)<br>
+                • <strong>Second time:</strong> Badge shows "CACHED" (from Redis) - much faster!
+            </div>
             <div class="form-group">
                 <label for="singleText">Text to Translate:</label>
                 <textarea id="singleText" placeholder="Enter text to translate...">Welcome to Bharat Mandi</textarea>
