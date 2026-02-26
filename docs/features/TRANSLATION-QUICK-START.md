@@ -183,6 +183,19 @@ docker exec -it bharat-mandi-redis redis-cli FLUSHDB
 
 ## Troubleshooting
 
+### AWS Subscription Required Error
+
+**Error**: `SubscriptionRequiredException: The AWS Access Key Id needs a subscription for the service`
+
+**This is expected if you haven't enabled AWS Translate yet!** The service has graceful degradation built-in.
+
+**Solutions**:
+1. **Enable AWS Translate** in your AWS Console (see `docs/features/AWS-TRANSLATE-SETUP.md`)
+2. **Continue without AWS** - The service will return original text (graceful degradation working correctly)
+3. **Reduce console noise** - Comment out preloading in i18n.controller.ts
+
+See `docs/features/AWS-TRANSLATE-SETUP.md` for detailed instructions.
+
 ### Redis Connection Failed
 
 **Error**: `ECONNREFUSED 127.0.0.1:6379`
