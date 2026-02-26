@@ -74,5 +74,31 @@
     "notFound": "Not found",
     "unauthorized": "Unauthorized access",
     "validationError": "Please check your input"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{{count}} minute ago",
+    "minutesAgo_plural": "{{count}} minutes ago",
+    "hoursAgo": "{{count}} hour ago",
+    "hoursAgo_plural": "{{count}} hours ago",
+    "daysAgo": "{{count}} day ago",
+    "daysAgo_plural": "{{count}} days ago",
+    "weeksAgo": "{{count}} week ago",
+    "weeksAgo_plural": "{{count}} weeks ago",
+    "monthsAgo": "{{count}} month ago",
+    "monthsAgo_plural": "{{count}} months ago",
+    "yearsAgo": "{{count}} year ago",
+    "yearsAgo_plural": "{{count}} years ago"
+  },
+  "number": {
+    "crores": "₹{{value}} Cr",
+    "lakhs": "₹{{value}} L",
+    "thousands": "₹{{value}} K",
+    "percentage": "{{value}}%"
+  },
+  "units": {
+    "kg": "{{value}} kg",
+    "grams": "{{value}} g",
+    "tonnes": "{{value}} tonnes"
   }
 }

@@ -74,5 +74,31 @@
     "notFound": "नहीं मिला",
     "unauthorized": "अनधिकृत पहुंच",
     "validationError": "कृपया अपना इनपुट जांचें"
+  },
+  "time": {
+    "justNow": "अभी",
+    "minutesAgo": "{{count}} मिनट पहले",
+    "minutesAgo_plural": "{{count}} मिनट पहले",
+    "hoursAgo": "{{count}} घंटे पहले",
+    "hoursAgo_plural": "{{count}} घंटे पहले",
+    "daysAgo": "{{count}} दिन पहले",
+    "daysAgo_plural": "{{count}} दिन पहले",
+    "weeksAgo": "{{count}} सप्ताह पहले",
+    "weeksAgo_plural": "{{count}} सप्ताह पहले",
+    "monthsAgo": "{{count}} महीने पहले",
+    "monthsAgo_plural": "{{count}} महीने पहले",
+    "yearsAgo": "{{count}} साल पहले",
+    "yearsAgo_plural": "{{count}} साल पहले"
+  },
+  "number": {
+    "crores": "₹{{value}} करोड़",
+    "lakhs": "₹{{value}} लाख",
+    "thousands": "₹{{value}} हज़ार",
+    "percentage": "{{value}}%"
+  },
+  "units": {
+    "kg": "{{value}} किलो",
+    "grams": "{{value}} ग्राम",
+    "tonnes": "{{value}} टन"
   }
 }

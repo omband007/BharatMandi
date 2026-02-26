@@ -112,18 +112,18 @@ This document outlines the implementation tasks for comprehensive multi-language
     - **Validates: Requirements 1.6, 1.7**
     - Test that storing and retrieving language preference returns same value
 
-- [ ] 5. Implement locale formatting
-  - [ ] 5.1 Create locale configuration for all languages
+- [x] 5. Implement locale formatting
+  - [x] 5.1 Create locale configuration for all languages
     - Define date formats, number formats, currency formats for each locale
     - Create locale-specific configuration objects
     - _Requirements: 1.10, 1.11, 1.12_
   
-  - [ ] 5.2 Implement date formatting component
+  - [x] 5.2 Implement date formatting component
     - Create reusable DateDisplay component with locale formatting
     - Support relative dates ("2 days ago") in all languages
     - _Requirements: 1.10_
   
-  - [ ] 5.3 Implement number and currency formatting components
+  - [x] 5.3 Implement number and currency formatting components
     - Create NumberDisplay and CurrencyDisplay components
     - Support Indian numbering system (lakhs, crores)
     - _Requirements: 1.11, 1.12_
@@ -152,25 +152,25 @@ This document outlines the implementation tasks for comprehensive multi-language
     - Test connection failure handling
     - _Requirements: 12.1_
 
-- [ ] 7. Create language selector UI component
-  - [ ] 7.1 Design and implement LanguageSelector component
+- [x] 7. Create language selector UI component
+  - [x] 7.1 Design and implement LanguageSelector component
     - Create dropdown/modal with all 11 languages
     - Display language names in their native scripts
     - Show current language selection
     - _Requirements: 1.8, 15.1, 15.2_
   
-  - [ ] 7.2 Integrate LanguageSelector in app settings
+  - [x] 7.2 Integrate LanguageSelector in app settings
     - Add language selector to settings screen
     - Add language selector to onboarding flow
     - Implement immediate UI update on language change
     - _Requirements: 15.1, 15.2, 15.4_
   
-  - [ ] 7.3 Implement quick language switcher
+  - [x] 7.3 Implement quick language switcher
     - Add floating action button for quick language access
     - Show last 3 used languages for quick switching
     - _Requirements: 15.8_
 
-- [ ] 8. Checkpoint - Foundation complete
+- [x] 8. Checkpoint - Foundation complete
   - Ensure all tests pass
   - Verify UI translation works for all 11 languages
   - Verify language preference persists across app restarts
