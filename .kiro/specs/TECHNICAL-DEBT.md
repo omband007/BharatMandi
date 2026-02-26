@@ -58,6 +58,178 @@ This document tracks known issues, technical debt, and future improvements for t
 
 ## 🟡 Medium Priority
 
+### Translation Service - AWS SDK Client Mocking
+**Status:** Known Issue  
+**Priority:** Medium  
+**Description:** AWS SDK clients (TranslateClient, ComprehendClient) are instantiated at module load time, making them difficult to mock in unit tests. One test is currently skipped due to this limitation.
+
+**Current Workaround:** Test is marked as `.skip()` with TODO comment
+
+**Impact:**
+- Cannot fully test auto-detection feature in isolation
+- Reduces test coverage for translation service
+- Makes it harder to test error scenarios
+
+**Proper Fix Required:**
+1. Refactor TranslationService to accept AWS clients via dependency injection
+2. Create factory pattern for AWS client creation
+3. Update tests to inject mock clients
+4. Remove `.skip()` from auto-detection test
+
+**Related Files:**
+- `src/features/i18n/translation.service.ts` - Client instantiation at module level
+- `src/features/i18n/__tests__/translation.service.test.ts:150` - Skipped test with TODO
+
+**Suggested Implementation:**
+```typescript
+// Option 1: Constructor injection
+export class TranslationService {
+  constructor(
+    private translateClient = new TranslateClient(...),
+    private comprehendClient = new ComprehendClient(...)
+  ) {}
+}
+
+// Option 2: Factory pattern
+export class AWSClientFactory {
+  static createTranslateClient() { ... }
+  static createComprehendClient() { ... }
+}
+```
+
+---
+
+### Translation Service - Cache Hit Rate Tracking
+**Status:** Not Implemented  
+**Priority:** Medium  
+**Description:** `getCacheStats()` returns `hitRate: 0` because we don't track cache hits/misses. This makes it difficult to monitor cache effectiveness and optimize caching strategy.
+
+**Current Behavior:**
+- Cache size is tracked (number of keys in Redis)
+- Hit rate always shows 0%
+- No metrics on cache performance
+
+**Impact:**
+- Cannot measure cache effectiveness
+- Cannot optimize TTL or preloading strategy
+- Missing important performance metric
+
+**Proper Fix Required:**
+1. Add Redis counters for hits and misses
+2. Increment on cache hit/miss in `translateText()`
+3. Calculate hit rate: `hits / (hits + misses) * 100`
+4. Consider using Redis INCR for atomic counters
+5. Add cache stats reset endpoint
+
+**Related Files:**
+- `src/features/i18n/translation.service.ts:195` - `getCacheStats()` method
+- `src/features/i18n/i18n.controller.ts` - Cache stats endpoint
+
+**Suggested Implementation:**
+```typescript
+// Track hits/misses in Redis
+private async recordCacheHit() {
+  await redis.incr('translation:stats:hits');
+}
+
+private async recordCacheMiss() {
+  await redis.incr('translation:stats:misses');
+}
+
+async getCacheStats() {
+  const hits = await redis.get('translation:stats:hits') || 0;
+  const misses = await redis.get('translation:stats:misses') || 0;
+  const total = hits + misses;
+  const hitRate = total > 0 ? (hits / total) * 100 : 0;
+  return { hitRate, size, hits, misses };
+}
+```
+
+---
+
+### Translation Service - Production Credential Management
+**Status:** Using Environment Variables  
+**Priority:** Medium (before production deployment)  
+**Description:** AWS credentials are currently loaded from `.env` file, which is acceptable for development but not ideal for production.
+
+**Current Setup:**
+- ✅ `.env` is in `.gitignore` (secure for development)
+- ✅ Using environment variables (better than hardcoded)
+- ❌ Not using AWS IAM roles or Secrets Manager
+
+**Production Recommendations:**
+
+**Option 1: AWS IAM Roles (Recommended for EC2/ECS)**
+- No credentials in code or environment
+- Automatic credential rotation
+- Fine-grained permissions per service
+- Zero credential management overhead
+
+**Option 2: AWS Secrets Manager**
+- Centralized credential storage
+- Automatic rotation
+- Audit logging
+- Requires code changes to fetch secrets
+
+**Option 3: AWS Systems Manager Parameter Store**
+- Free for standard parameters
+- Integrated with IAM
+- Good for configuration management
+
+**Migration Steps:**
+1. Create IAM role with translate/comprehend permissions
+2. Attach role to EC2/ECS instances
+3. Remove AWS credentials from environment variables
+4. AWS SDK automatically uses IAM role
+5. Test in staging environment
+
+**Related Files:**
+- `src/features/i18n/translation.service.ts:8-9` - AWS client initialization
+- `.env.example` - AWS credential placeholders
+- `docs/features/PHASE2-TRANSLATION-SERVICE.md` - Security documentation
+
+---
+
+### Translation Service - ElastiCache Migration Path
+**Status:** Using Local Redis  
+**Priority:** Low (production optimization)  
+**Description:** Currently using local Redis (Docker) for development. Need to migrate to AWS ElastiCache for production to get better performance, availability, and automatic failover.
+
+**Current Setup:**
+- Local Redis via Docker Compose
+- No encryption in transit
+- No automatic backups
+- Single instance (no failover)
+
+**ElastiCache Benefits:**
+- Automatic failover and replication
+- Encryption in transit and at rest
+- Automated backups
+- CloudWatch monitoring
+- Better performance (optimized for AWS)
+
+**Migration Checklist:**
+1. Provision ElastiCache Redis cluster (t3.micro for staging)
+2. Configure security groups and VPC
+3. Enable encryption in transit
+4. Update `REDIS_HOST` and `REDIS_PORT` in environment
+5. Add `REDIS_PASSWORD` if using AUTH
+6. Test connection from application
+7. Monitor cache hit rate and performance
+8. Set up CloudWatch alarms
+
+**Cost Estimate:**
+- t3.micro: ~$12/month
+- Data transfer: minimal (same region)
+- Backups: included
+
+**Related Files:**
+- `docker-compose.yml` - Local Redis configuration
+- `src/shared/cache/redis-client.ts` - Redis connection
+- `docs/setup/REDIS-SETUP.md` - Migration guide
+
+---
+
 ### Listing Creation with Media - Race Condition
 **Status:** ✅ Fixed with Production Solution  
 **Priority:** Medium  
