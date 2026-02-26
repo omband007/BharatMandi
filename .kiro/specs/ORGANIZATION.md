@@ -1,19 +1,21 @@
-# Spec Organization Guide
+# Specs Organization Guide
 
 ## Overview
 
-This document explains how the Bharat Mandi specifications are organized using a hybrid approach that balances clarity, maintainability, and ease of navigation.
+This document explains how the Bharat Mandi specifications are organized to separate functional features from test specifications, making navigation and maintenance easier.
 
 ## Organization Principles
 
-### 1. Hierarchical Structure
-- **Main Spec** (bharat-mandi): High-level product vision with 30 requirements
-- **Child Specs**: Detailed implementation specs for specific features/infrastructure
+### 1. Clear Separation
+- **Functional Specs** (`features/`, `shared/`) - Product features and infrastructure
+- **Test Specs** (`tests/`) - All testing-related specifications
+- **Main Spec** (`bharat-mandi-main/`) - High-level product vision
 
-### 2. Cross-References
-- Each child spec links back to parent requirements
-- Specs declare dependencies on other specs
-- Current State document tracks all specs
+### 2. Hierarchical Structure
+- Main spec contains 30 high-level requirements
+- Feature specs implement specific requirements
+- Test specs validate feature implementations
+- Infrastructure specs provide foundation for features
 
 ### 3. Metadata Headers
 Every spec includes YAML front-matter with:
@@ -21,85 +23,132 @@ Every spec includes YAML front-matter with:
 - `implements_requirements`: Which requirements it fulfills
 - `depends_on`: Other specs it depends on
 - `status`: ready | in-progress | complete
-- `type`: infrastructure | feature | enhancement
+- `type`: infrastructure | feature | enhancement | test
 
-### 4. Centralized Index
-- `README.md` in specs directory provides overview
-- Shows relationships between specs
-- Tracks implementation status
-- Provides navigation links
+---
 
-## File Structure
+## Directory Structure
 
 ```
 .kiro/specs/
-├── README.md                          # Spec index and overview
-├── ORGANIZATION.md                    # This file
+├── bharat-mandi-main/          # Main product specification
+│   ├── requirements.md         # 30 high-level requirements
+│   ├── design.md              # Overall architecture
+│   ├── tasks.md               # Master implementation plan
+│   └── CURRENT_STATE.md       # Progress tracker
 │
-├── bharat-mandi/                      # Main product spec
-│   ├── requirements.md                # 30 high-level requirements
-│   ├── design.md                      # Overall architecture
-│   ├── tasks.md                       # Master implementation plan
-│   └── CURRENT_STATE.md              # Progress tracker with spec links
+├── features/                   # Functional feature specifications
+│   ├── auth/                  # Authentication & user management
+│   │   ├── requirements.md
+│   │   ├── design.md
+│   │   └── tasks.md
+│   ├── deployment/            # Deployment specifications
+│   │   └── aws-deployment/
+│   ├── grading/               # AI-powered produce grading
+│   ├── marketplace/           # Marketplace listings & media
+│   ├── multi-language-support/ # Internationalization
+│   └── transactions/          # Transaction & escrow management
 │
-├── database-sync-postgresql-sqlite/   # Infrastructure spec
-│   ├── requirements.md                # 9 requirements (with metadata)
-│   ├── design.md                      # Technical design (with metadata)
-│   └── tasks.md                       # 14 implementation tasks
+├── shared/                     # Shared infrastructure
+│   └── database/              # Dual database architecture
+│       ├── requirements.md
+│       ├── design.md
+│       └── tasks.md
 │
-├── persist-listings-transactions/     # Feature spec
-│   ├── requirements.md                # 7 requirements (with metadata)
-│   ├── design.md                      # Technical design (with metadata)
-│   └── tasks.md                       # 13 implementation tasks
+├── tests/                      # Test specifications
+│   ├── controller-tests/      # Controller integration tests
+│   │   ├── auth-controller-tests/
+│   │   ├── marketplace-controller-tests/
+│   │   ├── transaction-controller-tests/
+│   │   ├── grading-controller-tests/
+│   │   ├── i18n-controller-tests/
+│   │   ├── dev-controller-tests/
+│   │   └── users-controller-tests/
+│   ├── service-tests/         # Service unit tests
+│   │   └── auth-service-tests/
+│   └── bugfixes/              # Bug fix specifications
+│       ├── fix-media-controller-tests/
+│       ├── fix-media-service-mocks/
+│       ├── fix-sync-engine-mocks/
+│       └── fix-video-validation-pbt/
 │
-└── listing-media-support/             # Feature enhancement spec
-    ├── requirements.md                # 8 requirements (with metadata)
-    ├── design.md                      # Technical design (with metadata)
-    └── tasks.md                       # 16 implementation tasks
+├── ORGANIZATION.md             # This file
+├── README.md                   # Spec index and overview
+└── TECHNICAL-DEBT.md          # Known issues and improvements
 ```
 
-## Metadata Format
-
-### Requirements Document Header
-```markdown
----
-parent_spec: bharat-mandi
-implements_requirements: [6, 7]
-depends_on: [database-sync-postgresql-sqlite]
-status: complete
-type: feature
 ---
 
-# Requirements Document
+## Spec Categories
 
-**Parent Spec:** [Bharat Mandi](../bharat-mandi/requirements.md) - Requirements 6 & 7  
-**Depends On:** [Dual Database Sync](../database-sync-postgresql-sqlite/requirements.md)  
-**Status:** ✅ Complete
+### Main Specification (`bharat-mandi-main/`)
+High-level product vision with 30 requirements that define the entire platform. All other specs reference and implement these requirements.
 
-## Introduction
-...
+### Functional Features (`features/`)
+User-facing functionality and capabilities:
+- **auth** - User registration, login, profile management
+- **grading** - AI-powered produce quality grading
+- **marketplace** - Produce listings, transactions, media
+- **transactions** - Transaction lifecycle and escrow
+- **multi-language-support** - Internationalization (i18n)
+- **deployment** - Cloud infrastructure and deployment
+
+### Infrastructure (`shared/`)
+Foundation components used by multiple features:
+- **database** - Dual database architecture (PostgreSQL + SQLite)
+- Provides offline-first capabilities
+- Used by all features
+
+### Test Specifications (`tests/`)
+Testing-related specs organized by test type:
+
+#### Controller Tests (`tests/controller-tests/`)
+Integration tests for API controllers:
+- Target: 80%+ code coverage
+- Complete service mocking for isolation
+- Property-based testing where applicable
+- Error response consistency verification
+
+#### Service Tests (`tests/service-tests/`)
+Unit tests for service layer:
+- Target: 80%+ code coverage
+- Complete database and dependency mocking
+- Property-based testing for business logic
+- Comprehensive edge case coverage
+
+#### Bug Fixes (`tests/bugfixes/`)
+Specifications for fixing failing tests:
+- Problem description and root cause analysis
+- Fix approach and verification plan
+- Implementation tasks with checkpoints
+
+---
+
+## Spec Structure
+
+Each spec contains:
+
+```
+spec-name/
+├── requirements.md    # Detailed requirements (or bugfix.md for bugs)
+├── design.md         # Technical design
+├── tasks.md          # Implementation tasks
+└── .config.kiro      # Spec metadata
 ```
 
-### Design Document Header
-```markdown
+### Metadata Format
+
+```yaml
 ---
-parent_spec: bharat-mandi
-implements_requirements: [6, 7]
-depends_on: [database-sync-postgresql-sqlite]
-status: complete
-type: feature
+parent_spec: bharat-mandi-main
+implements_requirements: [X, Y]
+depends_on: [shared/database]
+status: ready | in-progress | complete
+type: feature | infrastructure | test | bugfix
 ---
-
-# Design Document: Feature Name
-
-**Parent Spec:** [Bharat Mandi Design](../bharat-mandi/design.md)  
-**Related Requirements:** [Feature Requirements](./requirements.md)  
-**Depends On:** [Dependency Design](../dependency-spec/design.md)  
-**Status:** ✅ Complete
-
-## Overview
-...
 ```
+
+---
 
 ## Status Indicators
 
@@ -110,160 +159,113 @@ type: feature
 | 📝 | Spec Ready | Requirements and design complete, ready for implementation |
 | ❌ | Not Started | No spec or implementation yet |
 
-## Spec Types
-
-### Infrastructure
-Foundation components used by multiple features.
-- Example: database-sync-postgresql-sqlite
-- No direct user-facing functionality
-- Provides services to other specs
-
-### Feature
-Complete user-facing functionality.
-- Example: persist-listings-transactions
-- Implements one or more main requirements
-- May depend on infrastructure specs
-
-### Enhancement
-Extends existing features with additional capabilities.
-- Example: listing-media-support
-- Enhances existing feature specs
-- Depends on the feature it extends
+---
 
 ## Navigation Paths
 
 ### For New Developers
 1. Start: [Spec Index](./README.md)
-2. Read: [Main Requirements](./bharat-mandi/requirements.md)
-3. Check: [Current State](./bharat-mandi/CURRENT_STATE.md)
-4. Explore: Individual feature specs
+2. Read: [Main Requirements](./bharat-mandi-main/requirements.md)
+3. Check: [Current State](./bharat-mandi-main/CURRENT_STATE.md)
+4. Explore: Individual feature specs in `features/`
 
 ### For Implementation
 1. Pick a spec from [Spec Index](./README.md)
 2. Read requirements document
 3. Review design document
 4. Follow tasks document
-5. Update [Current State](./bharat-mandi/CURRENT_STATE.md) when done
+5. Update status as you progress
 
-### For Understanding Dependencies
-1. Check metadata header in spec
-2. Follow `depends_on` links
-3. Review [Spec Relationships](./README.md#spec-relationships) diagram
+### For Testing
+1. Browse `tests/` directory
+2. Choose controller-tests, service-tests, or bugfixes
+3. Review requirements and design
+4. Implement tests following tasks.md
 
-## Cross-Reference Examples
+---
 
-### In Main Spec (bharat-mandi/requirements.md)
-```markdown
-### Requirement 6: Digital Mandi (Marketplace)
-...
-**Implementation Specs:**
-- [Persist Listings & Transactions](../persist-listings-transactions/requirements.md) ✅
-- [Listing Media Support](../listing-media-support/requirements.md) 📝
-```
+## Benefits of This Organization
 
-### In Child Spec (listing-media-support/requirements.md)
-```markdown
-**Parent Spec:** [Bharat Mandi](../bharat-mandi/requirements.md) - Requirement 6
-**Depends On:** [Dual Database Sync](../database-sync-postgresql-sqlite/requirements.md)
-```
+### ✅ Clear Separation
+- Functional specs separated from test specs
+- Easy to find what you're looking for
+- Reduced cognitive load
 
-### In Current State (bharat-mandi/CURRENT_STATE.md)
-```markdown
-### 3. Marketplace (Digital Mandi)
-- ✅ Create produce listings
-- 🚧 Media support - [spec ready](../listing-media-support/)
-- **Specs**: 
-  - [persist-listings-transactions](../persist-listings-transactions/) ✅
-  - [listing-media-support](../listing-media-support/) 📝
-```
-
-## Benefits of This Approach
-
-### ✅ Clear Hierarchy
-- Easy to understand parent-child relationships
-- Main spec stays high-level and readable
-- Child specs provide implementation details
-
-### ✅ Independent Work
-- Teams can work on different specs simultaneously
-- Each spec is self-contained
-- Dependencies are explicit
+### ✅ Scalable Structure
+- Easy to add new features in `features/`
+- Easy to add new tests in `tests/`
+- Clear categorization
 
 ### ✅ Easy Navigation
 - Centralized index for quick access
-- Cross-references for context
+- Logical grouping by purpose
 - Status tracking in one place
 
 ### ✅ Maintainability
-- Update child specs without touching main spec
-- Add new specs without restructuring
+- Update specs without affecting others
 - Clear ownership and scope
+- Explicit dependencies
 
 ### ✅ Discoverability
 - New developers can quickly find relevant specs
 - Relationships are explicit
 - Progress is visible
 
+---
+
 ## Creating a New Spec
 
-### Step 1: Create Directory
+### For Features
 ```bash
-mkdir .kiro/specs/[feature-name]
+mkdir -p .kiro/specs/features/[feature-name]
+cd .kiro/specs/features/[feature-name]
+touch requirements.md design.md tasks.md
 ```
 
-### Step 2: Create Files
+### For Tests
 ```bash
-touch .kiro/specs/[feature-name]/requirements.md
-touch .kiro/specs/[feature-name]/design.md
-touch .kiro/specs/[feature-name]/tasks.md
+mkdir -p .kiro/specs/tests/controller-tests/[controller-name]-tests
+cd .kiro/specs/tests/controller-tests/[controller-name]-tests
+touch requirements.md design.md tasks.md
 ```
 
-### Step 3: Add Metadata
+### Add Metadata
 Add YAML front-matter to requirements.md and design.md:
 ```yaml
 ---
-parent_spec: bharat-mandi
-implements_requirements: [X, Y]
-depends_on: [spec-a, spec-b]
+parent_spec: bharat-mandi-main
+implements_requirements: [X]
+depends_on: [shared/database]
 status: ready
-type: feature | infrastructure | enhancement
+type: feature | test | bugfix
 ---
 ```
 
-### Step 4: Add Cross-References
-Add links to parent spec and dependencies after the metadata.
+### Update Index
+Add entry to [README.md](./README.md) in the appropriate section.
 
-### Step 5: Update Index
-Add entry to [Spec Index](./README.md) with:
-- Spec name and link
-- Status indicator
-- Brief description
-- Key features
-- Dependencies
-
-### Step 6: Update Current State
-Add spec link to [Current State](./bharat-mandi/CURRENT_STATE.md) under relevant feature.
+---
 
 ## Maintenance Guidelines
 
 ### When Completing a Spec
 1. Update status in metadata: `status: complete`
-2. Update status in [Spec Index](./README.md): ✅
-3. Update [Current State](./bharat-mandi/CURRENT_STATE.md)
-4. Add implementation notes if needed
+2. Update status in [README.md](./README.md): ✅
+3. Update [Current State](./bharat-mandi-main/CURRENT_STATE.md) if applicable
 
 ### When Starting a Spec
 1. Create spec with `status: in-progress`
-2. Update [Spec Index](./README.md): 🚧
-3. Update [Current State](./bharat-mandi/CURRENT_STATE.md)
+2. Update [README.md](./README.md): 🚧
 
 ### When Spec is Ready for Implementation
 1. Set `status: ready` in metadata
-2. Update [Spec Index](./README.md): 📝
+2. Update [README.md](./README.md): 📝
 3. Ensure all cross-references are correct
+
+---
 
 ## Questions?
 
-- Check [Spec Index](./README.md) for overview
+- Check [README.md](./README.md) for overview
 - Review existing specs for examples
-- See [Current State](./bharat-mandi/CURRENT_STATE.md) for progress
+- See [Current State](./bharat-mandi-main/CURRENT_STATE.md) for progress
