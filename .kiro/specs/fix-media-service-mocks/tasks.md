@@ -23,7 +23,7 @@
   - Mark task complete when test is written, run, and failures are documented
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8_
 
-- [ ] 2. Write preservation property tests (BEFORE implementing fix)
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
   - **Property 2: Preservation** - Existing Test Behavior
   - **IMPORTANT**: Follow observation-first methodology
   - Observe behavior on UNFIXED code for non-buggy tests (upload tests, getListingMedia tests)
@@ -38,7 +38,7 @@
   - Mark task complete when tests are written, run, and passing on unfixed code
   - _Requirements: 3.1, 3.2, 3.3_
 
-- [ ] 3. Fix for media service mock configuration and thumbnail handling
+- [x] 3. Fix for media service mock configuration and thumbnail handling
 
   - [x] 3.1 Add getListing method to mockSqliteAdapter
     - Open `src/features/marketplace/__tests__/media.service.test.ts`
@@ -51,7 +51,7 @@
     - _Preservation: All other tests continue to pass with unchanged behavior (Property 3)_
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
-  - [ ] 3.2 Review and fix thumbnail error handling in uploadMedia
+  - [x] 3.2 Review and fix thumbnail error handling in uploadMedia
     - Open `src/features/marketplace/media.service.ts`
     - Locate the `uploadMedia` method
     - Review the thumbnail generation try-catch block
@@ -63,7 +63,7 @@
     - _Preservation: All other upload tests continue to pass (Property 3)_
     - _Requirements: 2.8_
 
-  - [ ] 3.3 Verify bug condition exploration test now passes
+  - [x] 3.3 Verify bug condition exploration test now passes
     - **Property 1: Expected Behavior** - Mock Methods Available and Graceful Thumbnail Failure
     - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
     - The test from task 1 encodes the expected behavior
@@ -74,7 +74,7 @@
     - Verify thumbnail failure test returns result.success = true
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8_
 
-  - [ ] 3.4 Verify preservation tests still pass
+  - [x] 3.4 Verify preservation tests still pass
     - **Property 2: Preservation** - Existing Test Behavior
     - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
     - Run preservation property tests from step 2

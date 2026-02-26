@@ -73,7 +73,10 @@ class MockDatabaseManager {
   getSQLiteAdapter() {
     return {
       cacheListingMedia: async () => {},
-      deleteCachedMedia: async () => true
+      deleteCachedMedia: async () => true,
+      getCachedListingMedia: async (listingId: string) => {
+        return this.mediaStore.get(listingId) || [];
+      }
     };
   }
   
@@ -105,6 +108,10 @@ class MockStorageService {
   
   generateThumbnailKey(listingId: string, mediaId: string) {
     return `${listingId}/${mediaId}/thumb.jpg`;
+  }
+  
+  async generateSignedUrl(url: string) {
+    return `${url}?signed=true`;
   }
 }
 
@@ -449,6 +456,215 @@ describe('Media Service - Property-Based Tests', () => {
       
       expect(videoMedia?.isPrimary).toBe(false);
       expect(photoMedia?.isPrimary).toBe(true);
+    });
+  });
+
+  /**
+   * Property 2: Preservation - Existing Test Behavior
+   * 
+   * **Validates: Requirements 3.1, 3.2, 3.3**
+   * 
+   * Property: All tests that do NOT involve authorization checks or thumbnail generation failures
+   * should produce exactly the same results as before the fix, preserving all existing test coverage.
+   * 
+   * This property verifies that:
+   * - Upload tests without thumbnail failures continue to pass
+   * - GetListingMedia tests continue to pass
+   * - File validation tests continue to pass
+   * - Media count limit tests continue to pass
+   */
+  describe('Property 2: Preservation - Existing Test Behavior', () => {
+    it('should preserve upload behavior for valid files', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.record({
+            fileName: fc.string({ minLength: 1, maxLength: 50 }).map(s => `${s}.jpg`),
+            mediaType: fc.constantFrom('photo', 'video', 'document'),
+            fileSize: fc.integer({ min: 1, max: 10000 })
+          }),
+          async ({ fileName, mediaType, fileSize }) => {
+            const listingId = `listing-${Date.now()}-${Math.random()}`;
+            const request: MediaUploadRequest = {
+              listingId,
+              file: Buffer.alloc(fileSize),
+              mediaType,
+              fileName,
+              mimeType: 'image/jpeg'
+            };
+            
+            const result = await mediaService.uploadMedia(request);
+            
+            // Upload should succeed for valid files
+            expect(result.success).toBe(true);
+            expect(result.mediaId).toBeDefined();
+            
+            // Verify media was stored
+            const pgAdapter = mockDbManager.getPostgreSQLAdapter();
+            const media = await pgAdapter.getListingMedia(listingId);
+            expect(media.length).toBe(1);
+            expect(media[0].fileName).toBe(fileName);
+            expect(media[0].mediaType).toBe(mediaType);
+            
+            return true;
+          }
+        ),
+        { numRuns: 20 }
+      );
+    });
+    
+    it('should preserve getListingMedia behavior', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.integer({ min: 1, max: 5 }), // Number of media items
+          async (mediaCount) => {
+            const listingId = `listing-${Date.now()}-${Math.random()}`;
+            const uploadedIds: string[] = [];
+            
+            // Upload multiple media items
+            for (let i = 0; i < mediaCount; i++) {
+              const request: MediaUploadRequest = {
+                listingId,
+                file: Buffer.from(`file-${i}`),
+                mediaType: 'photo',
+                fileName: `photo-${i}.jpg`,
+                mimeType: 'image/jpeg'
+              };
+              
+              const result = await mediaService.uploadMedia(request);
+              expect(result.success).toBe(true);
+              uploadedIds.push(result.mediaId);
+            }
+            
+            // Retrieve media
+            const media = await mediaService.getListingMedia(listingId);
+            
+            // Should return all uploaded media
+            expect(media.length).toBe(mediaCount);
+            
+            // All media should have required properties
+            media.forEach((m: ListingMedia) => {
+              expect(m.id).toBeDefined();
+              expect(m.listingId).toBe(listingId);
+              expect(m.mediaType).toBeDefined();
+              expect(m.fileName).toBeDefined();
+              expect(m.storageUrl).toBeDefined();
+            });
+            
+            return true;
+          }
+        ),
+        { numRuns: 15 }
+      );
+    });
+    
+    it('should preserve first photo as primary behavior', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.integer({ min: 1, max: 5 }), // Number of photos
+          async (photoCount) => {
+            const listingId = `listing-${Date.now()}-${Math.random()}`;
+            
+            // Upload multiple photos
+            for (let i = 0; i < photoCount; i++) {
+              const request: MediaUploadRequest = {
+                listingId,
+                file: Buffer.from(`photo-${i}`),
+                mediaType: 'photo',
+                fileName: `photo-${i}.jpg`,
+                mimeType: 'image/jpeg'
+              };
+              
+              await mediaService.uploadMedia(request);
+            }
+            
+            // Get media
+            const pgAdapter = mockDbManager.getPostgreSQLAdapter();
+            const media = await pgAdapter.getListingMedia(listingId);
+            
+            // First photo should be primary
+            const primaryMedia = media.filter((m: ListingMedia) => m.isPrimary);
+            expect(primaryMedia.length).toBe(1);
+            expect(primaryMedia[0].displayOrder).toBe(0);
+            
+            // All other photos should not be primary
+            const nonPrimaryMedia = media.filter((m: ListingMedia) => !m.isPrimary);
+            expect(nonPrimaryMedia.length).toBe(photoCount - 1);
+            
+            return true;
+          }
+        ),
+        { numRuns: 15 }
+      );
+    });
+    
+    it('should preserve media count enforcement behavior', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.integer({ min: 0, max: MAX_MEDIA_PER_LISTING }),
+          async (uploadCount) => {
+            const listingId = `listing-${Date.now()}-${Math.random()}`;
+            
+            // Upload up to the limit
+            for (let i = 0; i < uploadCount; i++) {
+              const request: MediaUploadRequest = {
+                listingId,
+                file: Buffer.from(`file-${i}`),
+                mediaType: 'photo',
+                fileName: `photo-${i}.jpg`,
+                mimeType: 'image/jpeg'
+              };
+              
+              const result = await mediaService.uploadMedia(request);
+              expect(result.success).toBe(true);
+            }
+            
+            // Verify count
+            const pgAdapter = mockDbManager.getPostgreSQLAdapter();
+            const count = await pgAdapter.getMediaCount(listingId);
+            expect(count).toBe(uploadCount);
+            
+            return true;
+          }
+        ),
+        { numRuns: 15 }
+      );
+    });
+    
+    it('should preserve display order assignment behavior', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.integer({ min: 2, max: 5 }),
+          async (mediaCount) => {
+            const listingId = `listing-${Date.now()}-${Math.random()}`;
+            
+            // Upload multiple media items
+            for (let i = 0; i < mediaCount; i++) {
+              const request: MediaUploadRequest = {
+                listingId,
+                file: Buffer.from(`file-${i}`),
+                mediaType: 'photo',
+                fileName: `photo-${i}.jpg`,
+                mimeType: 'image/jpeg'
+              };
+              
+              await mediaService.uploadMedia(request);
+            }
+            
+            // Get media
+            const pgAdapter = mockDbManager.getPostgreSQLAdapter();
+            const media = await pgAdapter.getListingMedia(listingId);
+            
+            // Display orders should be sequential starting from 0
+            const sortedMedia = [...media].sort((a, b) => a.displayOrder - b.displayOrder);
+            sortedMedia.forEach((m: ListingMedia, index: number) => {
+              expect(m.displayOrder).toBe(index);
+            });
+            
+            return true;
+          }
+        ),
+        { numRuns: 15 }
+      );
     });
   });
 });

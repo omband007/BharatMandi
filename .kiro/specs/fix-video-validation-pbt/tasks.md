@@ -19,7 +19,7 @@
   - Mark task complete when test is written, run, and failure is documented
   - _Requirements: 2.1, 2.2_
 
-- [ ] 2. Write preservation property tests (BEFORE implementing fix)
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
   - **Property 2: Preservation** - Non-Video Validation Behavior
   - **IMPORTANT**: Follow observation-first methodology
   - Observe behavior on UNFIXED code for non-buggy inputs:
@@ -40,9 +40,9 @@
   - Mark task complete when tests are written, run, and passing on unfixed code
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-- [ ] 3. Fix video file validation logic
+- [x] 3. Fix video file validation logic
 
-  - [ ] 3.1 Debug and identify root cause
+  - [x] 3.1 Debug and identify root cause
     - Review debug logs from exploration test to identify which validation method is failing
     - Check validateFileSize for correct size comparison logic (should use > not >=)
     - Check validateMimeType for correct MIME type allowlist checking
@@ -56,7 +56,7 @@
     - _Preservation: All non-video validation behavior (photos, documents, oversized files, invalid MIME types, mismatched extensions, empty files) must remain unchanged_
     - _Requirements: 2.1, 2.2, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-  - [ ] 3.2 Apply the fix to validation.service.ts
+  - [x] 3.2 Apply the fix to validation.service.ts
     - Fix the identified validation method (validateFileSize, validateMimeType, or validateFileExtension)
     - Ensure size comparison uses correct operator (file.length > maxSize for rejection)
     - Ensure MIME type checking correctly validates against ALLOWED_MIME_TYPES
@@ -67,7 +67,7 @@
     - _Preservation: Preservation Requirements from design_
     - _Requirements: 2.1, 2.2, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-  - [ ] 3.3 Verify bug condition exploration test now passes
+  - [x] 3.3 Verify bug condition exploration test now passes
     - **Property 1: Expected Behavior** - Video Files Within Size Limits Are Accepted
     - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
     - The test from task 1 encodes the expected behavior
@@ -77,7 +77,7 @@
     - Verify all 100 property test runs pass for video files
     - _Requirements: 2.1, 2.2_
 
-  - [ ] 3.4 Verify preservation tests still pass
+  - [x] 3.4 Verify preservation tests still pass
     - **Property 2: Preservation** - Non-Video Validation Behavior
     - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
     - Run preservation property tests from step 2
