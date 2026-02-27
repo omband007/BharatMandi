@@ -3,8 +3,8 @@ import { ComprehendClient, DetectDominantLanguageCommand } from '@aws-sdk/client
 import { createHash } from 'crypto';
 import { getRedisClient, isRedisAvailable } from '../../shared/cache/redis-client';
 
-const translateClient = new TranslateClient({ region: process.env.AWS_REGION || 'ap-south-1' });
-const comprehendClient = new ComprehendClient({ region: process.env.AWS_REGION || 'ap-south-1' });
+const translateClient = new TranslateClient({ region: process.env.AWS_REGION || 'ap-southeast-2' });
+const comprehendClient = new ComprehendClient({ region: process.env.AWS_REGION || 'ap-southeast-2' });
 
 export interface TranslationRequest {
   text: string;
