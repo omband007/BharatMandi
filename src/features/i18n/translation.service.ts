@@ -68,6 +68,16 @@ export class TranslationService {
       const response = await translateClient.send(command);
       const translatedText = response.TranslatedText || request.text;
 
+      // DEBUG: Log full AWS response for Marathi translations
+      if (request.targetLanguage === 'mr') {
+        console.log('[TranslationService] Marathi Translation Debug:');
+        console.log('  Input text:', request.text);
+        console.log('  Input length:', request.text.length);
+        console.log('  Output text:', translatedText);
+        console.log('  Output length:', translatedText.length);
+        console.log('  Full AWS response:', JSON.stringify(response, null, 2));
+      }
+
       // Cache the translation
       await this.saveToCache(cacheKey, translatedText);
 
