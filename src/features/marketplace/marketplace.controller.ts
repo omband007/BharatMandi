@@ -173,9 +173,24 @@ router.post('/listings/with-media', upload.array('media', 10), async (req: Reque
 /**
  * GET /api/marketplace/listings
  * Get all active listings
+ * Query params: lang (optional, target language code for batch translation)
+ * 
+ * Examples:
+ * - GET /api/marketplace/listings - Returns listings in original language
+ * - GET /api/marketplace/listings?lang=hi - Returns all listings translated to Hindi
+ * - GET /api/marketplace/listings?lang=mr - Returns all listings translated to Marathi
  */
 router.get('/listings', async (req: Request, res: Response) => {
   try {
+    const { lang } = req.query;
+
+    // If language parameter is provided, return batch-translated listings
+    if (lang && typeof lang === 'string') {
+      const translatedListings = await marketplaceService.getTranslatedListings(lang);
+      return res.json(translatedListings);
+    }
+
+    // Otherwise, return listings in original language
     const listings = await marketplaceService.getActiveListings();
     res.json(listings);
   } catch (error) {
@@ -198,6 +213,66 @@ router.get('/listings/:id', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('[Marketplace] Error fetching listing:', error);
     res.status(500).json({ error: 'Failed to fetch listing' });
+  }
+});
+
+/**
+ * PUT /api/marketplace/listings/:id
+ * Update listing details
+ */
+router.put('/listings/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { produceType, quantity, pricePerKg, isActive } = req.body;
+
+    // Validate required fields
+    if (produceType === undefined && quantity === undefined && pricePerKg === undefined && isActive === undefined) {
+      return res.status(400).json({ error: 'At least one field must be provided for update' });
+    }
+
+    const updates: any = {};
+    if (produceType !== undefined) updates.produceType = produceType;
+    if (quantity !== undefined) updates.quantity = quantity;
+    if (pricePerKg !== undefined) updates.pricePerKg = pricePerKg;
+    if (isActive !== undefined) updates.isActive = isActive;
+
+    const updatedListing = await marketplaceService.updateListing(id, updates);
+    
+    if (!updatedListing) {
+      return res.status(404).json({ error: 'Listing not found' });
+    }
+
+    res.json(updatedListing);
+  } catch (error) {
+    console.error('[Marketplace] Error updating listing:', error);
+    res.status(500).json({ error: 'Failed to update listing' });
+  }
+});
+
+/**
+ * GET /api/marketplace/listings/:id/translate
+ * Get translated listing
+ * Query params: lang (target language code)
+ */
+router.get('/listings/:id/translate', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { lang } = req.query;
+
+    if (!lang || typeof lang !== 'string') {
+      return res.status(400).json({ error: 'Language parameter (lang) is required' });
+    }
+
+    const translatedListing = await marketplaceService.getTranslatedListing(id, lang);
+    
+    if (!translatedListing) {
+      return res.status(404).json({ error: 'Listing not found' });
+    }
+
+    res.json(translatedListing);
+  } catch (error) {
+    console.error('[Marketplace] Error translating listing:', error);
+    res.status(500).json({ error: 'Failed to translate listing' });
   }
 });
 

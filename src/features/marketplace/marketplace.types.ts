@@ -11,3 +11,11 @@ export interface Listing {
   createdAt: Date;
   isActive: boolean;
 }
+
+export interface TranslatedListing extends Listing {
+  originalProduceType: string;
+  translatedProduceType: string;
+  isTranslated: boolean;
+  sourceLanguage: string;
+  targetLanguage: string;
+}

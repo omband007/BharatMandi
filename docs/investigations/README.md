@@ -1,28 +1,28 @@
 # Investigations
 
-This folder contains documentation for technical investigations, issue analysis, and problem-solving efforts.
+This directory contains detailed investigations of issues, bugs, and anomalies discovered during development and testing.
 
 ## Structure
 
-- `marathi-translation/` - Investigation into AWS Translate Marathi language quality issues
-  - Root cause analysis
-  - AWS Support interaction
-  - Test results and workarounds
-  - Implementation recommendations
+Each investigation is organized in its own subdirectory with:
+- Detailed report documents
+- Supporting evidence (logs, screenshots, etc.)
+- Reproduction steps
+- Mitigation strategies
 
-## Purpose
+## Current Investigations
 
-When we encounter complex technical issues that require:
-- Deep investigation
-- Multiple test iterations
-- External support interaction
-- Detailed documentation
-
-We document the entire process here for future reference and knowledge sharing.
+### AWS Translate Content Safety Issue (2026-02-28)
+- **Location:** `aws-translate-content-safety-2026-02-28/`
+- **Severity:** HIGH
+- **Status:** Reported to AWS
+- **Summary:** AWS Translate generated inappropriate religious content when translating Marathi to Hindi with incorrect source language specification
 
 ## Guidelines
 
-1. Create a subfolder for each major investigation
-2. Include all relevant documentation, test scripts, and findings
-3. Document the resolution or current status
-4. Link to related technical debt items if unresolved
+When creating a new investigation:
+1. Create a new folder with format: `{service-name}-{issue-type}-{YYYY-MM-DD}`
+2. Include a detailed report with technical details
+3. Add reproduction steps
+4. Document impact and mitigation
+5. Track resolution status

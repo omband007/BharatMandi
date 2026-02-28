@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { i18nService, SUPPORTED_LANGUAGES } from './i18n.service';
 import { translationService } from './translation.service';
+import { DatabaseManager } from '../../shared/database/db-abstraction';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -183,19 +184,33 @@ export class I18nController {
     try {
       const { texts, sourceLanguage, targetLanguage } = req.body;
 
-      if (!texts || !Array.isArray(texts) || !sourceLanguage || !targetLanguage) {
+      if (!texts || !Array.isArray(texts) || !targetLanguage) {
         res.status(400).json({
           success: false,
-          message: 'texts (array), sourceLanguage, and targetLanguage are required'
+          message: 'texts (array) and targetLanguage are required'
         });
         return;
       }
 
-      const translations = await translationService.translateBatch(
-        texts,
-        sourceLanguage,
-        targetLanguage
-      );
+      // If sourceLanguage is provided, use the old batch method
+      // Otherwise, translate each text individually with auto-detection
+      let translations: string[];
+      
+      if (sourceLanguage) {
+        translations = await translationService.translateBatch(
+          texts,
+          sourceLanguage,
+          targetLanguage
+        );
+      } else {
+        // Auto-detect each text individually
+        const results = await Promise.all(
+          texts.map(text => 
+            translationService.translateText({ text, targetLanguage })
+          )
+        );
+        translations = results.map(r => r.translatedText);
+      }
 
       res.json({
         success: true,
@@ -259,6 +274,113 @@ export class I18nController {
       res.status(500).json({
         success: false,
         message: error.message || 'Failed to get cache stats'
+      });
+    }
+  }
+
+  /**
+   * Submit translation feedback
+   * POST /api/translate/feedback
+   * Body: { userId, originalText, translatedText, sourceLanguage, targetLanguage, suggestedTranslation?, feedbackType, context? }
+   * 
+   * Requirements: 16.1, 16.2, 16.3
+   */
+  async submitTranslationFeedback(req: Request, res: Response): Promise<void> {
+    try {
+      const {
+        userId,
+        originalText,
+        translatedText,
+        sourceLanguage,
+        targetLanguage,
+        suggestedTranslation,
+        feedbackType,
+        context
+      } = req.body;
+
+      // Validate required fields
+      if (!userId || !originalText || !translatedText || !sourceLanguage || !targetLanguage || !feedbackType) {
+        res.status(400).json({
+          success: false,
+          message: 'userId, originalText, translatedText, sourceLanguage, targetLanguage, and feedbackType are required'
+        });
+        return;
+      }
+
+      // Validate feedback type
+      const validFeedbackTypes = ['incorrect', 'poor_quality', 'suggestion', 'offensive'];
+      if (!validFeedbackTypes.includes(feedbackType)) {
+        res.status(400).json({
+          success: false,
+          message: `Invalid feedbackType. Must be one of: ${validFeedbackTypes.join(', ')}`
+        });
+        return;
+      }
+
+      // Create feedback in database
+      const db = (global as any).sharedDbManager;
+      const feedback = await db.createTranslationFeedback({
+        userId,
+        originalText,
+        translatedText,
+        sourceLanguage,
+        targetLanguage,
+        suggestedTranslation,
+        feedbackType,
+        context,
+        status: 'pending'
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Translation feedback submitted successfully',
+        feedback: {
+          id: feedback.id,
+          status: feedback.status,
+          createdAt: feedback.createdAt
+        }
+      });
+    } catch (error: any) {
+      console.error('Error submitting translation feedback:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to submit translation feedback'
+      });
+    }
+  }
+
+  /**
+   * Get translation feedback statistics
+   * GET /api/translate/feedback/stats
+   * Query params: targetLanguage? (optional language filter)
+   * 
+   * Requirements: 16.5
+   */
+  async getTranslationFeedbackStats(req: Request, res: Response): Promise<void> {
+    try {
+      const { targetLanguage } = req.query;
+
+      // Validate language if provided
+      if (targetLanguage && !SUPPORTED_LANGUAGES.find(l => l.code === targetLanguage)) {
+        res.status(400).json({
+          success: false,
+          message: `Invalid targetLanguage: ${targetLanguage}`
+        });
+        return;
+      }
+
+      const db = (global as any).sharedDbManager;
+      const stats = await db.getTranslationFeedbackStats(targetLanguage as string | undefined);
+
+      res.json({
+        success: true,
+        stats
+      });
+    } catch (error: any) {
+      console.error('Error getting translation feedback stats:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to get translation feedback statistics'
       });
     }
   }

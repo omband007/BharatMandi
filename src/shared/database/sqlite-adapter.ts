@@ -4,6 +4,7 @@ import type { User, OTPSession } from '../../features/auth/auth.types';
 import type { Listing } from '../../features/marketplace/marketplace.types';
 import type { Transaction, EscrowAccount } from '../../features/transactions/transaction.types';
 import type { ListingMedia, MediaOperation, MediaType, UploadStatus, PendingMediaOperation, LocalMediaFile } from '../../features/marketplace/media.types';
+import type { Notification, NotificationTemplate, NotificationType, TranslationFeedback, TranslationFeedbackStats } from '../../features/notifications/notification.types';
 import type { DatabaseAdapter } from './db-abstraction';
 
 /**
@@ -473,5 +474,69 @@ export class SQLiteAdapter implements DatabaseAdapter {
         else resolve(row);
       });
     });
+  }
+
+  // ============================================================================
+  // Notification Operations (Stubs - SQLite cache not implemented yet)
+  // ============================================================================
+
+  async createNotification(notification: Notification): Promise<Notification> {
+    console.warn('[SQLiteAdapter] Notification operations not implemented in SQLite cache');
+    return notification;
+  }
+
+  async getNotification(id: string): Promise<Notification | undefined> {
+    console.warn('[SQLiteAdapter] Notification operations not implemented in SQLite cache');
+    return undefined;
+  }
+
+  async getUserNotifications(userId: string): Promise<Notification[]> {
+    console.warn('[SQLiteAdapter] Notification operations not implemented in SQLite cache');
+    return [];
+  }
+
+  async updateNotification(id: string, updates: Partial<Notification>): Promise<Notification | undefined> {
+    console.warn('[SQLiteAdapter] Notification operations not implemented in SQLite cache');
+    return undefined;
+  }
+
+  async getNotificationTemplate(type: NotificationType, language: string): Promise<NotificationTemplate | undefined> {
+    console.warn('[SQLiteAdapter] Notification template operations not implemented in SQLite cache');
+    return undefined;
+  }
+
+  // ============================================================================
+  // Translation Feedback Operations (Stubs - SQLite cache not implemented yet)
+  // ============================================================================
+
+  async createTranslationFeedback(feedback: Omit<TranslationFeedback, 'id' | 'createdAt' | 'updatedAt'>): Promise<TranslationFeedback> {
+    console.warn('[SQLiteAdapter] Translation feedback operations not implemented in SQLite cache');
+    const now = new Date();
+    return {
+      ...feedback,
+      id: `temp-${Date.now()}`,
+      createdAt: now,
+      updatedAt: now
+    } as TranslationFeedback;
+  }
+
+  async getTranslationFeedback(id: string): Promise<TranslationFeedback | undefined> {
+    console.warn('[SQLiteAdapter] Translation feedback operations not implemented in SQLite cache');
+    return undefined;
+  }
+
+  async getTranslationFeedbackStats(targetLanguage?: string): Promise<TranslationFeedbackStats> {
+    console.warn('[SQLiteAdapter] Translation feedback operations not implemented in SQLite cache');
+    return {
+      totalFeedback: 0,
+      byLanguage: {},
+      byType: {} as any,
+      byStatus: {} as any
+    };
+  }
+
+  async updateTranslationFeedback(id: string, updates: Partial<TranslationFeedback>): Promise<TranslationFeedback | undefined> {
+    console.warn('[SQLiteAdapter] Translation feedback operations not implemented in SQLite cache');
+    return undefined;
   }
 }

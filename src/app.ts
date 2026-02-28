@@ -14,6 +14,7 @@ import { transactionController } from './features/transactions';
 import { usersController } from './features/users';
 import { devController } from './features/dev';
 import i18nRoutes from './features/i18n/i18n.routes';
+import { voiceController } from './features/i18n/voice.controller';
 
 const app = express();
 
@@ -105,6 +106,7 @@ app.use('/api/marketplace', mediaController); // Media routes under /api/marketp
 app.use('/api/transactions', transactionController);
 app.use('/api/users', usersController);
 app.use('/api/i18n', i18nRoutes); // i18n routes
+app.use('/api/voice', voiceController); // Voice routes
 
 // Development routes (only in development)
 if (process.env.NODE_ENV !== 'production') {

@@ -3,6 +3,7 @@ import type { User, OTPSession } from '../../features/auth/auth.types';
 import type { Listing } from '../../features/marketplace/marketplace.types';
 import type { ListingMedia } from '../../features/marketplace/media.types';
 import type { Transaction, EscrowAccount } from '../../features/transactions/transaction.types';
+import type { Notification, NotificationTemplate, NotificationType, TranslationFeedback, TranslationFeedbackStats, FeedbackType, FeedbackStatus } from '../../features/notifications/notification.types';
 import type { DatabaseAdapter } from './db-abstraction';
 
 /**
@@ -677,6 +678,100 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
     return parseInt(result.rows[0].count, 10);
   }
 
+  // ============================================================================
+  // Notification Operations
+  // ============================================================================
+
+  async createNotification(notification: Notification): Promise<Notification> {
+    const result = await pool.query(
+      `INSERT INTO notifications (
+        id, user_id, type, title, message, data, is_read, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *`,
+      [
+        notification.id,
+        notification.userId,
+        notification.type,
+        notification.title,
+        notification.message,
+        notification.data ? JSON.stringify(notification.data) : null,
+        notification.isRead,
+        notification.createdAt
+      ]
+    );
+    return this.mapRowToNotification(result.rows[0]);
+  }
+
+  async getNotification(id: string): Promise<Notification | undefined> {
+    const result = await pool.query(
+      'SELECT * FROM notifications WHERE id = $1',
+      [id]
+    );
+    return result.rows[0] ? this.mapRowToNotification(result.rows[0]) : undefined;
+  }
+
+  async getUserNotifications(userId: string): Promise<Notification[]> {
+    const result = await pool.query(
+      'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC',
+      [userId]
+    );
+    return result.rows.map(row => this.mapRowToNotification(row));
+  }
+
+  async updateNotification(id: string, updates: Partial<Notification>): Promise<Notification | undefined> {
+    const fields: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    if (updates.isRead !== undefined) {
+      fields.push(`is_read = $${paramIndex++}`);
+      values.push(updates.isRead);
+    }
+
+    if (fields.length === 0) {
+      return this.getNotification(id);
+    }
+
+    values.push(id);
+    const result = await pool.query(
+      `UPDATE notifications SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+      values
+    );
+
+    return result.rows[0] ? this.mapRowToNotification(result.rows[0]) : undefined;
+  }
+
+  async getNotificationTemplate(type: NotificationType, language: string): Promise<NotificationTemplate | undefined> {
+    const result = await pool.query(
+      'SELECT * FROM notification_templates WHERE type = $1 AND language = $2',
+      [type, language]
+    );
+    return result.rows[0] ? this.mapRowToNotificationTemplate(result.rows[0]) : undefined;
+  }
+
+  private mapRowToNotification(row: any): Notification {
+    return {
+      id: row.id,
+      userId: row.user_id,
+      type: row.type,
+      title: row.title,
+      message: row.message,
+      data: row.data ? JSON.parse(row.data) : undefined,
+      isRead: row.is_read,
+      createdAt: new Date(row.created_at)
+    };
+  }
+
+  private mapRowToNotificationTemplate(row: any): NotificationTemplate {
+    return {
+      id: row.id,
+      type: row.type,
+      language: row.language,
+      template: row.template,
+      createdAt: new Date(row.created_at)
+    };
+  }
+
   /**
    * Execute raw SQL query (for development/admin operations)
    * @param sql - SQL query string
@@ -702,6 +797,194 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
       uploadedAt: new Date(row.uploaded_at),
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at)
+    };
+  }
+
+  // ============================================================================
+  // Translation Feedback Operations
+  // ============================================================================
+
+  /**
+   * Create translation feedback
+   * @param feedback - Translation feedback object to create
+   * @returns Created translation feedback object
+   */
+  async createTranslationFeedback(feedback: Omit<TranslationFeedback, 'id' | 'createdAt' | 'updatedAt'>): Promise<TranslationFeedback> {
+    const client = await pool.connect();
+    try {
+      const result = await client.query(
+        `INSERT INTO translation_feedback (
+          user_id, original_text, translated_text, source_language, target_language,
+          suggested_translation, feedback_type, context, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        RETURNING *`,
+        [
+          feedback.userId,
+          feedback.originalText,
+          feedback.translatedText,
+          feedback.sourceLanguage,
+          feedback.targetLanguage,
+          feedback.suggestedTranslation || null,
+          feedback.feedbackType,
+          feedback.context || null,
+          feedback.status || 'pending'
+        ]
+      );
+      return this.mapRowToTranslationFeedback(result.rows[0]);
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Get translation feedback by ID
+   * @param id - Feedback ID
+   * @returns Translation feedback object or undefined if not found
+   */
+  async getTranslationFeedback(id: string): Promise<TranslationFeedback | undefined> {
+    const result = await pool.query(
+      'SELECT * FROM translation_feedback WHERE id = $1',
+      [id]
+    );
+    return result.rows[0] ? this.mapRowToTranslationFeedback(result.rows[0]) : undefined;
+  }
+
+  /**
+   * Get translation feedback statistics
+   * @param targetLanguage - Optional language filter
+   * @returns Translation feedback statistics
+   */
+  async getTranslationFeedbackStats(targetLanguage?: string): Promise<TranslationFeedbackStats> {
+    const client = await pool.connect();
+    try {
+      // Total feedback count
+      const totalQuery = targetLanguage
+        ? 'SELECT COUNT(*) as count FROM translation_feedback WHERE target_language = $1'
+        : 'SELECT COUNT(*) as count FROM translation_feedback';
+      const totalParams = targetLanguage ? [targetLanguage] : [];
+      const totalResult = await client.query(totalQuery, totalParams);
+      const totalFeedback = parseInt(totalResult.rows[0].count);
+
+      // By language
+      const byLanguageQuery = targetLanguage
+        ? 'SELECT target_language, COUNT(*) as count FROM translation_feedback WHERE target_language = $1 GROUP BY target_language'
+        : 'SELECT target_language, COUNT(*) as count FROM translation_feedback GROUP BY target_language';
+      const byLanguageParams = targetLanguage ? [targetLanguage] : [];
+      const byLanguageResult = await client.query(byLanguageQuery, byLanguageParams);
+      const byLanguage: Record<string, number> = {};
+      byLanguageResult.rows.forEach(row => {
+        byLanguage[row.target_language] = parseInt(row.count);
+      });
+
+      // By type
+      const byTypeQuery = targetLanguage
+        ? 'SELECT feedback_type, COUNT(*) as count FROM translation_feedback WHERE target_language = $1 GROUP BY feedback_type'
+        : 'SELECT feedback_type, COUNT(*) as count FROM translation_feedback GROUP BY feedback_type';
+      const byTypeParams = targetLanguage ? [targetLanguage] : [];
+      const byTypeResult = await client.query(byTypeQuery, byTypeParams);
+      const byType: Record<FeedbackType, number> = {} as Record<FeedbackType, number>;
+      byTypeResult.rows.forEach(row => {
+        byType[row.feedback_type as FeedbackType] = parseInt(row.count);
+      });
+
+      // By status
+      const byStatusQuery = targetLanguage
+        ? 'SELECT status, COUNT(*) as count FROM translation_feedback WHERE target_language = $1 GROUP BY status'
+        : 'SELECT status, COUNT(*) as count FROM translation_feedback GROUP BY status';
+      const byStatusParams = targetLanguage ? [targetLanguage] : [];
+      const byStatusResult = await client.query(byStatusQuery, byStatusParams);
+      const byStatus: Record<FeedbackStatus, number> = {} as Record<FeedbackStatus, number>;
+      byStatusResult.rows.forEach(row => {
+        byStatus[row.status as FeedbackStatus] = parseInt(row.count);
+      });
+
+      // Average resolution time (in hours)
+      const resolutionQuery = targetLanguage
+        ? `SELECT AVG(EXTRACT(EPOCH FROM (reviewed_at - created_at)) / 3600) as avg_hours 
+           FROM translation_feedback 
+           WHERE reviewed_at IS NOT NULL AND target_language = $1`
+        : `SELECT AVG(EXTRACT(EPOCH FROM (reviewed_at - created_at)) / 3600) as avg_hours 
+           FROM translation_feedback 
+           WHERE reviewed_at IS NOT NULL`;
+      const resolutionParams = targetLanguage ? [targetLanguage] : [];
+      const resolutionResult = await client.query(resolutionQuery, resolutionParams);
+      const averageResolutionTime = resolutionResult.rows[0].avg_hours 
+        ? parseFloat(resolutionResult.rows[0].avg_hours) 
+        : undefined;
+
+      return {
+        totalFeedback,
+        byLanguage,
+        byType,
+        byStatus,
+        averageResolutionTime
+      };
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Update translation feedback
+   * @param id - Feedback ID to update
+   * @param updates - Partial feedback object with fields to update
+   * @returns Updated feedback object or undefined if not found
+   */
+  async updateTranslationFeedback(id: string, updates: Partial<TranslationFeedback>): Promise<TranslationFeedback | undefined> {
+    const fields: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    if (updates.status !== undefined) {
+      fields.push(`status = $${paramIndex++}`);
+      values.push(updates.status);
+    }
+    if (updates.adminNotes !== undefined) {
+      fields.push(`admin_notes = $${paramIndex++}`);
+      values.push(updates.adminNotes);
+    }
+    if (updates.reviewedBy !== undefined) {
+      fields.push(`reviewed_by = $${paramIndex++}`);
+      values.push(updates.reviewedBy);
+    }
+    if (updates.reviewedAt !== undefined) {
+      fields.push(`reviewed_at = $${paramIndex++}`);
+      values.push(updates.reviewedAt);
+    }
+
+    if (fields.length === 0) {
+      return this.getTranslationFeedback(id);
+    }
+
+    values.push(id);
+    const result = await pool.query(
+      `UPDATE translation_feedback 
+       SET ${fields.join(', ')} 
+       WHERE id = $${paramIndex}
+       RETURNING *`,
+      values
+    );
+
+    return result.rows[0] ? this.mapRowToTranslationFeedback(result.rows[0]) : undefined;
+  }
+
+  private mapRowToTranslationFeedback(row: any): TranslationFeedback {
+    return {
+      id: row.id,
+      userId: row.user_id,
+      originalText: row.original_text,
+      translatedText: row.translated_text,
+      sourceLanguage: row.source_language,
+      targetLanguage: row.target_language,
+      suggestedTranslation: row.suggested_translation,
+      feedbackType: row.feedback_type,
+      context: row.context,
+      status: row.status,
+      adminNotes: row.admin_notes,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+      reviewedAt: row.reviewed_at ? new Date(row.reviewed_at) : undefined,
+      reviewedBy: row.reviewed_by
     };
   }
 }

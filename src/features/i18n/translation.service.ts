@@ -29,6 +29,15 @@ export class TranslationService {
     // Detect source language if not provided
     const sourceLanguage = request.sourceLanguage || await this.detectLanguage(request.text);
     
+    // Log warning if detected language differs significantly from specified language
+    if (request.sourceLanguage && sourceLanguage !== request.sourceLanguage) {
+      console.warn(
+        `[TranslationService] Language mismatch detected! ` +
+        `Specified: ${request.sourceLanguage}, Detected: ${sourceLanguage}. ` +
+        `This may result in poor translation quality.`
+      );
+    }
+    
     // Check if translation is needed
     if (sourceLanguage === request.targetLanguage) {
       return {
@@ -122,8 +131,8 @@ export class TranslationService {
   }
 
   async detectLanguage(text: string): Promise<string> {
-    if (text.length < 20) {
-      // Too short for reliable detection, default to English
+    // AWS Comprehend requires at least 3 characters
+    if (text.trim().length < 3) {
       return 'en';
     }
 
@@ -223,6 +232,28 @@ export class TranslationService {
       };
     } catch (error) {
       return { hitRate: 0, size: 0 };
+    }
+  }
+
+  async clearCache(): Promise<number> {
+    try {
+      const available = await isRedisAvailable();
+      if (!available) {
+        return 0;
+      }
+
+      const redis = getRedisClient();
+      const keys = await redis.keys(`${this.CACHE_PREFIX}*`);
+      
+      if (keys.length === 0) {
+        return 0;
+      }
+
+      await redis.del(keys);
+      return keys.length;
+    } catch (error) {
+      console.error('[TranslationService] Cache clear failed:', error);
+      return 0;
     }
   }
 

@@ -30,4 +30,10 @@ router.post('/detect-language', (req, res) => i18nController.detectLanguage(req,
 // Get cache statistics
 router.get('/cache-stats', (req, res) => i18nController.getCacheStats(req, res));
 
+// Submit translation feedback
+router.post('/translate/feedback', (req, res) => i18nController.submitTranslationFeedback(req, res));
+
+// Get translation feedback statistics
+router.get('/translate/feedback/stats', (req, res) => i18nController.getTranslationFeedbackStats(req, res));
+
 export default router;

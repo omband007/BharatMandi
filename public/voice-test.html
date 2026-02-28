@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Interface Test - Bharat Mandi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .brand-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand-logo {
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+        }
+
+        .brand-text {
+            text-align: left;
+        }
+
+        .brand-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            line-height: 1.2;
+            margin: 0;
+        }
+
+        .brand-subtitle {
+            font-size: 0.85rem;
+            color: white;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .nav-link {
+            padding: 8px 20px;
+            color: #666;
+            text-decoration: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            background: #f0f0f0;
+            color: #667eea;
+        }
+
+        .nav-link.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input, select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button.secondary {
+            background: #6c757d;
+        }
+
+        button.secondary:hover {
+            background: #5a6268;
+        }
+        
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .info-card {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .info-card p {
+            color: #666;
+            font-size: 14px;
+            margin: 0 0 3px 0;
+        }
+
+        .audio-player {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .audio-player.show {
+            display: block;
+        }
+
+        .audio-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .audio-controls button {
+            width: auto;
+            padding: 8px 16px;
+            margin: 0;
+        }
+
+        .recording-indicator {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .recording-indicator.active {
+            display: flex;
+        }
+
+        .recording-dot {
+            width: 12px;
+            height: 12px;
+            background: #dc3545;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="brand-header">
+            <div class="brand-logo-container">
+                <svg class="brand-logo" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 35 Q12 25 18 22 Q22 25 20 35 Q18 40 14 42 Z" fill="#FF9933"/>
+                    <path d="M13 28 Q15 32 13 37" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
+                    <path d="M25 15 Q28 10 30 8 Q32 10 35 15 Q33 30 30 35 Q27 30 25 15 Z" fill="white" stroke="#FF9933" stroke-width="1.5"/>
+                    <line x1="30" y1="12" x2="30" y2="32" stroke="#003DA5" stroke-width="1.5"/>
+                    <path d="M40 22 Q43 25 46 30 Q48 36 46 40 Q42 42 38 37 Q37 28 40 22 Z" fill="#138808"/>
+                    <path d="M41 28 Q43 32 42 37" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
+                    <rect x="28" y="35" width="4" height="15" fill="#8B4513" rx="1"/>
+                    <path d="M18 45 Q30 48 42 45" stroke="#138808" stroke-width="2" fill="none" opacity="0.6"/>
+                </svg>
+                <div class="brand-text">
+                    <div class="brand-title">Bharat Mandi</div>
+                    <div class="brand-subtitle">AI Powered Marketplace</div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="nav-bar">
+            <a href="/" class="nav-link">Main</a>
+            <a href="/media-test.html" class="nav-link">Media</a>
+            <a href="/language-test.html" class="nav-link">Localization</a>
+            <a href="/translation-test.html" class="nav-link">Translation</a>
+            <a href="/voice-test.html" class="nav-link active">Voice</a>
+            <a href="/data-purge.html" class="nav-link">Data</a>
+        </nav>
+
+        <div class="info-card">
+            <p><strong>✨ Voice Features:</strong></p>
+            <p>✓ Speech-to-text with AWS Transcribe (English, Hindi, Tamil, Telugu)</p>
+            <p>✓ Text-to-speech with AWS Polly</p>
+            <p>✓ Speed control (0.5x to 2x)</p>
+            <p>✓ Audio caching for performance</p>
+            
+            <p style="margin-top: 15px;"><strong>🎤 Text-to-Speech Support:</strong></p>
+            <p>✓ <strong>Hindi:</strong> Native Hindi voice (Aditi) with Hindi text</p>
+            <p>✓ <strong>English:</strong> Indian English voice (Raveena)</p>
+            <p>⚠️ <strong>Other languages:</strong> English voice with English text (AWS Polly limitation)</p>
+            <p style="margin-top: 5px; font-size: 12px; color: #666;">
+                Note: AWS Polly voices can only read text in their native script. 
+                For full multi-language TTS, consider Google Cloud TTS or Azure Speech.
+            </p>
+            
+            <p style="margin-top: 15px;"><strong>🚀 Coming Next:</strong></p>
+            <p>○ Voice commands for navigation</p>
+            <p>○ Offline voice support</p>
+        </div>
+
+        <!-- Text-to-Speech Test -->
+        <div class="card">
+            <h2><span class="step-number">1</span> Text-to-Speech (TTS)</h2>
+            
+            <div class="form-group">
+                <label>Text to Speak</label>
+                <textarea id="ttsText" placeholder="Enter text to convert to speech...">Welcome to Bharat Mandi. This is a test of the text to speech system.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Language</label>
+                <select id="ttsLanguage">
+                    <option value="en">English (India)</option>
+                    <option value="hi">Hindi</option>
+                    <option value="ta">Tamil</option>
+                    <option value="te">Telugu</option>
+                    <option value="pa">Punjabi</option>
+                    <option value="mr">Marathi</option>
+                    <option value="bn">Bengali</option>
+                    <option value="gu">Gujarati</option>
+                    <option value="kn">Kannada</option>
+                    <option value="ml">Malayalam</option>
+                    <option value="or">Odia</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Speed: <span id="speedValue">1.0x</span></label>
+                <input type="range" id="ttsSpeed" min="0.5" max="2.0" step="0.1" value="1.0" 
+                       oninput="document.getElementById('speedValue').textContent = this.value + 'x'">
+            </div>
+
+            <button onclick="synthesizeSpeech()">Generate Speech</button>
+            
+            <div class="audio-player" id="ttsPlayer">
+                <h4 style="color: #667eea; margin-bottom: 10px;">Audio Player</h4>
+                <audio id="ttsAudio" controls style="width: 100%;"></audio>
+                <div class="audio-controls">
+                    <button onclick="playAudio()">Play</button>
+                    <button onclick="pauseAudio()">Pause</button>
+                    <button class="secondary" onclick="downloadAudio()">Download</button>
+                </div>
+            </div>
+
+            <div id="ttsResult" class="result"></div>
+        </div>
+
+        <!-- Speech-to-Text Test -->
+        <div class="card">
+            <h2><span class="step-number">2</span> Speech-to-Text (STT)</h2>
+            
+            <div class="form-group">
+                <label>Recording Options</label>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button onclick="toggleRecording()" id="recordButton" style="width: auto; padding: 10px 20px; margin: 0;">
+                        🎤 Start Recording
+                    </button>
+                    <button onclick="stopRecording()" id="stopButton" style="width: auto; padding: 10px 20px; margin: 0; background: #dc3545;" disabled>
+                        ⏹️ Stop Recording
+                    </button>
+                </div>
+                <small style="color: #666; display: block;">
+                    Click "Start Recording" to record from microphone, or upload a file below
+                </small>
+            </div>
+
+            <div style="margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 8px; display: none;" id="recordingStatus">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="recording-dot"></div>
+                    <span id="recordingTime">00:00</span>
+                    <div style="flex: 1; height: 4px; background: #e0e0e0; border-radius: 2px; overflow: hidden;">
+                        <div id="recordingProgress" style="height: 100%; background: #dc3545; width: 0%; transition: width 0.1s;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Or Upload Audio File</label>
+                <input type="file" id="sttFile" accept="audio/*">
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    Supported formats: MP3, WAV, FLAC, OGG
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label>Language (Optional - Auto-detect if not specified)</label>
+                <select id="sttLanguage">
+                    <option value="">Auto-detect</option>
+                    <option value="en">English (India)</option>
+                    <option value="hi">Hindi</option>
+                    <option value="ta">Tamil</option>
+                    <option value="te">Telugu</option>
+                </select>
+            </div>
+
+            <div class="recording-indicator" id="recordingIndicator">
+                <div class="recording-dot"></div>
+                <span>Processing audio...</span>
+            </div>
+
+            <button onclick="transcribeAudio()">Transcribe Audio</button>
+
+            <div class="form-group" id="transcriptionResult" style="display: none; margin-top: 20px;">
+                <label>Transcription Result</label>
+                <textarea id="transcriptionText" readonly style="background: #f8f9fa;"></textarea>
+                <p style="color: #666; font-size: 12px; margin-top: 5px;">
+                    <strong>Detected Language:</strong> <span id="detectedLanguage">-</span> | 
+                    <strong>Confidence:</strong> <span id="confidence">-</span>
+                </p>
+            </div>
+
+            <div id="sttResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let currentAudioUrl = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let recordingStartTime = null;
+        let recordingTimer = null;
+        let recordedBlob = null;
+
+        function showResult(elementId, message, isError = false) {
+            const el = document.getElementById(elementId);
+            el.className = `result ${isError ? 'error' : 'success'}`;
+            el.innerHTML = message;
+        }
+
+        // Microphone Recording Functions
+        async function toggleRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstop = () => {
+                    recordedBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    
+                    // Stop all tracks
+                    stream.getTracks().forEach(track => track.stop());
+                    
+                    // Update UI
+                    document.getElementById('recordButton').disabled = false;
+                    document.getElementById('stopButton').disabled = true;
+                    document.getElementById('recordingStatus').style.display = 'none';
+                    
+                    // Clear timer
+                    if (recordingTimer) {
+                        clearInterval(recordingTimer);
+                        recordingTimer = null;
+                    }
+                    
+                    showResult('sttResult', '✅ Recording complete! Click "Transcribe Audio" to process.', false);
+                };
+                
+                mediaRecorder.start();
+                recordingStartTime = Date.now();
+                
+                // Update UI
+                document.getElementById('recordButton').disabled = true;
+                document.getElementById('stopButton').disabled = false;
+                document.getElementById('recordingStatus').style.display = 'block';
+                
+                // Start timer
+                recordingTimer = setInterval(updateRecordingTime, 100);
+                
+                showResult('sttResult', '🎤 Recording... Speak now!', false);
+                
+            } catch (error) {
+                console.error('[Voice Test] Microphone access error:', error);
+                showResult('sttResult', `❌ Microphone access denied: ${error.message}`, true);
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+        }
+
+        function updateRecordingTime() {
+            if (!recordingStartTime) return;
+            
+            const elapsed = Date.now() - recordingStartTime;
+            const seconds = Math.floor(elapsed / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            
+            const timeString = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+            document.getElementById('recordingTime').textContent = timeString;
+            
+            // Update progress bar (max 60 seconds)
+            const progress = Math.min((elapsed / 60000) * 100, 100);
+            document.getElementById('recordingProgress').style.width = `${progress}%`;
+            
+            // Auto-stop at 60 seconds
+            if (seconds >= 60) {
+                stopRecording();
+            }
+        }
+
+        async function synthesizeSpeech() {
+            try {
+                const text = document.getElementById('ttsText').value.trim();
+                const language = document.getElementById('ttsLanguage').value;
+                const speed = parseFloat(document.getElementById('ttsSpeed').value);
+
+                if (!text) {
+                    showResult('ttsResult', '❌ Please enter text to synthesize', true);
+                    return;
+                }
+
+                showResult('ttsResult', '🔄 Generating speech...', false);
+
+                const response = await fetch(`${API_BASE}/voice/synthesize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, language, speed })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Speech synthesis failed');
+                }
+
+                // Set audio source
+                currentAudioUrl = data.audioUrl;
+                const audioElement = document.getElementById('ttsAudio');
+                audioElement.src = data.audioUrl;
+
+                // Show player
+                document.getElementById('ttsPlayer').classList.add('show');
+
+                showResult('ttsResult', '✅ Speech generated successfully!', false);
+
+            } catch (error) {
+                console.error('[Voice Test] TTS error:', error);
+                showResult('ttsResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        function playAudio() {
+            const audioElement = document.getElementById('ttsAudio');
+            audioElement.play();
+        }
+
+        function pauseAudio() {
+            const audioElement = document.getElementById('ttsAudio');
+            audioElement.pause();
+        }
+
+        function downloadAudio() {
+            if (currentAudioUrl) {
+                const a = document.createElement('a');
+                a.href = currentAudioUrl;
+                a.download = 'speech.mp3';
+                a.click();
+            }
+        }
+
+        async function transcribeAudio() {
+            try {
+                let file = null;
+                let format = null;
+                
+                // Check if we have a recorded audio
+                if (recordedBlob) {
+                    file = new File([recordedBlob], 'recording.wav', { type: 'audio/wav' });
+                    format = 'wav';
+                } else {
+                    // Check file input
+                    const fileInput = document.getElementById('sttFile');
+                    if (!fileInput.files || fileInput.files.length === 0) {
+                        showResult('sttResult', '❌ Please record audio or select a file', true);
+                        return;
+                    }
+                    
+                    file = fileInput.files[0];
+                    format = file.name.split('.').pop().toLowerCase();
+                }
+                
+                if (!['mp3', 'wav', 'flac', 'ogg'].includes(format)) {
+                    showResult('sttResult', '❌ Unsupported audio format. Use MP3, WAV, FLAC, or OGG', true);
+                    return;
+                }
+
+                const language = document.getElementById('sttLanguage').value;
+
+                showResult('sttResult', '🔄 Transcribing audio... This may take a minute.', false);
+                document.getElementById('recordingIndicator').classList.add('active');
+
+                const formData = new FormData();
+                formData.append('audio', file);
+                formData.append('format', format);
+                if (language) {
+                    formData.append('language', language);
+                }
+
+                const response = await fetch(`${API_BASE}/voice/transcribe`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                document.getElementById('recordingIndicator').classList.remove('active');
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Transcription failed');
+                }
+
+                // Show transcription result
+                document.getElementById('transcriptionText').value = data.text;
+                document.getElementById('detectedLanguage').textContent = data.detectedLanguage || 'Unknown';
+                document.getElementById('confidence').textContent = data.confidence 
+                    ? (data.confidence * 100).toFixed(1) + '%' 
+                    : 'N/A';
+                document.getElementById('transcriptionResult').style.display = 'block';
+
+                showResult('sttResult', '✅ Transcription completed successfully!', false);
+                
+                // Clear recorded blob after successful transcription
+                recordedBlob = null;
+
+            } catch (error) {
+                console.error('[Voice Test] STT error:', error);
+                document.getElementById('recordingIndicator').classList.remove('active');
+                showResult('sttResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+    </script>
+</body>
+</html>

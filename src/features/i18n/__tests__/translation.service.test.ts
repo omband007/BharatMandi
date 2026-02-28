@@ -230,8 +230,8 @@ describe('TranslationService', () => {
       expect(mockSend).toHaveBeenCalledWith(expect.any(DetectDominantLanguageCommand));
     });
 
-    it('should return "en" for short text (< 20 chars)', async () => {
-      const language = await service.detectLanguage('Hello');
+    it('should return "en" for very short text (< 3 chars)', async () => {
+      const language = await service.detectLanguage('Hi');
 
       expect(language).toBe('en');
     });

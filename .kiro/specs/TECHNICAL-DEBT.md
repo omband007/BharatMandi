@@ -370,6 +370,108 @@ private preprocessForMarathi(text: string, sourceLanguage: string): string {
 
 ---
 
+### Text-to-Speech - Limited Language Support
+**Status:** Known Limitation  
+**Priority:** Medium (for production)  
+**Description:** AWS Polly only supports 2 Indian languages natively (English and Hindi). All other Indian languages use English voice with English text, which is not ideal for user experience.
+
+**Current Implementation:**
+- ✅ **Hindi**: Native Hindi voice (Aditi) with translated Hindi text - Perfect pronunciation
+- ✅ **English**: Indian English voice (Raveena) - Perfect pronunciation
+- ⚠️ **All other languages** (Gujarati, Tamil, Telugu, Kannada, Malayalam, Punjabi, Marathi, Bengali, Odia): English voice (Raveena) with English text - Understandable but not native
+
+**Root Cause:**
+AWS Polly voices can only read text in their native script:
+- Aditi (Hindi) can only read Devanagari script
+- Raveena (English) can only read Latin script
+- No voices available for Gujarati, Tamil, Telugu, Kannada, Malayalam scripts
+
+**Impact:**
+- Poor user experience for non-Hindi Indian language users
+- Users hear English instead of their native language
+- Reduces accessibility for non-English speakers
+
+**Production Solutions:**
+
+**Option 1: Google Cloud Text-to-Speech (Recommended)**
+- ✅ Native voices for: Tamil, Telugu, Kannada, Malayalam, Bengali, Gujarati, Marathi
+- ✅ Better pronunciation and naturalness
+- ✅ WaveNet voices (neural) available
+- ✅ Similar pricing to AWS Polly (~$4 per 1M characters)
+- ❌ Requires additional service integration
+
+**Option 2: Azure Cognitive Services Speech**
+- ✅ Native voices for most Indian languages
+- ✅ Neural voices available
+- ✅ Good pronunciation quality
+- ❌ Slightly higher cost
+- ❌ Requires additional service integration
+
+**Option 3: Hybrid Approach**
+- Use AWS Polly for Hindi and English
+- Use Google Cloud TTS for other Indian languages
+- Best of both worlds
+- More complex implementation
+
+**Option 4: Transliteration (Temporary)**
+- Convert regional language text to phonetic English
+- Use English voice to read phonetic text
+- Better than current but still not native
+- Low cost, medium effort
+
+**Recommended Implementation:**
+1. Integrate Google Cloud Text-to-Speech SDK
+2. Create abstraction layer for TTS providers
+3. Route Hindi/English to AWS Polly
+4. Route other languages to Google Cloud TTS
+5. Maintain same caching and offline support
+
+**Cost Estimate:**
+- Current (AWS Polly only): ~$4 per 1M characters
+- With Google Cloud TTS: ~$8 per 1M characters (assuming 50/50 split)
+- For 100K users with 10 TTS requests/month: ~$40-80/month
+
+**Implementation Effort:**
+- 2-3 days for Google Cloud TTS integration
+- 1 day for abstraction layer
+- 1 day for testing and validation
+- Total: 4-5 days
+
+**Related Files:**
+- `src/features/i18n/voice.service.ts` - Current TTS implementation
+- `src/features/i18n/voice.controller.ts` - TTS API endpoints
+- `public/voice-test.html` - UI with language support info
+
+**Suggested Implementation:**
+```typescript
+// Create TTS provider abstraction
+interface TTSProvider {
+  synthesize(text: string, language: string): Promise<Buffer>;
+  getSupportedLanguages(): string[];
+}
+
+class AWSPollyProvider implements TTSProvider {
+  getSupportedLanguages() { return ['en', 'hi']; }
+  // ... implementation
+}
+
+class GoogleCloudTTSProvider implements TTSProvider {
+  getSupportedLanguages() { return ['ta', 'te', 'kn', 'ml', 'bn', 'gu', 'mr']; }
+  // ... implementation
+}
+
+class VoiceService {
+  private providers: TTSProvider[];
+  
+  async synthesizeSpeech(request: SynthesisRequest) {
+    const provider = this.selectProvider(request.language);
+    return provider.synthesize(request.text, request.language);
+  }
+}
+```
+
+---
+
 ## 🟢 Low Priority / Future Enhancements
 
 ### Multiple DatabaseManager Instances

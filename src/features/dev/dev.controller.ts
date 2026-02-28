@@ -22,6 +22,42 @@ function getDbManager(): DatabaseManager {
 }
 
 /**
+ * POST /api/dev/clear-translation-cache
+ * Clear all translation cache entries from Redis
+ */
+router.post('/clear-translation-cache', async (req: Request, res: Response) => {
+  try {
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({
+        success: false,
+        error: 'This endpoint is not available in production'
+      });
+    }
+
+    console.log('[DevController] Clearing translation cache...');
+
+    // Import translation service dynamically to avoid circular dependencies
+    const { translationService } = await import('../i18n/translation.service');
+    const clearedCount = await translationService.clearCache();
+
+    console.log(`[DevController] ✓ Cleared ${clearedCount} cached translations`);
+
+    res.json({
+      success: true,
+      message: `Cleared ${clearedCount} cached translations`,
+      clearedCount
+    });
+  } catch (error) {
+    console.error('[DevController] Clear translation cache error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to clear translation cache',
+      details: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
+/**
  * POST /api/dev/clear-sync-queue
  * Clear the sync queue only (useful when queue has stale items)
  */

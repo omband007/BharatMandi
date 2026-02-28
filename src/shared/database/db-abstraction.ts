@@ -1,6 +1,7 @@
 import type { User, OTPSession } from '../../features/auth/auth.types';
 import type { Listing } from '../../features/marketplace/marketplace.types';
 import type { Transaction, EscrowAccount } from '../../features/transactions/transaction.types';
+import type { Notification, NotificationTemplate, NotificationType, TranslationFeedback, TranslationFeedbackStats } from '../../features/notifications/notification.types';
 import type { PostgreSQLAdapter } from './pg-adapter';
 import type { SQLiteAdapter } from './sqlite-adapter';
 import type { ConnectionMonitor } from './connection-monitor';
@@ -224,6 +225,80 @@ export interface DatabaseAdapter {
    * @returns Updated escrow account object or undefined if not found
    */
   updateEscrow(id: string, updates: Partial<EscrowAccount>): Promise<EscrowAccount | undefined>;
+
+  // ============================================================================
+  // Notification Operations
+  // ============================================================================
+
+  /**
+   * Create a new notification
+   * @param notification - Notification object to create
+   * @returns Created notification object
+   */
+  createNotification(notification: Notification): Promise<Notification>;
+
+  /**
+   * Get notification by ID
+   * @param id - Notification ID
+   * @returns Notification object or undefined if not found
+   */
+  getNotification(id: string): Promise<Notification | undefined>;
+
+  /**
+   * Get all notifications for a user
+   * @param userId - User ID
+   * @returns Array of notifications
+   */
+  getUserNotifications(userId: string): Promise<Notification[]>;
+
+  /**
+   * Update notification information
+   * @param id - Notification ID to update
+   * @param updates - Partial notification object with fields to update
+   * @returns Updated notification object or undefined if not found
+   */
+  updateNotification(id: string, updates: Partial<Notification>): Promise<Notification | undefined>;
+
+  /**
+   * Get notification template by type and language
+   * @param type - Notification type
+   * @param language - Language code
+   * @returns Notification template or undefined if not found
+   */
+  getNotificationTemplate(type: NotificationType, language: string): Promise<NotificationTemplate | undefined>;
+
+  // ============================================================================
+  // Translation Feedback Operations
+  // ============================================================================
+
+  /**
+   * Create translation feedback
+   * @param feedback - Translation feedback object to create
+   * @returns Created translation feedback object
+   */
+  createTranslationFeedback(feedback: Omit<TranslationFeedback, 'id' | 'createdAt' | 'updatedAt'>): Promise<TranslationFeedback>;
+
+  /**
+   * Get translation feedback by ID
+   * @param id - Feedback ID
+   * @returns Translation feedback object or undefined if not found
+   */
+  getTranslationFeedback(id: string): Promise<TranslationFeedback | undefined>;
+
+  /**
+   * Get translation feedback statistics
+   * @param targetLanguage - Optional language filter
+   * @returns Translation feedback statistics
+   */
+  getTranslationFeedbackStats(targetLanguage?: string): Promise<TranslationFeedbackStats>;
+
+  /**
+   * Update translation feedback
+   * @param id - Feedback ID to update
+   * @param updates - Partial feedback object with fields to update
+   * @returns Updated feedback object or undefined if not found
+   */
+  updateTranslationFeedback(id: string, updates: Partial<TranslationFeedback>): Promise<TranslationFeedback | undefined>;
 }
 
 /**
@@ -758,6 +833,176 @@ export class DatabaseManager {
       const updated = await this.sqliteAdapter.updateEscrow(id, updates);
       if (updated) {
         await this.syncEngine.addToQueue('UPDATE', 'escrow', id, updated);
+      }
+      return updated;
+    }
+  }
+
+  // ============================================================================
+  // Notification Operations
+  // ============================================================================
+
+  async createNotification(notification: Notification): Promise<Notification> {
+    if (this.connectionMonitor.isConnected()) {
+      try {
+        const created = await this.pgAdapter.createNotification(notification);
+        await this.syncEngine.propagateToSQLite('CREATE', 'notification', created.id, created);
+        return created;
+      } catch (error) {
+        // PostgreSQL failed, create in SQLite and queue for sync
+        const created = await this.sqliteAdapter.createNotification(notification);
+        await this.syncEngine.addToQueue('CREATE', 'notification', notification.id, notification);
+        return created;
+      }
+    } else {
+      // PostgreSQL unavailable, create in SQLite and queue for sync
+      const created = await this.sqliteAdapter.createNotification(notification);
+      await this.syncEngine.addToQueue('CREATE', 'notification', notification.id, notification);
+      return created;
+    }
+  }
+
+  async getNotification(id: string): Promise<Notification | undefined> {
+    if (this.connectionMonitor.isConnected()) {
+      try {
+        return await this.pgAdapter.getNotification(id);
+      } catch (error) {
+        console.warn('[DatabaseManager] PostgreSQL read failed, falling back to SQLite. Data may be stale.', error);
+        return await this.sqliteAdapter.getNotification(id);
+      }
+    } else {
+      console.warn('[DatabaseManager] PostgreSQL unavailable, serving from SQLite. Data may be stale.');
+      return await this.sqliteAdapter.getNotification(id);
+    }
+  }
+
+  async getUserNotifications(userId: string): Promise<Notification[]> {
+    if (this.connectionMonitor.isConnected()) {
+      try {
+        return await this.pgAdapter.getUserNotifications(userId);
+      } catch (error) {
+        console.warn('[DatabaseManager] PostgreSQL read failed, falling back to SQLite. Data may be stale.', error);
+        return await this.sqliteAdapter.getUserNotifications(userId);
+      }
+    } else {
+      console.warn('[DatabaseManager] PostgreSQL unavailable, serving from SQLite. Data may be stale.');
+      return await this.sqliteAdapter.getUserNotifications(userId);
+    }
+  }
+
+  async updateNotification(id: string, updates: Partial<Notification>): Promise<Notification | undefined> {
+    if (this.connectionMonitor.isConnected()) {
+      try {
+        const updated = await this.pgAdapter.updateNotification(id, updates);
+        if (updated) {
+          await this.syncEngine.propagateToSQLite('UPDATE', 'notification', id, updated);
+        }
+        return updated;
+      } catch (error) {
+        // PostgreSQL failed, update in SQLite and queue for sync
+        const updated = await this.sqliteAdapter.updateNotification(id, updates);
+        if (updated) {
+          await this.syncEngine.addToQueue('UPDATE', 'notification', id, updated);
+        }
+        return updated;
+      }
+    } else {
+      // PostgreSQL unavailable, update in SQLite and queue for sync
+      const updated = await this.sqliteAdapter.updateNotification(id, updates);
+      if (updated) {
+        await this.syncEngine.addToQueue('UPDATE', 'notification', id, updated);
+      }
+      return updated;
+    }
+  }
+
+  async getNotificationTemplate(type: NotificationType, language: string): Promise<NotificationTemplate | undefined> {
+    if (this.connectionMonitor.isConnected()) {
+      try {
+        return await this.pgAdapter.getNotificationTemplate(type, language);
+      } catch (error) {
+        console.warn('[DatabaseManager] PostgreSQL read failed, falling back to SQLite. Data may be stale.', error);
+        return await this.sqliteAdapter.getNotificationTemplate(type, language);
+      }
+    } else {
+      console.warn('[DatabaseManager] PostgreSQL unavailable, serving from SQLite. Data may be stale.');
+      return await this.sqliteAdapter.getNotificationTemplate(type, language);
+    }
+  }
+
+  // ============================================================================
+  // Translation Feedback Operations
+  // ============================================================================
+
+  async createTranslationFeedback(feedback: Omit<TranslationFeedback, 'id' | 'createdAt' | 'updatedAt'>): Promise<TranslationFeedback> {
+    if (this.connectionMonitor.isConnected()) {
+      try {
+        const created = await this.pgAdapter.createTranslationFeedback(feedback);
+        await this.syncEngine.propagateToSQLite('CREATE', 'translation_feedback', created.id, created);
+        return created;
+      } catch (error) {
+        // PostgreSQL failed, create in SQLite and queue for sync
+        const created = await this.sqliteAdapter.createTranslationFeedback(feedback);
+        await this.syncEngine.addToQueue('CREATE', 'translation_feedback', created.id, created);
+        return created;
+      }
+    } else {
+      // PostgreSQL unavailable, create in SQLite and queue for sync
+      const created = await this.sqliteAdapter.createTranslationFeedback(feedback);
+      await this.syncEngine.addToQueue('CREATE', 'translation_feedback', created.id, created);
+      return created;
+    }
+  }
+
+  async getTranslationFeedback(id: string): Promise<TranslationFeedback | undefined> {
+    if (this.connectionMonitor.isConnected()) {
+      try {
+        return await this.pgAdapter.getTranslationFeedback(id);
+      } catch (error) {
+        console.warn('[DatabaseManager] PostgreSQL read failed, falling back to SQLite. Data may be stale.', error);
+        return await this.sqliteAdapter.getTranslationFeedback(id);
+      }
+    } else {
+      console.warn('[DatabaseManager] PostgreSQL unavailable, serving from SQLite. Data may be stale.');
+      return await this.sqliteAdapter.getTranslationFeedback(id);
+    }
+  }
+
+  async getTranslationFeedbackStats(targetLanguage?: string): Promise<TranslationFeedbackStats> {
+    if (this.connectionMonitor.isConnected()) {
+      try {
+        return await this.pgAdapter.getTranslationFeedbackStats(targetLanguage);
+      } catch (error) {
+        console.warn('[DatabaseManager] PostgreSQL read failed, falling back to SQLite. Data may be stale.', error);
+        return await this.sqliteAdapter.getTranslationFeedbackStats(targetLanguage);
+      }
+    } else {
+      console.warn('[DatabaseManager] PostgreSQL unavailable, serving from SQLite. Data may be stale.');
+      return await this.sqliteAdapter.getTranslationFeedbackStats(targetLanguage);
+    }
+  }
+
+  async updateTranslationFeedback(id: string, updates: Partial<TranslationFeedback>): Promise<TranslationFeedback | undefined> {
+    if (this.connectionMonitor.isConnected()) {
+      try {
+        const updated = await this.pgAdapter.updateTranslationFeedback(id, updates);
+        if (updated) {
+          await this.syncEngine.propagateToSQLite('UPDATE', 'translation_feedback', id, updated);
+        }
+        return updated;
+      } catch (error) {
+        // PostgreSQL failed, update in SQLite and queue for sync
+        const updated = await this.sqliteAdapter.updateTranslationFeedback(id, updates);
+        if (updated) {
+          await this.syncEngine.addToQueue('UPDATE', 'translation_feedback', id, updated);
+        }
+        return updated;
+      }
+    } else {
+      // PostgreSQL unavailable, update in SQLite and queue for sync
+      const updated = await this.sqliteAdapter.updateTranslationFeedback(id, updates);
+      if (updated) {
+        await this.syncEngine.addToQueue('UPDATE', 'translation_feedback', id, updated);
       }
       return updated;
     }
