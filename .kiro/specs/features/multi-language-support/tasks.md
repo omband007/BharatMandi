@@ -270,7 +270,7 @@ This document outlines the implementation tasks for comprehensive multi-language
     - Test cache performance (< 50ms retrieval)
     - _Requirements: 3.5, 12.4, 12.5_
 
-- [ ] 12. Add translation for listings, messages, notifications
+- [x] 12. Add translation for listings, messages, notifications
   - [ ] 12.1 Implement listing translation
     - Add translation for listing titles and descriptions
     - Add "Translated" badge indicator

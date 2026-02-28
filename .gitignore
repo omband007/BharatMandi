@@ -1,13 +1,15 @@
 node_modules/
+.build/
 dist/
 *.log
 .env
 .DS_Store
-coverage/
+docs/testing/coverage/
+docs/testing/config-coverage/
 diagrams_output/
 
 # Archive folder for old scripts and notes
-archive/
+docs/archive/
 
 # Database files
 data/*.db
