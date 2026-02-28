@@ -293,6 +293,83 @@ async getCacheStats() {
 
 ---
 
+### Translation Service - Marathi Translation Quality
+**Status:** Workaround Identified  
+**Priority:** Medium  
+**Description:** AWS Translate's Marathi (mr) neural language model produces incomplete translations for certain phrase patterns, particularly multi-word phrases with prepositions. This is a known limitation of the Marathi model due to limited training data.
+
+**Current Behavior:**
+- Input: "Welcome to Bharat Mandi"
+- Marathi output: "भारत मंडी येथे" (14 chars) - Missing "welcome" component
+- Hindi output: "भारत मंडी में आपका स्वागत है" (28 chars) - Complete ✅
+- Marathi is 50% shorter than Hindi for same input
+
+**Root Cause (Confirmed by AWS Support):**
+- Limited training data for Marathi language model
+- Model optimization differences between language pairs
+- Specific issues with multi-word phrases containing prepositions
+
+**Tested Workarounds:**
+1. ❌ Remove profanity setting - No effect (0% improvement)
+2. ✅ Phrase segmentation - Works (+64% improvement)
+3. ✅ Context enhancement - Works (+135% improvement)
+4. ✅ Alternative phrasing - **BEST** (+114% improvement)
+
+**Recommended Solution: Smart Preprocessing**
+Preprocess English text before translation to work with Marathi model strengths:
+- "Welcome to X" → "You are welcome at X" (+114% improvement)
+- "Create listing" → "You can create listing"
+- "Success" → "Operation completed successfully"
+
+**Benefits:**
+- No additional cost (still using AWS Translate)
+- Proven effective (114% improvement in tests)
+- Easy to implement (4-7 hours)
+- Maintains consistency (same service for all languages)
+
+**Implementation Required:**
+1. Add `preprocessForMarathi()` method to TranslationService
+2. Apply preprocessing only for English → Marathi translations
+3. Build pattern library for common phrases
+4. Add validation to detect incomplete translations
+5. Add unit tests for preprocessing logic
+
+**Alternative (if preprocessing insufficient):**
+- Hybrid approach: Try AWS first, fallback to Google Translate if incomplete
+- Additional cost: ~$10-15/month for fallback translations
+
+**Related Files:**
+- `src/features/i18n/translation.service.ts` - Translation service
+- `MARATHI-SOLUTION-IMPLEMENTATION.md` - Complete implementation plan
+- `AWS-SUPPORT-RESPONSE-SUMMARY.md` - AWS Support response
+- `test-marathi-improvements.js` - Test results
+
+**Test Results:**
+```
+Original:    "Welcome to Bharat Mandi" → "भारत मंडी येथे" (14 chars)
+Improved:    "You are welcome at Bharat Mandi" → "भारत मंडीमध्ये आपले स्वागत आहे" (30 chars)
+Improvement: +114% (complete, natural Marathi translation)
+```
+
+**Suggested Implementation:**
+```typescript
+private preprocessForMarathi(text: string, sourceLanguage: string): string {
+  if (sourceLanguage !== 'en') return text;
+  
+  // Pattern 1: "Welcome to X" → "You are welcome at X"
+  text = text.replace(/^Welcome to (.+)$/i, 'You are welcome at $1');
+  
+  // Pattern 2: Add context for short phrases
+  if (text.split(' ').length <= 4) {
+    text = text.replace(/^Welcome$/i, 'You are welcome');
+  }
+  
+  return text;
+}
+```
+
+---
+
 ## 🟢 Low Priority / Future Enhancements
 
 ### Multiple DatabaseManager Instances
