@@ -310,6 +310,7 @@
       <a href="/language-test.html" class="nav-link active">Localization</a>
       <a href="/translation-test.html" class="nav-link">Translation</a>
       <a href="/voice-test.html" class="nav-link">Voice</a>
+      <a href="/voice-integration-demo.html" class="nav-link">Voice Integration</a>
       <a href="/data-purge.html" class="nav-link">Data</a>
     </nav>
 
@@ -370,8 +371,21 @@
         <button class="demo-button" id="demoButton2"></button>
         <button class="demo-button" id="demoButton3"></button>
       </div>
+      <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+        <h3 style="color: #667eea; margin-bottom: 10px;">🎤 Voice Demo</h3>
+        <p style="color: #666; font-size: 14px; margin-bottom: 10px;">Test voice input and text-to-speech in the current language:</p>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <div id="voiceInputDemo" style="flex-shrink: 0;"></div>
+          <input type="text" id="voiceInputText" placeholder="Speak or type here..." style="flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+          <div id="audioPlayerDemo" style="flex-shrink: 0;"></div>
+        </div>
+      </div>
     </div>
   </div>
+
+  <!-- Voice UI Components -->
+  <script src="/components/voice-input-button.js"></script>
+  <script src="/components/audio-player.js"></script>
 
   <script>
     const SUPPORTED_LANGUAGES = [
@@ -439,6 +453,15 @@
       
       if (translations) {
         updateUI();
+        
+        // Update voice input language
+        const voiceInputText = document.getElementById('voiceInputText');
+        if (voiceInputText) {
+          voiceInputText.placeholder = translations.common?.search || 'Speak or type here...';
+        }
+        
+        // Update audio player with new language
+        updateAudioPlayer();
       }
     }
 
@@ -495,6 +518,42 @@
     // Initialize
     initLanguageSelector();
     changeLanguage('en');
+    initVoiceDemo();
+
+    // Initialize voice demo
+    function initVoiceDemo() {
+      // Voice input button
+      const voiceInput = new VoiceInputButton({
+        targetElement: document.getElementById('voiceInputText'),
+        language: currentLanguage,
+        onTranscription: (text) => {
+          document.getElementById('voiceInputText').value = text;
+          updateAudioPlayer();
+        }
+      });
+      document.getElementById('voiceInputDemo').appendChild(voiceInput.element);
+
+      // Audio player
+      updateAudioPlayer();
+
+      // Update audio player when text changes
+      document.getElementById('voiceInputText').addEventListener('input', updateAudioPlayer);
+    }
+
+    function updateAudioPlayer() {
+      const text = document.getElementById('voiceInputText').value;
+      const container = document.getElementById('audioPlayerDemo');
+      container.innerHTML = '';
+      
+      if (text.trim()) {
+        const audioPlayer = new AudioPlayer({
+          text: text,
+          language: currentLanguage,
+          inline: true
+        });
+        container.appendChild(audioPlayer.element);
+      }
+    }
   </script>
 </body>
 </html>

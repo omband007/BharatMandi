@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Integration Demo - Bharat Mandi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .brand-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand-logo {
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+        }
+
+        .brand-text {
+            text-align: left;
+        }
+
+        .brand-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            line-height: 1.2;
+            margin: 0;
+        }
+
+        .brand-subtitle {
+            font-size: 0.85rem;
+            color: white;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .nav-link {
+            padding: 8px 20px;
+            color: #666;
+            text-decoration: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            background: #f0f0f0;
+            color: #667eea;
+        }
+
+        .nav-link.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button.voice-btn {
+            background: #28a745;
+            padding: 10px 16px;
+            margin-left: 10px;
+        }
+
+        button.voice-btn:hover {
+            background: #218838;
+        }
+
+        .info-card {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .info-card p {
+            color: #666;
+            font-size: 14px;
+            margin: 0 0 3px 0;
+        }
+
+        .demo-content {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            position: relative;
+        }
+
+        .demo-content p {
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .input-with-voice {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .input-with-voice input,
+        .input-with-voice textarea {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="brand-header">
+            <div class="brand-logo-container">
+                <svg class="brand-logo" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 35 Q12 25 18 22 Q22 25 20 35 Q18 40 14 42 Z" fill="#FF9933"/>
+                    <path d="M13 28 Q15 32 13 37" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
+                    <path d="M25 15 Q28 10 30 8 Q32 10 35 15 Q33 30 30 35 Q27 30 25 15 Z" fill="white" stroke="#FF9933" stroke-width="1.5"/>
+                    <line x1="30" y1="12" x2="30" y2="32" stroke="#003DA5" stroke-width="1.5"/>
+                    <path d="M40 22 Q43 25 46 30 Q48 36 46 40 Q42 42 38 37 Q37 28 40 22 Z" fill="#138808"/>
+                    <path d="M41 28 Q43 32 42 37" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
+                    <rect x="28" y="35" width="4" height="15" fill="#8B4513" rx="1"/>
+                    <path d="M18 45 Q30 48 42 45" stroke="#138808" stroke-width="2" fill="none" opacity="0.6"/>
+                </svg>
+                <div class="brand-text">
+                    <div class="brand-title">Bharat Mandi</div>
+                    <div class="brand-subtitle">AI Powered Marketplace</div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="nav-bar">
+            <a href="/" class="nav-link">Main</a>
+            <a href="/media-test.html" class="nav-link">Media</a>
+            <a href="/language-test.html" class="nav-link">Localization</a>
+            <a href="/translation-test.html" class="nav-link">Translation</a>
+            <a href="/voice-test.html" class="nav-link">Voice</a>
+            <a href="/voice-integration-demo.html" class="nav-link active">Voice Integration</a>
+            <a href="/data-purge.html" class="nav-link">Data</a>
+        </nav>
+
+        <div class="info-card">
+            <p><strong>✨ Voice Integration Components:</strong></p>
+            <p>✓ VoiceInputButton - Reusable voice input for any text field</p>
+            <p>✓ AudioPlayer - Text-to-speech with playback controls</p>
+            <p>✓ Speed control (0.5x to 2x)</p>
+            <p>✓ Real-time transcription display</p>
+            <p>✓ Multi-language support (11 Indian languages)</p>
+        </div>
+
+        <!-- Voice Input Demo -->
+        <div class="card">
+            <h2><span class="step-number">1</span> Voice Input Demo</h2>
+            
+            <div class="form-group">
+                <label>Product Title (with Voice Input)</label>
+                <div class="input-with-voice">
+                    <input type="text" id="productTitle" placeholder="Enter product title or use voice...">
+                    <button class="voice-btn" onclick="startVoiceInput('productTitle')">🎤 Voice</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Product Description (with Voice Input)</label>
+                <div class="input-with-voice">
+                    <textarea id="productDescription" placeholder="Enter description or use voice..."></textarea>
+                    <button class="voice-btn" onclick="startVoiceInput('productDescription')">🎤 Voice</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Language for Voice Input</label>
+                <select id="voiceLanguage">
+                    <option value="">Auto-detect</option>
+                    <option value="en">English</option>
+                    <option value="hi">Hindi</option>
+                    <option value="ta">Tamil</option>
+                    <option value="te">Telugu</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Voice Output Demo -->
+        <div class="card">
+            <h2><span class="step-number">2</span> Voice Output Demo (Read Aloud)</h2>
+            
+            <div class="demo-content" id="sampleText">
+                <p><strong>Sample Listing:</strong></p>
+                <p>Fresh Organic Tomatoes - Grade A quality tomatoes grown without pesticides. Perfect for cooking and salads. Available in 10kg bags. Price: ₹500 per bag.</p>
+                <p>Location: Punjab, India</p>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <label>Select Language for Read Aloud:</label>
+                <select id="readAloudLanguage" style="margin: 10px 0; width: 200px;">
+                    <option value="en">English</option>
+                    <option value="hi">Hindi</option>
+                    <option value="ta">Tamil</option>
+                    <option value="te">Telugu</option>
+                    <option value="pa">Punjabi</option>
+                    <option value="mr">Marathi</option>
+                    <option value="bn">Bengali</option>
+                    <option value="gu">Gujarati</option>
+                    <option value="kn">Kannada</option>
+                    <option value="ml">Malayalam</option>
+                    <option value="or">Odia</option>
+                </select>
+                <button onclick="readSampleText()">🔊 Read Aloud</button>
+            </div>
+        </div>
+
+        <!-- Notification Demo -->
+        <div class="card">
+            <h2><span class="step-number">3</span> Voice Notifications Demo</h2>
+            
+            <p style="color: #666; margin-bottom: 15px;">
+                Click a button to hear a notification read aloud:
+            </p>
+
+            <div style="display: grid; gap: 10px;">
+                <button onclick="readNotification('New order received for your listing')">
+                    📦 New Order Notification
+                </button>
+                <button onclick="readNotification('Payment of ₹5000 has been received')">
+                    💰 Payment Notification
+                </button>
+                <button onclick="readNotification('Your listing has been approved')">
+                    ✅ Approval Notification
+                </button>
+                <button onclick="readNotification('Error: Unable to process your request. Please try again.')">
+                    ❌ Error Notification
+                </button>
+            </div>
+        </div>
+
+        <!-- Integration Guide -->
+        <div class="card">
+            <h2><span class="step-number">4</span> Integration Guide</h2>
+            
+            <h3 style="color: #667eea; margin-bottom: 10px;">Voice Input Integration</h3>
+            <pre style="background: #f8f9fa; padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+&lt;!-- Include the component --&gt;
+&lt;script src="/components/voice-input-button.js"&gt;&lt;/script&gt;
+
+&lt;!-- Add voice input to any text field --&gt;
+&lt;input type="text" id="myInput"&gt;
+&lt;button onclick="VoiceInput.attachToInput('myInput')"&gt;🎤&lt;/button&gt;
+
+&lt;!-- With options --&gt;
+&lt;script&gt;
+VoiceInput.attachToInput('myInput', {
+  language: 'hi',  // Optional: specify language
+  onTranscription: (data) => {
+    console.log('Transcribed:', data.text);
+  },
+  onError: (error) => {
+    console.error('Error:', error);
+  }
+});
+&lt;/script&gt;</pre>
+
+            <h3 style="color: #667eea; margin: 20px 0 10px 0;">Voice Output Integration</h3>
+            <pre style="background: #f8f9fa; padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+&lt;!-- Include the component --&gt;
+&lt;script src="/components/audio-player.js"&gt;&lt;/script&gt;
+
+&lt;!-- Read text aloud --&gt;
+&lt;script&gt;
+AudioPlayer.readAloud('Hello world', 'en', {
+  speed: 1.0,
+  onStart: () => console.log('Started'),
+  onEnd: () => console.log('Ended'),
+  onError: (error) => console.error(error)
+});
+&lt;/script&gt;
+
+&lt;!-- Add "Read Aloud" button to any element --&gt;
+&lt;div id="myContent"&gt;This is some text&lt;/div&gt;
+&lt;script&gt;
+AudioPlayer.addReadAloudButton('myContent', 'en');
+&lt;/script&gt;</pre>
+        </div>
+    </div>
+
+    <!-- Include voice components -->
+    <script src="/components/voice-input-button.js"></script>
+    <script src="/components/audio-player.js"></script>
+
+    <script>
+        function startVoiceInput(inputId) {
+            const language = document.getElementById('voiceLanguage').value;
+            VoiceInput.attachToInput(inputId, {
+                language: language || undefined,
+                onTranscription: (data) => {
+                    console.log('Transcription complete:', data);
+                },
+                onError: (error) => {
+                    alert('Voice input error: ' + error.message);
+                }
+            });
+        }
+
+        function readSampleText() {
+            const language = document.getElementById('readAloudLanguage').value;
+            const text = document.getElementById('sampleText').textContent;
+            
+            AudioPlayer.readAloud(text, language, {
+                speed: 1.0,
+                onStart: () => console.log('Reading started'),
+                onEnd: () => console.log('Reading ended')
+            });
+        }
+
+        function readNotification(message) {
+            const language = document.getElementById('readAloudLanguage').value;
+            AudioPlayer.readAloud(message, language, {
+                speed: 1.0
+            });
+        }
+    </script>
+</body>
+</html>

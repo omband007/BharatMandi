@@ -354,6 +354,7 @@
             <a href="/language-test.html" class="nav-link">Localization</a>
             <a href="/translation-test.html" class="nav-link active">Translation</a>
             <a href="/voice-test.html" class="nav-link">Voice</a>
+            <a href="/voice-integration-demo.html" class="nav-link">Voice Integration</a>
             <a href="/data-purge.html" class="nav-link">Data</a>
         </nav>
 
@@ -374,7 +375,10 @@
             <h2><span class="step-number">1</span> Single Text Translation</h2>
             <div class="form-group">
                 <label for="singleText">Text to Translate (auto-detects language):</label>
-                <textarea id="singleText" placeholder="Enter text in any language...">Welcome to Bharat Mandi</textarea>
+                <div style="position: relative;">
+                    <textarea id="singleText" placeholder="Enter text in any language...">Welcome to Bharat Mandi</textarea>
+                    <div id="voiceInputSingle" style="position: absolute; bottom: 10px; right: 10px;"></div>
+                </div>
             </div>
             <div class="form-group">
                 <label for="singleTarget">Target Language:</label>
@@ -401,11 +405,14 @@
             <h2><span class="step-number">2</span> Batch Translation</h2>
             <div class="form-group">
                 <label for="batchTexts">Texts (one per line, auto-detects language):</label>
-                <textarea id="batchTexts" placeholder="Enter multiple texts, one per line...">Hello
+                <div style="position: relative;">
+                    <textarea id="batchTexts" placeholder="Enter multiple texts, one per line...">Hello
 Thank you
 Goodbye
 How are you?
 Welcome</textarea>
+                    <div id="voiceInputBatch" style="position: absolute; bottom: 10px; right: 10px;"></div>
+                </div>
             </div>
             <div class="form-group">
                 <label for="batchTarget">Target Language:</label>
@@ -436,6 +443,10 @@ Welcome</textarea>
             </div>
         </div>
     </div>
+
+    <!-- Voice UI Components -->
+    <script src="/components/voice-input-button.js"></script>
+    <script src="/components/audio-player.js"></script>
 
     <script>
         const API_BASE = 'http://localhost:3000/api/i18n';
@@ -469,13 +480,22 @@ Welcome</textarea>
                         <div class="result success">
                             <h3>Translation Result <span class="badge ${cached ? 'cached' : 'uncached'}">${cached ? 'CACHED' : 'NEW'}</span></h3>
                             <p><strong>Original:</strong> ${text}</p>
-                            <p><strong>Translated:</strong> ${data.translation.translatedText}</p>
+                            <p><strong>Translated:</strong> ${data.translation.translatedText} <span id="audioPlayerSingle"></span></p>
                             <p><strong>Detected Source Language:</strong> ${data.translation.sourceLanguage}</p>
                             <p><strong>Target Language:</strong> ${data.translation.targetLanguage}</p>
                             <p><strong>Confidence:</strong> ${(data.translation.confidence * 100).toFixed(1)}%</p>
                             <p><strong>Cached:</strong> ${cached ? 'Yes (from Redis)' : 'No (from AWS Translate)'}</p>
                         </div>
                     `;
+                    
+                    // Add audio player for translated text
+                    const audioPlayer = new AudioPlayer({
+                        text: data.translation.translatedText,
+                        language: data.translation.targetLanguage,
+                        inline: true
+                    });
+                    document.getElementById('audioPlayerSingle').appendChild(audioPlayer.element);
+                    
                     // Auto-refresh cache stats after translation
                     getCacheStats();
                 } else {
@@ -705,9 +725,34 @@ Welcome</textarea>
             }
         }
 
+        // Initialize voice input buttons
+        function initVoiceInputs() {
+            // Voice input for single translation
+            const voiceInputSingle = new VoiceInputButton({
+                targetElement: document.getElementById('singleText'),
+                language: 'auto',
+                onTranscription: (text) => {
+                    document.getElementById('singleText').value = text;
+                }
+            });
+            document.getElementById('voiceInputSingle').appendChild(voiceInputSingle.element);
+
+            // Voice input for batch translation
+            const voiceInputBatch = new VoiceInputButton({
+                targetElement: document.getElementById('batchTexts'),
+                language: 'auto',
+                onTranscription: (text) => {
+                    const currentValue = document.getElementById('batchTexts').value;
+                    document.getElementById('batchTexts').value = currentValue ? currentValue + '\n' + text : text;
+                }
+            });
+            document.getElementById('voiceInputBatch').appendChild(voiceInputBatch.element);
+        }
+
         // Auto-load cache stats on page load
         window.addEventListener('load', () => {
             setTimeout(getCacheStats, 500);
+            initVoiceInputs();
         });
     </script>
 </body>
