@@ -690,6 +690,7 @@
             content.className = 'message-content';
             
             const textDiv = document.createElement('div');
+            textDiv.style.whiteSpace = 'pre-wrap'; // Preserve line breaks and spaces
             textDiv.textContent = text;
             content.appendChild(textDiv);
             
