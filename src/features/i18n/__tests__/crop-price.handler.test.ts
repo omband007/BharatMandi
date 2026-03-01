@@ -225,7 +225,7 @@ describe('CropPriceHandler', () => {
   });
 
   describe('formatResponse', () => {
-    it('should format response in English', async () => {
+    it('should format response in English with farm gate and retail prices', async () => {
       // Arrange
       const priceData = {
         crop: 'tomato',
@@ -242,12 +242,15 @@ describe('CropPriceHandler', () => {
       const result = await handler.formatResponse(priceData, 'en');
 
       // Assert
-      expect(result.text).toContain('tomato');
-      expect(result.text).toContain('₹35');
-      expect(result.text).toContain('₹30');
-      expect(result.text).toContain('₹40');
-      expect(result.text).toContain('stable');
-      expect(result.text).toContain('3 active listings');
+      expect(result.text).toContain('TOMATO');
+      expect(result.text).toContain('FARM GATE PRICE');
+      expect(result.text).toContain('₹35'); // Farm gate average
+      expect(result.text).toContain('₹30'); // Farm gate min
+      expect(result.text).toContain('₹40'); // Farm gate max
+      expect(result.text).toContain('RETAIL PRICE');
+      expect(result.text).toContain('₹49'); // Retail average (35 * 1.4)
+      expect(result.text).toContain('STABLE');
+      expect(result.text).toContain('3 active farmer listings');
       expect(result.data).toEqual(priceData);
     });
 
@@ -275,7 +278,7 @@ describe('CropPriceHandler', () => {
 
       // Assert
       expect(translationService.translateText).toHaveBeenCalledWith({
-        text: expect.stringContaining('tomato'),
+        text: expect.stringContaining('TOMATO'),
         sourceLanguage: 'en',
         targetLanguage: 'hi',
       });
@@ -303,8 +306,9 @@ describe('CropPriceHandler', () => {
       const result = await handler.formatResponse(priceData, 'hi');
 
       // Assert - should fall back to English
-      expect(result.text).toContain('tomato');
+      expect(result.text).toContain('TOMATO');
       expect(result.text).toContain('₹35');
+      expect(result.text).toContain('FARM GATE PRICE');
     });
 
     it('should format increasing trend correctly', async () => {
@@ -324,7 +328,8 @@ describe('CropPriceHandler', () => {
       const result = await handler.formatResponse(priceData, 'en');
 
       // Assert
-      expect(result.text).toContain('increasing');
+      expect(result.text).toContain('INCREASING');
+      expect(result.text).toContain('WHEAT');
     });
 
     it('should format decreasing trend correctly', async () => {
@@ -344,7 +349,8 @@ describe('CropPriceHandler', () => {
       const result = await handler.formatResponse(priceData, 'en');
 
       // Assert
-      expect(result.text).toContain('decreasing');
+      expect(result.text).toContain('DECREASING');
+      expect(result.text).toContain('RICE');
     });
   });
 

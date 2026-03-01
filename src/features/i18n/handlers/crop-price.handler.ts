@@ -84,14 +84,26 @@ export class CropPriceHandler {
     priceData: CropPriceResponse,
     language: string
   ): Promise<FormattedCropPriceResponse> {
-    // Create English response template
+    // Create English response template with farm gate and retail prices
     const trendText = priceData.trend === 'up' ? 'increasing' : 
                      priceData.trend === 'down' ? 'decreasing' : 'stable';
     
-    const englishText = `${priceData.crop} is currently selling for ₹${priceData.averagePrice} per ${priceData.unit}. ` +
-      `Prices range from ₹${priceData.minPrice} to ₹${priceData.maxPrice}. ` +
-      `The price trend is ${trendText}. ` +
-      `(Based on ${priceData.sampleSize} active listings)`;
+    // Calculate estimated retail price (typically 30-50% markup from farm gate)
+    const retailMarkup = 1.4; // 40% markup
+    const estimatedRetailPrice = Math.round(priceData.averagePrice * retailMarkup * 100) / 100;
+    const retailMinPrice = Math.round(priceData.minPrice * retailMarkup * 100) / 100;
+    const retailMaxPrice = Math.round(priceData.maxPrice * retailMarkup * 100) / 100;
+    
+    const englishText = `📊 ${priceData.crop.toUpperCase()} PRICE INFORMATION\n\n` +
+      `🌾 FARM GATE PRICE (What farmers are selling at):\n` +
+      `   Average: ₹${priceData.averagePrice} per ${priceData.unit}\n` +
+      `   Range: ₹${priceData.minPrice} - ₹${priceData.maxPrice} per ${priceData.unit}\n\n` +
+      `🏪 ESTIMATED RETAIL PRICE (Market price for consumers):\n` +
+      `   Average: ₹${estimatedRetailPrice} per ${priceData.unit}\n` +
+      `   Range: ₹${retailMinPrice} - ₹${retailMaxPrice} per ${priceData.unit}\n\n` +
+      `📈 Price Trend: ${trendText.toUpperCase()}\n` +
+      `📍 Based on ${priceData.sampleSize} active farmer listings\n\n` +
+      `💡 Note: Retail prices include transportation, handling, and market fees.`;
 
     // Translate to user's language if needed
     let responseText = englishText;
