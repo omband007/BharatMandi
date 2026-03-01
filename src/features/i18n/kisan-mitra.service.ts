@@ -16,12 +16,22 @@ const lexClient = new LexRuntimeV2Client({
 const BOT_ID = process.env.LEX_BOT_ID || '';
 const BOT_ALIAS_ID = process.env.LEX_BOT_ALIAS_ID || '';
 
-// AWS Lex V2 supports limited languages
+// AWS Lex V2 locale configuration
 // Currently only en_IN is configured in the bot
+// All non-English queries are translated to English before sending to Lex
+// Responses are translated back to the user's language
 const LOCALE_ID_MAP: Record<string, string> = {
   en: 'en_IN',
-  hi: 'en_IN', // Translate Hindi to English, then use en_IN locale
-  // For all other languages, we'll translate to English and use en_IN
+  hi: 'en_IN', // Hindi queries are translated to English first
+  pa: 'en_IN', // Punjabi queries are translated to English first
+  mr: 'en_IN', // Marathi queries are translated to English first
+  ta: 'en_IN', // Tamil queries are translated to English first
+  te: 'en_IN', // Telugu queries are translated to English first
+  bn: 'en_IN', // Bengali queries are translated to English first
+  gu: 'en_IN', // Gujarati queries are translated to English first
+  kn: 'en_IN', // Kannada queries are translated to English first
+  ml: 'en_IN', // Malayalam queries are translated to English first
+  or: 'en_IN', // Odia queries are translated to English first
 };
 
 export interface KisanMitraRequest {
@@ -93,18 +103,20 @@ export class KisanMitraService {
       }
     }
 
-    // Step 2: Translate to English if needed (Lex works best with English)
+    // Step 2: Translate to English if needed (Lex only supports en_IN locale)
     let lexQuery = queryText;
-    let needsTranslation = sourceLanguage !== 'en' && sourceLanguage !== 'hi';
+    let needsTranslation = sourceLanguage !== 'en';
 
     if (needsTranslation) {
       try {
+        console.log(`[KisanMitra] Translating from ${sourceLanguage} to English:`, queryText);
         const translation = await translationService.translateText({
           text: queryText,
           sourceLanguage,
           targetLanguage: 'en',
         });
         lexQuery = translation.translatedText;
+        console.log('[KisanMitra] Translated query:', lexQuery);
       } catch (error) {
         console.error('[KisanMitra] Translation to English failed:', error);
         // Continue with original text
@@ -152,12 +164,14 @@ export class KisanMitraService {
     // Step 6: Translate response back to user's language
     if (needsTranslation) {
       try {
+        console.log(`[KisanMitra] Translating response from English to ${sourceLanguage}:`, responseText);
         const translation = await translationService.translateText({
           text: responseText,
           sourceLanguage: 'en',
           targetLanguage: sourceLanguage,
         });
         responseText = translation.translatedText;
+        console.log('[KisanMitra] Translated response:', responseText);
       } catch (error) {
         console.error('[KisanMitra] Translation to target language failed:', error);
         // Continue with English response
