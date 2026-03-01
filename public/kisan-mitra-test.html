@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kisan Mitra - AI Assistant Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .brand-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand-logo {
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+        }
+
+        .brand-text {
+            text-align: left;
+        }
+
+        .brand-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            line-height: 1.2;
+            margin: 0;
+        }
+
+        .brand-subtitle {
+            font-size: 0.85rem;
+            color: white;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .nav-link {
+            padding: 8px 20px;
+            color: #666;
+            text-decoration: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            background: #f0f0f0;
+            color: #667eea;
+        }
+
+        .nav-link.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .info-card {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .info-card p {
+            color: #666;
+            font-size: 14px;
+            margin: 0 0 3px 0;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 15px;
+            padding: 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .chat-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .chat-header .status {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .message.assistant .message-avatar {
+            background: #28a745;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .message.user .message-content {
+            background: #667eea;
+            color: white;
+        }
+
+        .message-meta {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .message.user .message-meta {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .message-audio {
+            margin-top: 10px;
+        }
+
+        .chat-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .input-wrapper textarea {
+            width: 100%;
+            padding: 12px 50px 12px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            min-height: 50px;
+            max-height: 120px;
+        }
+
+        .input-wrapper textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .voice-button {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: none;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .voice-button:hover {
+            background: #5568d3;
+            transform: scale(1.1);
+        }
+
+        .voice-button.recording {
+            background: #dc3545;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .send-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 1.2rem;
+        }
+
+        .send-button:hover {
+            background: #5568d3;
+            transform: scale(1.1);
+        }
+
+        .send-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .language-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .language-selector select {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: fit-content;
+        }
+
+        .typing-indicator.show {
+            display: block;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #667eea;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .quick-action {
+            padding: 6px 12px;
+            background: #f0f0f0;
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-action:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .stats-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .mode-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="brand-header">
+            <div class="brand-logo-container">
+                <svg class="brand-logo" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 35 Q12 25 18 22 Q22 25 20 35 Q18 40 14 42 Z" fill="#FF9933"/>
+                    <path d="M13 28 Q15 32 13 37" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
+                    <path d="M25 15 Q28 10 30 8 Q32 10 35 15 Q33 30 30 35 Q27 30 25 15 Z" fill="white" stroke="#FF9933" stroke-width="1.5"/>
+                    <line x1="30" y1="12" x2="30" y2="32" stroke="#003DA5" stroke-width="1.5"/>
+                    <path d="M40 22 Q43 25 46 30 Q48 36 46 40 Q42 42 38 37 Q37 28 40 22 Z" fill="#138808"/>
+                    <path d="M41 28 Q43 32 42 37" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
+                    <rect x="28" y="35" width="4" height="15" fill="#8B4513" rx="1"/>
+                    <path d="M18 45 Q30 48 42 45" stroke="#138808" stroke-width="2" fill="none" opacity="0.6"/>
+                </svg>
+                <div class="brand-text">
+                    <div class="brand-title">Bharat Mandi</div>
+                    <div class="brand-subtitle">AI Powered Marketplace</div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="nav-bar">
+            <a href="/" class="nav-link">Main</a>
+            <a href="/media-test.html" class="nav-link">Media</a>
+            <a href="/language-test.html" class="nav-link">Localization</a>
+            <a href="/translation-test.html" class="nav-link">Translation</a>
+            <a href="/voice-test.html" class="nav-link">Voice</a>
+            <a href="/voice-integration-demo.html" class="nav-link">Voice Integration</a>
+            <a href="/kisan-mitra-test.html" class="nav-link active">Kisan Mitra</a>
+            <a href="/data-purge.html" class="nav-link">Data</a>
+        </nav>
+
+        <div class="info-card">
+            <p><strong>🤖 Kisan Mitra - AI Assistant:</strong></p>
+            <p>✓ Conversational AI powered by AWS Lex</p>
+            <p>✓ Multi-language support (11 Indian languages)</p>
+            <p>✓ Voice input and output</p>
+            <p>✓ Crop prices, weather, farming advice, and more</p>
+            <p style="margin-top: 10px;"><strong>⚠️ Note:</strong> Mock mode enabled (AWS Lex not configured). Set LEX_BOT_ID and LEX_BOT_ALIAS_ID to use real AI.</p>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-header">
+                <div class="message-avatar">KM</div>
+                <div style="flex: 1;">
+                    <h2>Kisan Mitra</h2>
+                    <div class="status" id="statusText">Ready to help</div>
+                </div>
+                <div class="mode-toggle" id="modeToggle" onclick="toggleMode()">
+                    Mode: <span id="modeText">Mock</span>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message assistant">
+                    <div class="message-avatar">KM</div>
+                    <div class="message-content">
+                        <div>नमस्ते! मैं किसान मित्र हूं। मैं आपकी कैसे मदद कर सकता हूं?</div>
+                        <div style="margin-top: 5px; font-size: 0.9em; opacity: 0.8;">
+                            Hello! I'm Kisan Mitra. How can I help you?
+                        </div>
+                        <div class="message-meta">Just now</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input">
+                <div class="language-selector">
+                    <select id="languageSelect">
+                        <option value="en">English</option>
+                        <option value="hi" selected>हिन्दी (Hindi)</option>
+                        <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                        <option value="mr">मराठी (Marathi)</option>
+                        <option value="ta">தமிழ் (Tamil)</option>
+                        <option value="te">తెలుగు (Telugu)</option>
+                        <option value="bn">বাংলা (Bengali)</option>
+                        <option value="gu">ગુજરાતી (Gujarati)</option>
+                        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                        <option value="ml">മലയാളം (Malayalam)</option>
+                        <option value="or">ଓଡ଼ିଆ (Odia)</option>
+                    </select>
+                </div>
+
+                <div class="quick-actions">
+                    <div class="quick-action" onclick="sendQuickQuery('What is the price of tomato?')">🍅 Tomato Price</div>
+                    <div class="quick-action" onclick="sendQuickQuery('What is the weather today?')">🌤️ Weather</div>
+                    <div class="quick-action" onclick="sendQuickQuery('How do I grow wheat?')">🌾 Farming Tips</div>
+                    <div class="quick-action" onclick="sendQuickQuery('I want to sell rice')">📝 Create Listing</div>
+                    <div class="quick-action" onclick="sendQuickQuery('Help')">❓ Help</div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-wrapper">
+                        <textarea 
+                            id="messageInput" 
+                            placeholder="Type your question or click the microphone..."
+                            onkeypress="handleKeyPress(event)"
+                        ></textarea>
+                        <button class="voice-button" id="voiceButton" onclick="toggleVoiceInput()">
+                            🎤
+                        </button>
+                    </div>
+                    <button class="send-button" onclick="sendMessage()">
+                        ➤
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-panel">
+            <h3 style="color: #667eea; margin-bottom: 15px;">📊 Session Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statMessages">0</div>
+                    <div class="stat-label">Messages Sent</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statIntents">0</div>
+                    <div class="stat-label">Intents Recognized</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statConfidence">0%</div>
+                    <div class="stat-label">Avg Confidence</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statLanguage">Hindi</div>
+                    <div class="stat-label">Current Language</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/components/voice-input-button.js"></script>
+    <script src="/components/audio-player.js"></script>
+    <script>
+        const API_BASE = 'http://localhost:3000/api/kisan-mitra';
+        const USER_ID = 'test-user-' + Date.now();
+        let SESSION_ID = 'session-' + Date.now();
+        let messageCount = 0;
+        let intentCount = 0;
+        let totalConfidence = 0;
+        let mockMode = true;
+        let isRecording = false;
+
+        // Mock responses for testing without AWS Lex
+        const MOCK_RESPONSES = {
+            'price': {
+                intent: 'GetCropPrice',
+                response: 'The current market price for {crop} is ₹{price} per kg. Prices may vary by location and quality.',
+                confidence: 0.92
+            },
+            'weather': {
+                intent: 'GetWeather',
+                response: 'The weather today is partly cloudy with a temperature of 28°C. There is a 30% chance of rain in the evening.',
+                confidence: 0.88
+            },
+            'farming': {
+                intent: 'GetFarmingAdvice',
+                response: 'For growing wheat, here are some tips: Plant in October-November, ensure proper irrigation, use balanced fertilizers, and harvest in March-April.',
+                confidence: 0.85
+            },
+            'listing': {
+                intent: 'CreateListing',
+                response: 'I can help you create a listing! What crop would you like to sell? Please tell me the quantity and your expected price.',
+                confidence: 0.90
+            },
+            'help': {
+                intent: 'HelpIntent',
+                response: 'I can help you with: Crop prices, Weather forecasts, Farming advice, Creating listings, and App navigation. What would you like to know?',
+                confidence: 0.95
+            },
+            'default': {
+                intent: 'FallbackIntent',
+                response: 'I didn\'t quite understand that. I can help with crop prices, weather, farming tips, creating listings, and navigation. What would you like to know?',
+                confidence: 0.50
+            }
+        };
+
+        function getMockResponse(query) {
+            const lowerQuery = query.toLowerCase();
+            
+            if (lowerQuery.includes('price') || lowerQuery.includes('भाव') || lowerQuery.includes('किमत')) {
+                const crops = ['tomato', 'potato', 'onion', 'wheat', 'rice'];
+                const crop = crops.find(c => lowerQuery.includes(c)) || 'tomato';
+                const price = Math.floor(Math.random() * 50) + 20;
+                return {
+                    ...MOCK_RESPONSES.price,
+                    response: MOCK_RESPONSES.price.response.replace('{crop}', crop).replace('{price}', price)
+                };
+            }
+            
+            if (lowerQuery.includes('weather') || lowerQuery.includes('मौसम') || lowerQuery.includes('barish')) {
+                return MOCK_RESPONSES.weather;
+            }
+            
+            if (lowerQuery.includes('grow') || lowerQuery.includes('farming') || lowerQuery.includes('खेती') || lowerQuery.includes('tips')) {
+                return MOCK_RESPONSES.farming;
+            }
+            
+            if (lowerQuery.includes('sell') || lowerQuery.includes('listing') || lowerQuery.includes('बेचना')) {
+                return MOCK_RESPONSES.listing;
+            }
+            
+            if (lowerQuery.includes('help') || lowerQuery.includes('मदद')) {
+                return MOCK_RESPONSES.help;
+            }
+            
+            return MOCK_RESPONSES.default;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Get language
+            const language = document.getElementById('languageSelect').value;
+            
+            try {
+                let response;
+                
+                if (mockMode) {
+                    // Mock mode - simulate API response
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    const mockData = getMockResponse(message);
+                    response = {
+                        success: true,
+                        text: mockData.response,
+                        intent: mockData.intent,
+                        confidence: mockData.confidence,
+                        sessionId: SESSION_ID
+                    };
+                } else {
+                    // Real API call
+                    const res = await fetch(`${API_BASE}/query`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userId: USER_ID,
+                            sessionId: SESSION_ID,
+                            query: message,
+                            language: language
+                        })
+                    });
+                    response = await res.json();
+                }
+                
+                hideTypingIndicator();
+                
+                if (response.success) {
+                    // Add assistant response
+                    addMessage(response.text, 'assistant', response.audioUrl, response.intent, response.confidence);
+                    
+                    // Update stats
+                    updateStats(response.intent, response.confidence);
+                } else {
+                    addMessage('Sorry, I encountered an error. Please try again.', 'assistant');
+                }
+            } catch (error) {
+                hideTypingIndicator();
+                console.error('Error:', error);
+                addMessage('Sorry, I\'m having trouble connecting. Please check if the server is running.', 'assistant');
+            }
+        }
+
+        function addMessage(text, sender, audioUrl = null, intent = null, confidence = null) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = sender === 'user' ? 'U' : 'KM';
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            
+            const textDiv = document.createElement('div');
+            textDiv.textContent = text;
+            content.appendChild(textDiv);
+            
+            if (intent && confidence) {
+                const metaDiv = document.createElement('div');
+                metaDiv.className = 'message-meta';
+                metaDiv.textContent = `Intent: ${intent} | Confidence: ${(confidence * 100).toFixed(0)}%`;
+                content.appendChild(metaDiv);
+            }
+            
+            if (audioUrl) {
+                const audioDiv = document.createElement('div');
+                audioDiv.className = 'message-audio';
+                const audio = document.createElement('audio');
+                audio.controls = true;
+                audio.src = audioUrl;
+                audio.style.width = '100%';
+                audioDiv.appendChild(audio);
+                content.appendChild(audioDiv);
+            }
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-meta';
+            timeDiv.textContent = new Date().toLocaleTimeString();
+            content.appendChild(timeDiv);
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            messagesDiv.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            messageCount++;
+        }
+
+        function showTypingIndicator() {
+            const messagesDiv = document.getElementById('chatMessages');
+            const indicator = document.createElement('div');
+            indicator.className = 'message assistant';
+            indicator.id = 'typingIndicator';
+            indicator.innerHTML = `
+                <div class="message-avatar">KM</div>
+                <div class="typing-indicator show">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+            messagesDiv.appendChild(indicator);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function updateStats(intent, confidence) {
+            intentCount++;
+            totalConfidence += confidence;
+            
+            document.getElementById('statMessages').textContent = messageCount;
+            document.getElementById('statIntents').textContent = intentCount;
+            document.getElementById('statConfidence').textContent = 
+                Math.round((totalConfidence / intentCount) * 100) + '%';
+        }
+
+        function sendQuickQuery(query) {
+            document.getElementById('messageInput').value = query;
+            sendMessage();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function toggleVoiceInput() {
+            const button = document.getElementById('voiceButton');
+            
+            if (isRecording) {
+                // Stop recording
+                button.classList.remove('recording');
+                button.textContent = '🎤';
+                isRecording = false;
+                // TODO: Implement actual voice recording
+                alert('Voice input will be implemented with VoiceInputButton component');
+            } else {
+                // Start recording
+                button.classList.add('recording');
+                button.textContent = '⏹️';
+                isRecording = true;
+            }
+        }
+
+        function toggleMode() {
+            mockMode = !mockMode;
+            document.getElementById('modeText').textContent = mockMode ? 'Mock' : 'Live';
+            document.getElementById('statusText').textContent = mockMode ? 
+                'Mock mode (no AWS Lex)' : 'Connected to AWS Lex';
+        }
+
+        // Update language display
+        document.getElementById('languageSelect').addEventListener('change', (e) => {
+            const select = e.target;
+            const selectedOption = select.options[select.selectedIndex];
+            document.getElementById('statLanguage').textContent = selectedOption.text.split('(')[0].trim();
+        });
+
+        // Check API health on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (data.botConfigured) {
+                    mockMode = false;
+                    document.getElementById('modeText').textContent = 'Live';
+                    document.getElementById('statusText').textContent = 'Connected to AWS Lex';
+                }
+            } catch (error) {
+                console.log('API not available, using mock mode');
+            }
+        });
+    </script>
+</body>
+</html>
