@@ -392,42 +392,23 @@ export class VoiceService {
    */
   async synthesizeSpeech(request: SynthesisRequest): Promise<SynthesisResponse> {
     try {
-      // 1. Translate text to target language if not English
-      let textToSpeak = request.text;
+      // The text is already in the target language from the translation service
+      // We just need to select the appropriate voice
+      const textToSpeak = request.text;
       
-      // Only use translated text for Hindi (which has native Polly support)
-      // For all other languages, use English text with appropriate voice
-      if (request.language === 'hi') {
-        console.log(`[VoiceService] Translating text to Hindi`);
-        const translationResult = await translationService.translateText({
-          text: request.text,
-          sourceLanguage: 'en',
-          targetLanguage: 'hi'
-        });
-        
-        if (translationResult.translatedText) {
-          textToSpeak = translationResult.translatedText;
-          console.log(`[VoiceService] Translated to Hindi: "${request.text}" -> "${textToSpeak}"`);
-        } else {
-          console.warn(`[VoiceService] Hindi translation failed, using original text`);
-        }
-      } else if (request.language !== 'en') {
-        // For all other Indian languages, use English text
-        // AWS Polly doesn't support reading non-native scripts
-        console.log(`[VoiceService] Using English text for ${request.language} (no native script support in Polly)`);
-        textToSpeak = request.text;
-      }
+      console.log(`[VoiceService] Synthesizing speech for ${request.language}: "${textToSpeak.substring(0, 100)}..."`);
 
-      // 2. Generate cache key (include translated text)
+      // 1. Generate cache key
       const cacheKey = this.generateTTSCacheKey(
         textToSpeak, 
         request.language, 
         request.speed || 1.0
       );
 
-      // 3. Check local audio cache first (for offline support)
+      // 2. Check local audio cache first (for offline support)
       const cachedAudio = this.config.audioCache.getCachedAudio(cacheKey);
       if (cachedAudio) {
+        console.log(`[VoiceService] Using cached audio for ${request.language}`);
         // Return cached audio as data URL for offline playback
         const base64Audio = cachedAudio.audioData.toString('base64');
         const audioUrl = `data:audio/mpeg;base64,${base64Audio}`;
@@ -439,19 +420,21 @@ export class VoiceService {
         };
       }
 
-      // 4. Check in-memory cache (S3 URLs)
+      // 3. Check in-memory cache (S3 URLs)
       const cachedUrl = this.config.ttsCache.get(cacheKey);
       if (cachedUrl) {
+        console.log(`[VoiceService] Using cached S3 URL for ${request.language}`);
         return {
           audioUrl: cachedUrl,
           success: true
         };
       }
 
-      // 5. Get voice ID for language
+      // 4. Get voice ID for language
       const voiceId = VOICE_ID_MAP[request.language];
+      console.log(`[VoiceService] Using voice: ${voiceId} for language: ${request.language}`);
 
-      // 6. Prepare text with SSML if speed adjustment needed
+      // 5. Prepare text with SSML if speed adjustment needed
       let textToSynthesize = textToSpeak;
       let textType: 'text' | 'ssml' = 'text';
 
@@ -464,7 +447,7 @@ export class VoiceService {
         textType = 'ssml';
       }
 
-      // 7. Synthesize speech - try neural first, fallback to standard
+      // 6. Synthesize speech - try neural first, fallback to standard
       let response;
       try {
         const command = new SynthesizeSpeechCommand({
@@ -501,27 +484,29 @@ export class VoiceService {
         throw new Error('No audio stream in response');
       }
 
-      // 8. Convert stream to buffer
+      // 7. Convert stream to buffer
       const audioBuffer = await this.streamToBuffer(response.AudioStream);
 
-      // 9. Store in local audio cache for offline playback
+      // 8. Store in local audio cache for offline playback
       await this.config.audioCache.storeCachedAudio(
         cacheKey,
         audioBuffer,
         request.language,
-        textToSpeak, // Store translated text
+        textToSpeak,
         request.speed || 1.0
       );
 
-      // 10. Upload to S3
+      // 9. Upload to S3
       const s3Key = `tts/${cacheKey}.mp3`;
       await this.uploadAudioToS3(audioBuffer, s3Key, 'mp3');
 
-      // 11. Generate S3 URL
+      // 10. Generate S3 URL
       const audioUrl = `https://${this.config.s3Bucket}.s3.${this.config.awsRegion}.amazonaws.com/${s3Key}`;
 
-      // 12. Cache the URL (7-day TTL handled by S3 lifecycle policy)
+      // 11. Cache the URL (7-day TTL handled by S3 lifecycle policy)
       this.config.ttsCache.set(cacheKey, audioUrl);
+
+      console.log(`[VoiceService] Speech synthesis complete for ${request.language}`);
 
       return {
         audioUrl,
