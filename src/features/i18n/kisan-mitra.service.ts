@@ -17,10 +17,11 @@ const BOT_ID = process.env.LEX_BOT_ID || '';
 const BOT_ALIAS_ID = process.env.LEX_BOT_ALIAS_ID || '';
 
 // AWS Lex V2 supports limited languages
+// Currently only en_IN is configured in the bot
 const LOCALE_ID_MAP: Record<string, string> = {
   en: 'en_IN',
-  hi: 'hi_IN',
-  // For other languages, we'll translate to English
+  hi: 'en_IN', // Translate Hindi to English, then use en_IN locale
+  // For all other languages, we'll translate to English and use en_IN
 };
 
 export interface KisanMitraRequest {

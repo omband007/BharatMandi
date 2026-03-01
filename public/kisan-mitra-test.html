@@ -218,19 +218,7 @@
             position: relative;
         }
 
-        .input-wrapper textarea {
-            width: 100%;
-            padding: 12px 50px 12px 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 25px;
-            font-size: 14px;
-            font-family: inherit;
-            resize: none;
-            min-height: 50px;
-            max-height: 120px;
-        }
-
-        .input-wrapper textarea:focus {
+        .input-wrapper input:focus {
             outline: none;
             border-color: #667eea;
         }
@@ -507,11 +495,13 @@
 
                 <div class="input-row">
                     <div class="input-wrapper">
-                        <textarea 
+                        <input 
+                            type="text"
                             id="messageInput" 
                             placeholder="Type your question or click the microphone..."
                             onkeypress="handleKeyPress(event)"
-                        ></textarea>
+                            style="width: 100%; padding: 12px 50px 12px 12px; border: 2px solid #e0e0e0; border-radius: 25px; font-size: 14px; font-family: inherit; height: 50px;"
+                        />
                         <button class="voice-button" id="voiceButton" onclick="toggleVoiceInput()">
                             🎤
                         </button>
@@ -782,21 +772,47 @@
             }
         }
 
-        function toggleVoiceInput() {
+        async function toggleVoiceInput() {
             const button = document.getElementById('voiceButton');
+            const language = document.getElementById('languageSelect').value;
             
             if (isRecording) {
-                // Stop recording
+                // Already recording, this shouldn't happen as button is managed by VoiceInput
+                return;
+            }
+            
+            // Start recording using VoiceInputButton component
+            button.classList.add('recording');
+            button.textContent = '⏹️';
+            isRecording = true;
+            
+            try {
+                await VoiceInput.attachToInput('messageInput', {
+                    language: language,
+                    onTranscription: (data) => {
+                        // Transcription complete, send the message
+                        console.log('Transcription:', data);
+                        button.classList.remove('recording');
+                        button.textContent = '🎤';
+                        isRecording = false;
+                        
+                        // Auto-send the transcribed message
+                        setTimeout(() => sendMessage(), 500);
+                    },
+                    onError: (error) => {
+                        console.error('Voice input error:', error);
+                        button.classList.remove('recording');
+                        button.textContent = '🎤';
+                        isRecording = false;
+                        alert('Voice input error: ' + error.message);
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to start voice input:', error);
                 button.classList.remove('recording');
                 button.textContent = '🎤';
                 isRecording = false;
-                // TODO: Implement actual voice recording
-                alert('Voice input will be implemented with VoiceInputButton component');
-            } else {
-                // Start recording
-                button.classList.add('recording');
-                button.textContent = '⏹️';
-                isRecording = true;
+                alert('Failed to start voice input. Please check microphone permissions.');
             }
         }
 
