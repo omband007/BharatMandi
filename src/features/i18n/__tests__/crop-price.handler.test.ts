@@ -251,6 +251,7 @@ describe('CropPriceHandler', () => {
       expect(result.text).toContain('₹49'); // Retail average (35 * 1.4)
       expect(result.text).toContain('STABLE');
       expect(result.text).toContain('3 active farmer listings');
+      expect(result.text).not.toContain('Note:'); // Note removed
       expect(result.data).toEqual(priceData);
     });
 
