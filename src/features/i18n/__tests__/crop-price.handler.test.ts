@@ -117,7 +117,7 @@ describe('CropPriceHandler', () => {
 
       // Act & Assert
       await expect(handler.handle('nonexistent')).rejects.toThrow(
-        'No listings found for crop: nonexistent'
+        'No listings found for "nonexistent"'
       );
     });
 

@@ -50,7 +50,7 @@ export class CropPriceHandler {
         ? ` Did you mean: ${suggestions.join(', ')}?`
         : '';
       
-      throw new Error(`No listings found for crop: ${normalizedCrop}.${suggestionText}`);
+      throw new Error(`No listings found for "${normalizedCrop}".${suggestionText}`);
     }
 
     // 4. Calculate statistics
@@ -251,8 +251,11 @@ export class CropPriceHandler {
     
     if (longer.length === 0) return 1.0;
     
-    // Check if shorter is contained in longer
-    if (longer.includes(shorter)) return 0.8;
+    // Check if shorter is contained in longer (but only if lengths are close)
+    const lengthRatio = shorter.length / longer.length;
+    if (longer.includes(shorter) && lengthRatio > 0.7) {
+      return 0.85;
+    }
     
     // Count matching characters
     let matches = 0;
