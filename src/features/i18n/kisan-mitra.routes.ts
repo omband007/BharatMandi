@@ -187,6 +187,64 @@ router.get('/stats', async (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/kisan-mitra/generate-audio
+ * Generate audio for a text response
+ * 
+ * Body:
+ * - text: string (required)
+ * - language: string (required)
+ * 
+ * Response:
+ * - audioUrl: string (URL to audio file)
+ */
+router.post('/generate-audio', async (req: Request, res: Response) => {
+  try {
+    const { text, language } = req.body;
+
+    if (!text) {
+      return res.status(400).json({
+        success: false,
+        error: 'text is required',
+      });
+    }
+
+    if (!language) {
+      return res.status(400).json({
+        success: false,
+        error: 'language is required',
+      });
+    }
+
+    // Import voice service
+    const { voiceService } = await import('./voice.service');
+
+    // Generate audio
+    const synthesis = await voiceService.synthesizeSpeech({
+      text,
+      language: language as any,
+    });
+
+    if (!synthesis.success) {
+      return res.status(500).json({
+        success: false,
+        error: synthesis.error || 'Failed to generate audio',
+      });
+    }
+
+    res.json({
+      success: true,
+      audioUrl: synthesis.audioUrl,
+    });
+  } catch (error: any) {
+    console.error('[API] Failed to generate audio:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to generate audio',
+    });
+  }
+});
+
+/**
  * GET /api/kisan-mitra/health
  * Health check endpoint
  */

@@ -178,43 +178,66 @@ export class KisanMitraService {
       }
     }
 
-    // Step 7: Generate audio response
+    // Step 7: Generate audio response asynchronously (don't block response)
     let audioUrl: string | undefined;
-    try {
-      const synthesis = await voiceService.synthesizeSpeech({
-        text: responseText,
-        language: sourceLanguage as any,
-      });
-      audioUrl = synthesis.audioUrl;
-    } catch (error) {
-      console.error('[KisanMitra] Speech synthesis failed:', error);
-      // Continue without audio
-    }
-
-    // Step 8: Log conversation
-    try {
-      await this.logConversation(
-        request.userId,
-        request.sessionId,
-        queryText,
-        responseText,
-        intent,
-        confidence,
-        sourceLanguage
-      );
-    } catch (error) {
-      console.error('[KisanMitra] Failed to log conversation:', error);
-      // Don't fail the request if logging fails
-    }
-
-    return {
+    
+    // Start audio generation in background
+    const audioPromise = voiceService.synthesizeSpeech({
       text: responseText,
-      audioUrl,
+      language: sourceLanguage as any,
+    }).then(synthesis => {
+      if (synthesis.success) {
+        console.log('[KisanMitra] Audio synthesis completed');
+        return synthesis.audioUrl;
+      }
+      return undefined;
+    }).catch(error => {
+      console.error('[KisanMitra] Speech synthesis failed:', error);
+      return undefined;
+    });
+
+    // Don't wait for audio - return response immediately
+    // Audio will be available shortly after
+    console.log('[KisanMitra] Returning response immediately, audio generating in background');
+
+    // Step 8: Log conversation (also async, don't block)
+    this.logConversation(
+      request.userId,
+      request.sessionId,
+      queryText,
+      responseText,
+      intent,
+      confidence,
+      sourceLanguage
+    ).catch(error => {
+      console.error('[KisanMitra] Failed to log conversation:', error);
+    });
+
+    // Return response immediately with pending audio
+    const response: KisanMitraResponse = {
+      text: responseText,
+      audioUrl: undefined, // Will be generated shortly
       intent,
       confidence,
       slots: this.extractSlotValues(slots),
       sessionAttributes: lexResponse.sessionState?.sessionAttributes,
     };
+
+    // Wait a bit for audio if it completes quickly (max 2 seconds)
+    const audioWithTimeout = Promise.race([
+      audioPromise,
+      new Promise<undefined>(resolve => setTimeout(() => resolve(undefined), 2000))
+    ]);
+
+    audioUrl = await audioWithTimeout;
+    if (audioUrl) {
+      response.audioUrl = audioUrl;
+      console.log('[KisanMitra] Audio ready within timeout');
+    } else {
+      console.log('[KisanMitra] Audio still generating, will be cached for next time');
+    }
+
+    return response;
   }
 
   /**
