@@ -43,10 +43,27 @@ Feature guides and API documentation
 ### ✨ [features/](./features/)
 Feature-specific documentation
 
+#### [features/kisan-mitra/](./features/kisan-mitra/)
+Kisan Mitra AI Voice Assistant
+- `README.md` - Complete Kisan Mitra documentation hub
+- `MULTILINGUAL-SUPPORT.md` - Multi-language translation system
+- `LANGUAGE-SUPPORT.md` - Language support matrix and guides
+- `VOICE-INPUT.md` - Voice input functionality
+- `PERFORMANCE.md` - Audio performance optimization
+- `AUDIO-FIX.md` - Audio-text mismatch fix
+
 #### [features/i18n/](./features/i18n/)
 Multi-language support documentation
 - `test-coverage.md` - I18n test coverage report
 - `validation-tests.md` - I18n validation test plan
+
+#### [features/aws/](./aws/)
+AWS service integration
+- `LEX-BOT-SETUP-QUICKSTART.md` - AWS Lex setup guide
+- `ADD-LEX-PERMISSIONS.md` - IAM permissions for Lex
+- `TROUBLESHOOT-LEX-404.md` - Troubleshooting Lex errors
+- `REGION-DECISION.md` - AWS region selection rationale
+- `REGION-MIGRATION-GUIDE.md` - Region migration guide
 
 ### 📊 [diagrams/](./diagrams/)
 Architecture diagrams and visual documentation
@@ -116,6 +133,8 @@ Architecture diagrams and visual documentation
 | Deployment | [AWS-DEPLOYMENT-GUIDE.md](./deployment/AWS-DEPLOYMENT-GUIDE.md) |
 | Architecture | [ARCHITECTURE-COMPARISON.md](./architecture/ARCHITECTURE-COMPARISON.md) |
 | Multi-Language | [features/i18n/](./features/i18n/) |
+| Kisan Mitra (AI Assistant) | [features/kisan-mitra/](./features/kisan-mitra/) |
+| AWS Lex Setup | [aws/LEX-BOT-SETUP-QUICKSTART.md](./aws/LEX-BOT-SETUP-QUICKSTART.md) |
 | AI Grading | [AI-GRADING-GUIDE.md](./guides/AI-GRADING-GUIDE.md) |
 | UI Components | [UI-GUIDE.md](./guides/UI-GUIDE.md) |
 
@@ -134,6 +153,8 @@ Architecture diagrams and visual documentation
 
 ## 🆕 Recent Updates
 
+- **Mar 1, 2026** - Reorganized Kisan Mitra documentation into structured folder
+- **Mar 1, 2026** - Created comprehensive Kisan Mitra README with all guides
 - **Feb 25, 2026** - Reorganized documentation structure
 - **Feb 25, 2026** - Added comprehensive testing strategy
 - **Feb 25, 2026** - Added I18n test coverage documentation
