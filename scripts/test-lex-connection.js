@@ -41,7 +41,7 @@ async function testLexConnection() {
   
   const botId = process.env.LEX_BOT_ID;
   const botAliasId = process.env.LEX_BOT_ALIAS_ID;
-  const region = process.env.LEX_REGION || process.env.AWS_REGION || 'ap-south-1';
+  const region = process.env.LEX_REGION || process.env.AWS_REGION || 'ap-southeast-2';
   
   if (!botId) {
     log('   ✗ LEX_BOT_ID not found in .env', 'red');

@@ -4,6 +4,67 @@ This document tracks known issues, technical debt, and future improvements for t
 
 ## 🔴 Critical Issues
 
+### AWS Region Migration: Sydney to Mumbai (When Available)
+**Status:** Deferred - Mumbai doesn't support AWS Lex yet  
+**Priority:** High (when Mumbai region supports Lex)  
+**Description:** Currently using ap-southeast-2 (Sydney) for all AWS services because Mumbai (ap-south-1) doesn't support AWS Lex V2. When Mumbai adds Lex support, we should migrate to reduce latency for Indian users.
+
+**Current Setup:**
+- ✅ All AWS services in Sydney (ap-southeast-2)
+- ✅ S3 bucket: `bharat-mandi-voice-temp` in Sydney
+- ✅ AWS Lex bot: `KisanMitra` in Sydney
+- ⚠️ Latency from India: ~150-200ms (acceptable but not optimal)
+
+**Why Sydney:**
+- Mumbai (ap-south-1) doesn't support AWS Lex V2 yet (region locked)
+- Sydney is the closest available region to India that supports Lex
+- All AWS services need to be in the same region for optimal performance
+
+**When to Migrate:**
+- Monitor AWS service availability: https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/
+- When Mumbai adds Lex V2 support, migrate all services
+- Expected latency improvement: 150-200ms → 20-50ms (75% reduction)
+
+**Migration Checklist (Future):**
+1. ✅ Verify Mumbai supports AWS Lex V2
+2. ✅ Create new S3 bucket in Mumbai
+3. ✅ Copy audio files from Sydney bucket (if any)
+4. ✅ Create new Lex bot in Mumbai
+5. ✅ Recreate all 7 intents and 2 slot types
+6. ✅ Test bot in Mumbai region
+7. ✅ Update .env: `AWS_REGION=ap-south-1`, `LEX_REGION=ap-south-1`
+8. ✅ Update S3 bucket name in code
+9. ✅ Test all voice and translation features
+10. ✅ Delete old Sydney resources
+
+**Benefits of Migration:**
+- 75% latency reduction for Indian users
+- Better user experience for voice features
+- Lower data transfer costs (India → Mumbai vs India → Sydney)
+- Potential regulatory compliance (data localization)
+
+**Cost Impact:**
+- Neutral: Mumbai and Sydney have similar pricing
+- Savings: Lower data transfer costs for Indian traffic
+
+**Documentation:**
+- Migration guide already prepared: `docs/aws/REGION-MIGRATION-GUIDE.md`
+- Update guide when Mumbai supports Lex
+
+**Related Files:**
+- `.env` - AWS_REGION=ap-southeast-2 (current)
+- `docs/aws/LEX-BOT-SETUP-QUICKSTART.md` - Sydney setup guide
+- `docs/aws/REGION-MIGRATION-GUIDE.md` - Future migration guide
+- `scripts/migrate-to-ap-south-1.ps1` - Migration script (ready to use)
+- `scripts/migrate-to-ap-south-1.sh` - Migration script (ready to use)
+
+**Monitoring:**
+- Check AWS regional services page quarterly
+- Subscribe to AWS announcements for ap-south-1
+- Test Mumbai Lex availability before migration
+
+---
+
 ### SQLite Database Locking
 **Status:** Known Issue  
 **Priority:** High  

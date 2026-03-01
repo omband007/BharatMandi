@@ -13,7 +13,9 @@
 1. Go to [AWS Console](https://console.aws.amazon.com/)
 2. Search for "Lex" in the services search bar
 3. Click "Amazon Lex"
-4. Make sure you're in the **ap-south-1 (Mumbai)** region (top right)
+4. Make sure you're in the **ap-southeast-2 (Sydney)** region (top right)
+   - **Note**: Mumbai (ap-south-1) doesn't support AWS Lex yet
+   - Sydney is the closest available region to India
 
 ### 1.2 Create Bot
 
@@ -273,12 +275,12 @@ Add these to your `.env` file:
 # AWS Lex Configuration
 LEX_BOT_ID=YOUR_BOT_ID_HERE
 LEX_BOT_ALIAS_ID=YOUR_ALIAS_ID_HERE
-LEX_REGION=ap-south-1
+LEX_REGION=ap-southeast-2
 
 # AWS Credentials (if not using IAM roles)
 AWS_ACCESS_KEY_ID=your_access_key
 AWS_SECRET_ACCESS_KEY=your_secret_key
-AWS_REGION=ap-south-1
+AWS_REGION=ap-southeast-2
 ```
 
 ### 5.2 Restart Server
@@ -341,7 +343,7 @@ Try these queries:
 **Solution**:
 - Verify BOT_ID is correct
 - Verify ALIAS_ID is correct
-- Check you're in the correct AWS region (ap-south-1)
+- Check you're in the correct AWS region (ap-southeast-2)
 
 ### Permission Denied Error
 
@@ -376,7 +378,7 @@ Try these queries:
 ### Slow Response Time
 
 **Solution**:
-- Check AWS region (use ap-south-1 for India)
+- Check AWS region (use ap-southeast-2 for India)
 - Verify network connectivity
 - Check CloudWatch logs for errors
 
