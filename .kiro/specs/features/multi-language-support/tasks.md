@@ -544,14 +544,14 @@ This document outlines the implementation tasks for comprehensive multi-language
 
 ### Phase 4: Kisan Mitra (Weeks 7-8)
 
-- [ ] 23. Design and create AWS Lex bot
-  - [ ] 23.1 Create Lex bot in AWS Console
+- [x] 23. Design and create AWS Lex bot
+  - [x] 23.1 Create Lex bot in AWS Console
     - Create bot named "KisanMitra"
     - Configure for multiple languages (hi-IN, en-IN)
     - Set up bot aliases for staging and production
     - _Requirements: 11.1_
   
-  - [ ] 23.2 Define intents and utterances
+  - [x] 23.2 Define intents and utterances
     - Create GetCropPrice intent with crop slot
     - Create CreateListing intent with crop, quantity, price slots
     - Create GetWeather intent with location slot
@@ -560,13 +560,13 @@ This document outlines the implementation tasks for comprehensive multi-language
     - Create HelpIntent for general help
     - _Requirements: 11.5, 11.6, 11.7, 11.8, 11.9_
   
-  - [ ] 23.3 Define slot types
+  - [x] 23.3 Define slot types
     - Create CropType custom slot with all crop names in all languages
     - Create ScreenName custom slot with app screen names
     - Use AMAZON.City for location slot
     - _Requirements: 11.5-11.9_
   
-  - [ ] 23.4 Configure fulfillment
+  - [x] 23.4 Configure fulfillment
     - Set up Lambda fulfillment for each intent
     - Configure fallback intent for unrecognized queries
     - _Requirements: 11.4_
@@ -577,20 +577,20 @@ This document outlines the implementation tasks for comprehensive multi-language
     - Test in multiple languages
     - _Requirements: 11.2, 11.3, 11.4_
 
-- [ ] 24. Implement Kisan Mitra Service
-  - [ ] 24.1 Set up AWS Lex integration
+- [x] 24. Implement Kisan Mitra Service
+  - [x] 24.1 Set up AWS Lex integration
     - Install @aws-sdk/client-lex-runtime-v2 package
     - Add lex permissions to IAM role
     - Configure bot ID and alias ID
     - _Requirements: 11.1_
   
-  - [ ] 24.2 Create KisanMitraService class
+  - [x] 24.2 Create KisanMitraService class
     - Implement `src/features/i18n/kisan-mitra.service.ts`
     - Create processQuery() method
     - Integrate with TranslationService for multi-language support
     - _Requirements: 11.1, 11.2, 11.3_
   
-  - [ ] 24.3 Implement query processing
+  - [x] 24.3 Implement query processing
     - Handle text and audio input
     - Translate query to English if needed (Lex works best with English)
     - Send to Lex and get response
@@ -602,7 +602,7 @@ This document outlines the implementation tasks for comprehensive multi-language
     - **Validates: Requirements 11.16**
     - Test that response language matches query language
   
-  - [ ] 24.5 Implement voice integration
+  - [x] 24.5 Implement voice integration
     - Integrate with VoiceService for audio input
     - Generate audio response using TTS
     - _Requirements: 11.12_
