@@ -42,15 +42,16 @@ Kisan Mitra is an AI-powered voice assistant for farmers, providing conversation
 ## Quick Links
 
 ### AWS Setup Guides
-- [AWS Lex Bot Setup](../../aws/LEX-BOT-SETUP-QUICKSTART.md)
-- [AWS Lex Permissions](../../aws/ADD-LEX-PERMISSIONS.md)
-- [Troubleshooting Lex 404](../../aws/TROUBLESHOOT-LEX-404.md)
-- [AWS Region Decision](../../aws/REGION-DECISION.md)
+- [AWS Lex Bot Setup](../../infrastructure/aws/LEX-BOT-SETUP-QUICKSTART.md)
+- [AWS Lex Permissions](../../infrastructure/aws/ADD-LEX-PERMISSIONS.md)
+- [Troubleshooting Lex 404](../../infrastructure/aws/TROUBLESHOOT-LEX-404.md)
+- [AWS Region Decision](../../infrastructure/aws/REGION-DECISION.md)
 
 ### Related Features
-- [Translation Service](../TRANSLATION-QUICK-START.md)
-- [Voice Interface](../VOICE-POC-INTEGRATION.md)
-- [i18n System](../i18n/)
+- [Translation Service](../translation/QUICK-START.md)
+- [Voice Interface](./VOICE-POC-INTEGRATION.md)
+- [Grading](../grading/)
+- [Marketplace](../marketplace/)
 
 ### Specifications
 - [Requirements](./../../../.kiro/specs/features/multi-language-support/requirements.md)
@@ -179,7 +180,7 @@ Response (Text + Audio)
 1. **Setup AWS Lex Bot**:
    ```bash
    # Follow the guide
-   cat docs/aws/LEX-BOT-SETUP-QUICKSTART.md
+   cat docs/infrastructure/aws/LEX-BOT-SETUP-QUICKSTART.md
    ```
 
 2. **Configure Environment**:
@@ -242,7 +243,7 @@ Response (Text + Audio)
 1. **"ResourceNotFoundException" from AWS Lex**
    - Bot not built → Build the bot in AWS Console
    - Alias not associated → Associate alias with a version
-   - See: [TROUBLESHOOT-LEX-404.md](../../aws/TROUBLESHOOT-LEX-404.md)
+   - See: [TROUBLESHOOT-LEX-404.md](../../infrastructure/aws/TROUBLESHOOT-LEX-404.md)
 
 2. **Audio and text don't match**
    - Clear audio cache: `node scripts/clear-audio-cache.js`
