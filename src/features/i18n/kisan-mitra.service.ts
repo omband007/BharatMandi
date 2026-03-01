@@ -8,6 +8,10 @@ import {
 import { translationService } from './translation.service';
 import { voiceService } from './voice.service';
 import { MongoClient, Db } from 'mongodb';
+import { DatabaseManager } from '../../shared/database/db-abstraction';
+import { CropPriceHandler } from './handlers/crop-price.handler';
+import { WeatherHandler } from './handlers/weather.handler';
+import { FarmingAdviceHandler } from './handlers/farming-advice.handler';
 
 const lexClient = new LexRuntimeV2Client({
   region: process.env.AWS_REGION || process.env.LEX_REGION || 'ap-south-1',
@@ -65,10 +69,36 @@ export interface VoiceQuery {
 export class KisanMitraService {
   private mongoClient: MongoClient;
   private db: Db | null = null;
+  private dbManager: DatabaseManager;
+  private handlerRegistry: Map<string, any>;
 
   constructor() {
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
     this.mongoClient = new MongoClient(mongoUri);
+    
+    // Initialize database manager for handlers
+    this.dbManager = new DatabaseManager();
+    
+    // Initialize handler registry
+    this.handlerRegistry = new Map();
+    this.registerHandlers();
+  }
+
+  /**
+   * Register all intent handlers
+   * Maps Lex intent names to their corresponding handler instances
+   */
+  private registerHandlers(): void {
+    // Register CropPriceHandler for GetCropPrice intent
+    this.handlerRegistry.set('GetCropPrice', new CropPriceHandler(this.dbManager));
+    
+    // Register WeatherHandler for GetWeather intent
+    this.handlerRegistry.set('GetWeather', new WeatherHandler());
+    
+    // Register FarmingAdviceHandler for GetFarmingAdvice intent
+    this.handlerRegistry.set('GetFarmingAdvice', new FarmingAdviceHandler());
+    
+    console.log('[KisanMitra] Registered handlers:', Array.from(this.handlerRegistry.keys()));
   }
 
   private async getDb(): Promise<Db> {
@@ -161,8 +191,28 @@ export class KisanMitraService {
     let responseText = lexResponse.messages?.[0]?.content || 
                       'I did not understand that. Can you please rephrase?';
 
-    // Step 6: Translate response back to user's language
-    if (needsTranslation) {
+    // Step 6: Check if intent has a handler and call it
+    const handler = this.handlerRegistry.get(intent);
+    if (handler && intentState === 'Fulfilled') {
+      try {
+        console.log(`[KisanMitra] Calling handler for intent: ${intent}`);
+        const handlerResponse = await this.callHandler(intent, handler, slots, sourceLanguage);
+        
+        if (handlerResponse) {
+          // Use handler response instead of Lex response
+          responseText = handlerResponse;
+          console.log('[KisanMitra] Handler response:', responseText);
+        }
+      } catch (error) {
+        console.error(`[KisanMitra] Handler error for ${intent}:`, error);
+        // Fall back to Lex response on handler error
+        // Error handling will provide user-friendly message
+        responseText = this.getHandlerErrorMessage(error, sourceLanguage);
+      }
+    }
+
+    // Step 7: Translate response back to user's language (if not already translated by handler)
+    if (needsTranslation && !handler) {
       try {
         console.log(`[KisanMitra] Translating response from English to ${sourceLanguage}:`, responseText);
         const translation = await translationService.translateText({
@@ -373,6 +423,103 @@ export class KisanMitraService {
         averageConfidence: 0,
       };
     }
+  }
+
+  /**
+   * Call the appropriate handler based on intent and slots
+   * @param intent - Intent name
+   * @param handler - Handler instance
+   * @param slots - Lex slots
+   * @param language - User's language
+   * @returns Formatted response text
+   */
+  private async callHandler(
+    intent: string,
+    handler: any,
+    slots: any,
+    language: string
+  ): Promise<string | null> {
+    const slotValues = this.extractSlotValues(slots);
+
+    switch (intent) {
+      case 'GetCropPrice': {
+        const crop = slotValues.crop;
+        const location = slotValues.location;
+        
+        if (!crop) {
+          throw new Error('Crop name is required for price query');
+        }
+        
+        const priceData = await handler.handle(crop, location);
+        const formatted = await handler.formatResponse(priceData, language);
+        return formatted.text;
+      }
+
+      case 'GetWeather': {
+        const location = slotValues.location;
+        
+        if (!location) {
+          throw new Error('Location is required for weather query');
+        }
+        
+        const weatherData = await handler.handle(location);
+        const formatted = await handler.formatResponse(weatherData, language);
+        return formatted.text;
+      }
+
+      case 'GetFarmingAdvice': {
+        const crop = slotValues.crop;
+        const topic = slotValues.topic || 'general';
+        
+        if (!crop) {
+          throw new Error('Crop name is required for farming advice');
+        }
+        
+        const adviceData = await handler.handle(crop, topic, language);
+        const formatted = await handler.formatResponse(adviceData, language);
+        return formatted.text;
+      }
+
+      default:
+        console.warn(`[KisanMitra] No handler implementation for intent: ${intent}`);
+        return null;
+    }
+  }
+
+  /**
+   * Get user-friendly error message for handler errors
+   * @param error - Error object
+   * @param language - User's language
+   * @returns Error message in user's language
+   */
+  private getHandlerErrorMessage(error: any, language: string): string {
+    const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+    
+    console.error('[KisanMitra] Handler error details:', {
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+      language,
+    });
+    
+    // Check for specific error types and provide helpful messages
+    if (errorMessage.includes('not found') || errorMessage.includes('No listings found')) {
+      return errorMessage; // Already user-friendly
+    }
+    
+    if (errorMessage.includes('API key not configured') || errorMessage.includes('unavailable')) {
+      return 'Sorry, this service is temporarily unavailable. Please try again later.';
+    }
+    
+    if (errorMessage.includes('Location not found')) {
+      return errorMessage; // Already user-friendly
+    }
+    
+    if (errorMessage.includes('required')) {
+      return errorMessage; // Already user-friendly
+    }
+    
+    // Generic error message for unexpected errors
+    return 'I encountered an issue processing your request. Please try rephrasing your question.';
   }
 
   /**

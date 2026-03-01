@@ -275,3 +275,31 @@ export const AdListingSchema = new Schema({
 // Indexes
 AdListingSchema.index({ userId: 1, createdAt: -1 });
 AdListingSchema.index({ category: 1, isActive: 1 });
+
+// ============================================================================
+// FARMING TIPS SCHEMA
+// ============================================================================
+export const FarmingTipSchema = new Schema({
+  crop: { type: String, required: true, index: true },
+  topic: { 
+    type: String, 
+    required: true,
+    enum: ['planting', 'irrigation', 'pest-control', 'harvesting'],
+    index: true
+  },
+  advice: { type: String, required: true },
+  tips: [{ type: String }],
+  season: { type: String },
+  region: { type: String },
+  language: { type: String, required: true, default: 'en', index: true },
+  references: [{ type: String }],
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+}, {
+  timestamps: true,
+  collection: 'farming_tips'
+});
+
+// Indexes
+FarmingTipSchema.index({ crop: 1, topic: 1, language: 1 });
+FarmingTipSchema.index({ language: 1 });

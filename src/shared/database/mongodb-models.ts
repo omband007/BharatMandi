@@ -9,7 +9,8 @@ import {
   SoilTestReportSchema,
   SmartAlertSchema,
   TraceabilityRecordSchema,
-  AdListingSchema
+  AdListingSchema,
+  FarmingTipSchema
 } from './mongodb-schemas';
 
 // Import types
@@ -50,6 +51,21 @@ export interface FeedbackComment {
 }
 
 export interface FeedbackCommentDocument extends FeedbackComment, Document {}
+
+export interface FarmingTip {
+  crop: string;
+  topic: 'planting' | 'irrigation' | 'pest-control' | 'harvesting';
+  advice: string;
+  tips: string[];
+  season?: string;
+  region?: string;
+  language: string;
+  references: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface FarmingTipDocument extends FarmingTip, Document {}
 
 // ============================================================================
 // MODELS
@@ -105,6 +121,11 @@ export const AdListingModel: Model<AdListingDocument> = model<AdListingDocument>
   AdListingSchema
 );
 
+export const FarmingTipModel: Model<FarmingTipDocument> = model<FarmingTipDocument>(
+  'FarmingTip',
+  FarmingTipSchema
+);
+
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
@@ -123,6 +144,7 @@ export async function createIndexes(): Promise<void> {
   await SmartAlertModel.createIndexes();
   await TraceabilityRecordModel.createIndexes();
   await AdListingModel.createIndexes();
+  await FarmingTipModel.createIndexes();
   
   console.log('✓ All MongoDB indexes created successfully');
 }
@@ -155,6 +177,7 @@ export async function getCollectionStats(): Promise<any> {
   stats.smartAlerts = await SmartAlertModel.countDocuments();
   stats.traceabilityRecords = await TraceabilityRecordModel.countDocuments();
   stats.adListings = await AdListingModel.countDocuments();
+  stats.farmingTips = await FarmingTipModel.countDocuments();
   
   return stats;
 }
