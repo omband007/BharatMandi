@@ -80,11 +80,12 @@ export class KisanMitraService {
     if (request.audioInput) {
       try {
         const transcription = await voiceService.transcribeAudio({
-          audioData: request.audioInput,
-          languageCode: request.language,
+          audioBuffer: request.audioInput,
+          audioFormat: 'mp3',
+          language: request.language as any,
         });
         queryText = transcription.text;
-        sourceLanguage = transcription.language || request.language;
+        sourceLanguage = transcription.detectedLanguage || request.language;
       } catch (error) {
         console.error('[KisanMitra] Transcription failed:', error);
         throw new Error('Failed to transcribe audio input');
@@ -167,7 +168,7 @@ export class KisanMitraService {
     try {
       const synthesis = await voiceService.synthesizeSpeech({
         text: responseText,
-        languageCode: sourceLanguage,
+        language: sourceLanguage as any,
       });
       audioUrl = synthesis.audioUrl;
     } catch (error) {

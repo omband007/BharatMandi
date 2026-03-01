@@ -42,6 +42,7 @@
   "dependencies": {
     "@aws-sdk/client-comprehend": "^3.998.0",
     "@aws-sdk/client-iam": "^3.998.0",
+    "@aws-sdk/client-lex-runtime-v2": "^3.1000.0",
     "@aws-sdk/client-polly": "^3.1000.0",
     "@aws-sdk/client-s3": "^3.1000.0",
     "@aws-sdk/client-sts": "^3.998.0",
