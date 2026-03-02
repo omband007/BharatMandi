@@ -70,10 +70,10 @@ export class NotificationService {
     }
 
     // Get the template for this notification type and language
-    const template = await this.getTemplate(type, language);
+    const template = await this.getTemplate(type, language || 'en');
     
     if (!template) {
-      throw new Error(`No template found for notification type: ${type}, language: ${language}`);
+      throw new Error(`No template found for notification type: ${type}, language: ${language || 'en'}`);
     }
 
     // Interpolate variables into the template
@@ -84,7 +84,7 @@ export class NotificationService {
       id: uuidv4(),
       userId,
       type,
-      title: this.getNotificationTitle(type, language),
+      title: this.getNotificationTitle(type, language || 'en'),
       message,
       data: variables,
       isRead: false,

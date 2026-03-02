@@ -89,6 +89,13 @@ export interface UserProfile {
   // Financial
   bankAccount?: BankAccount;
   
+  // Authentication & Security
+  pinHash?: string;  // bcrypt hash of PIN
+  biometricEnabled?: boolean;
+  failedLoginAttempts?: number;
+  lockedUntil?: Date;
+  lastLoginAt?: Date;
+  
   // Metadata
   completionPercentage: number;
   createdAt: Date;
@@ -162,6 +169,17 @@ export interface Referral {
 }
 
 // ============================================================================
+// OTP SESSION TYPES
+// ============================================================================
+
+export interface OTPSession {
+  phoneNumber: string;
+  otp: string;
+  expiresAt: Date;
+  attempts: number;
+}
+
+// ============================================================================
 // API REQUEST/RESPONSE TYPES
 // ============================================================================
 
@@ -183,6 +201,7 @@ export interface VerifyOTPRequest {
 export interface VerifyOTPResponse {
   verified: boolean;
   profile: UserProfile;
+  token?: string;  // JWT token for authenticated session
 }
 
 export interface UpdateProfileFieldRequest {

@@ -205,10 +205,11 @@ describe('TranslationService', () => {
 
       (TranslateClient as jest.MockedClass<typeof TranslateClient>).prototype.send = mockSend;
 
-      const texts = Array(30).fill('test');
+      // Use unique texts to avoid cache hits
+      const texts = Array(30).fill(0).map((_, i) => `test-${i}`);
       await service.translateBatch(texts, 'en', 'hi');
 
-      // Should make 30 calls (all texts translated)
+      // Should make 30 calls (all texts translated, no cache hits)
       expect(mockSend).toHaveBeenCalledTimes(30);
     });
   });

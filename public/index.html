@@ -317,6 +317,7 @@
 
         <nav class="nav-bar">
             <a href="/" class="nav-link active">Main</a>
+            <a href="/profile-test.html" class="nav-link">Profile</a>
             <a href="/media-test.html" class="nav-link">Media</a>
             <a href="/language-test.html" class="nav-link">Localization</a>
             <a href="/translation-test.html" class="nav-link">Translation</a>
@@ -865,7 +866,8 @@
 
     <script>
         // Auto-detect API base URL from current location
-        const API_BASE = `${window.location.protocol}//${window.location.hostname}:${window.location.port}/api`;
+        const API_BASE = `${window.location.protocol}//${window.location.hostname}:${window.location.port}/api/v1/profiles`;
+        const API_AUTH = `${API_BASE}/auth`;
         let state = {
             farmerId: null,
             buyerId: null,
@@ -912,7 +914,7 @@
 
         async function verifyStoredToken(token) {
             try {
-                const response = await fetch(`${API_BASE}/auth/verify-token`, {
+                const response = await fetch(`${API_AUTH}/verify-token`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token })
@@ -924,7 +926,7 @@
                     state.authPhone = data.phoneNumber;
                     
                     // Get full user details
-                    const userResponse = await fetch(`${API_BASE}/auth/user/${data.phoneNumber}`);
+                    const userResponse = await fetch(`${API_BASE}/${data.payload.userId}`);
                     if (userResponse.ok) {
                         const userData = await userResponse.json();
                         state.currentUser = userData.user;
@@ -1015,10 +1017,10 @@
                 
                 state.authPhone = phone;
                 
-                const response = await fetch(`${API_BASE}/auth/request-otp`, {
+                const response = await fetch(`${API_BASE}/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phoneNumber: phone })
+                    body: JSON.stringify({ mobileNumber: phone })
                 });
                 
                 const data = await response.json();
@@ -1044,11 +1046,11 @@
                     return;
                 }
                 
-                const response = await fetch(`${API_BASE}/auth/verify-otp`, {
+                const response = await fetch(`${API_BASE}/verify-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        phoneNumber: state.authPhone,
+                        userId: `+91${state.authPhone}`,
                         otp: otp
                     })
                 });
@@ -1059,12 +1061,33 @@
                     throw new Error(data.error || 'OTP verification failed');
                 }
                 
-                if (data.userExists) {
-                    // Existing user - show login options
-                    state.currentUser = data.user;
-                    document.getElementById('authStep2').style.display = 'none';
-                    document.getElementById('authStepLogin').style.display = 'block';
-                    showResult('otpVerifyResult', `✅ Welcome back! Please login with your PIN or biometric.`);
+                // Check if profile exists and is complete
+                if (data.data && data.data.profile) {
+                    // User has a profile - check if it's complete
+                    const profile = data.data.profile;
+                    
+                    if (profile.name && profile.userType) {
+                        // Profile is complete - show login options or authenticate
+                        state.currentUser = profile;
+                        state.authToken = data.data.token;
+                        localStorage.setItem('authToken', data.data.token);
+                        
+                        // Check if PIN is set up
+                        if (profile.pinHash) {
+                            // Has PIN - show authenticated state
+                            showAuthenticatedState();
+                        } else {
+                            // No PIN - offer to set up PIN
+                            document.getElementById('authStep2').style.display = 'none';
+                            document.getElementById('authStep3b').style.display = 'block';
+                            showResult('otpVerifyResult', '✅ Welcome back! Would you like to set up a PIN for faster login?');
+                        }
+                    } else {
+                        // Profile incomplete - show registration form
+                        document.getElementById('authStep2').style.display = 'none';
+                        document.getElementById('authStep3').style.display = 'block';
+                        showResult('otpVerifyResult', '✅ OTP verified! Please complete your profile.');
+                    }
                 } else {
                     // New user - show registration form
                     document.getElementById('authStep2').style.display = 'none';
@@ -1089,18 +1112,49 @@
                     return;
                 }
                 
-                const response = await fetch(`${API_BASE}/auth/register`, {
-                    method: 'POST',
+                const response = await fetch(`${API_BASE}/${state.authPhone}/fields`, {
+                    method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        phoneNumber: state.authPhone,
-                        name: name,
-                        userType: userType,
-                        location: {
-                            latitude: lat,
-                            longitude: lng,
-                            address: address
-                        }
+                        fieldName: 'name',
+                        value: name
+                    })
+                });
+                
+                // Update other fields
+                await fetch(`${API_BASE}/${state.authPhone}/fields`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fieldName: 'userType',
+                        value: userType
+                    })
+                });
+                
+                await fetch(`${API_BASE}/${state.authPhone}/fields`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fieldName: 'location.address',
+                        value: address
+                    })
+                });
+                
+                await fetch(`${API_BASE}/${state.authPhone}/fields`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fieldName: 'location.coordinates.latitude',
+                        value: lat.toString()
+                    })
+                });
+                
+                await fetch(`${API_BASE}/${state.authPhone}/fields`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fieldName: 'location.coordinates.longitude',
+                        value: lng.toString()
                     })
                 });
                 
@@ -1110,7 +1164,11 @@
                     throw new Error(data.error || 'Registration failed');
                 }
                 
-                state.currentUser = data.user;
+                // Get updated profile
+                const profileResponse = await fetch(`${API_BASE}/${state.authPhone}`);
+                const profileData = await profileResponse.json();
+                
+                state.currentUser = profileData.data;
                 
                 // Show PIN setup screen
                 document.getElementById('authStep3').style.display = 'none';
@@ -1136,7 +1194,7 @@
                     return;
                 }
                 
-                const response = await fetch(`${API_BASE}/auth/setup-pin`, {
+                const response = await fetch(`${API_AUTH}/setup-pin`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1152,11 +1210,11 @@
                 }
                 
                 // Now login with the PIN to get token
-                const loginResponse = await fetch(`${API_BASE}/auth/login`, {
+                const loginResponse = await fetch(`${API_AUTH}/login/pin`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        phoneNumber: state.authPhone,
+                        mobileNumber: `+91${state.authPhone}`,
                         pin: pin
                     })
                 });
@@ -1183,11 +1241,11 @@
                     return;
                 }
                 
-                const response = await fetch(`${API_BASE}/auth/login`, {
+                const response = await fetch(`${API_AUTH}/login/pin`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        phoneNumber: state.authPhone,
+                        mobileNumber: `+91${state.authPhone}`,
                         pin: pin
                     })
                 });
@@ -1217,11 +1275,11 @@
                     return;
                 }
                 
-                const response = await fetch(`${API_BASE}/auth/login/biometric`, {
+                const response = await fetch(`${API_AUTH}/login/biometric`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        phoneNumber: state.authPhone
+                        mobileNumber: `+91${state.authPhone}`
                     })
                 });
                 
@@ -1288,7 +1346,9 @@
 
         async function createFarmer() {
             try {
-                const response = await fetch(`${API_BASE}/users`, {
+                // Note: This uses the old /api/users endpoint which is deprecated
+                // In production, use the profile registration flow instead
+                const response = await fetch(`http://localhost:3000/api/users`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1330,7 +1390,9 @@
 
         async function createBuyer() {
             try {
-                const response = await fetch(`${API_BASE}/users`, {
+                // Note: This uses the old /api/users endpoint which is deprecated
+                // In production, use the profile registration flow instead
+                const response = await fetch(`http://localhost:3000/api/users`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1672,7 +1734,8 @@
 
         async function viewAllUsers() {
             try {
-                const response = await fetch(`${API_BASE}/users`);
+                // Note: This uses the old /api/users endpoint which is deprecated
+                const response = await fetch(`http://localhost:3000/api/users`);
                 const data = await response.json();
                 
                 if (data.length === 0) {
@@ -1743,7 +1806,7 @@
 
         async function viewUserProfile(userId) {
             try {
-                const response = await fetch(`${API_BASE}/auth/profile/${userId}`);
+                const response = await fetch(`${API_BASE}/${userId}`);
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -1885,8 +1948,8 @@
                     : { address: updatedLocation, latitude: 0, longitude: 0 };
                 
                 // Call API to update user profile
-                const response = await fetch(`${API_BASE}/auth/profile/${selectedUserForEdit.id}`, {
-                    method: 'PUT',
+                const response = await fetch(`${API_BASE}/${selectedUserForEdit.id}/fields`, {
+                    method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         name: updatedName,
@@ -1974,7 +2037,7 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/auth/profile/${state.currentUser.id}`);
+                const response = await fetch(`${API_BASE}/${state.currentUser.userId}`);
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -1982,7 +2045,7 @@
                 }
 
                 // Display profile data
-                const user = data.user;
+                const user = data.data;
                 document.getElementById('profileDisplay').innerHTML = `
                     <div style="margin-bottom: 10px;">
                         <strong>Name:</strong> ${user.name}
@@ -2099,8 +2162,8 @@
 
             try {
                 // First attempt without verification
-                const response = await fetch(`${API_BASE}/auth/profile/${state.currentUser.id}`, {
-                    method: 'PUT',
+                const response = await fetch(`${API_BASE}/${state.currentUser.userId}/fields`, {
+                    method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -2127,7 +2190,7 @@
                 }
 
                 // Update successful
-                state.currentUser = data.user;
+                state.currentUser = data.data;
                 showResult('editProfileResult', `✅ ${data.message}`);
                 
                 // Refresh profile view after 1 second
@@ -2146,12 +2209,12 @@
             const phoneToVerify = updates.phoneNumber || state.currentUser.phoneNumber;
             
             try {
-                const response = await fetch(`${API_BASE}/auth/request-otp`, {
+                const response = await fetch(`${API_BASE}/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ phoneNumber: phoneToVerify })
+                    body: JSON.stringify({ mobileNumber: phoneToVerify })
                 });
 
                 const data = await response.json();
@@ -2190,13 +2253,13 @@
 
             try {
                 // Verify OTP
-                const verifyResponse = await fetch(`${API_BASE}/auth/verify-otp`, {
+                const verifyResponse = await fetch(`${API_BASE}/verify-otp`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        phoneNumber: phoneToVerify,
+                        userId: phoneToVerify,
                         otp: otp
                     })
                 });
@@ -2210,8 +2273,8 @@
                 // Now update with verification flag
                 updates.isPhoneVerified = true;
 
-                const updateResponse = await fetch(`${API_BASE}/auth/profile/${state.currentUser.id}`, {
-                    method: 'PUT',
+                const updateResponse = await fetch(`${API_BASE}/${state.currentUser.userId}/fields`, {
+                    method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -2225,7 +2288,7 @@
                 }
 
                 // Update successful
-                state.currentUser = updateData.user;
+                state.currentUser = updateData.data;
                 showResult('editProfileResult', `✅ ${updateData.message}`);
                 
                 // Refresh profile view after 1 second
@@ -2247,7 +2310,7 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/auth/profile/${state.currentUser.id}`);
+                const response = await fetch(`${API_BASE}/${state.currentUser.userId}`);
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -2255,7 +2318,7 @@
                 }
 
                 // Display profile data in card
-                const user = data.user;
+                const user = data.data;
                 
                 // Add admin view indicator if viewing another user's profile
                 const adminBadge = isAdminView ? `
@@ -2418,8 +2481,8 @@
 
             try {
                 // First attempt without verification
-                const response = await fetch(`${API_BASE}/auth/profile/${state.currentUser.id}`, {
-                    method: 'PUT',
+                const response = await fetch(`${API_BASE}/${state.currentUser.userId}/fields`, {
+                    method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -2464,12 +2527,12 @@
             const phoneToVerify = updates.phoneNumber || state.currentUser.phoneNumber;
             
             try {
-                const response = await fetch(`${API_BASE}/auth/request-otp`, {
+                const response = await fetch(`${API_BASE}/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ phoneNumber: phoneToVerify })
+                    body: JSON.stringify({ mobileNumber: phoneToVerify })
                 });
 
                 const data = await response.json();
@@ -2509,13 +2572,13 @@
 
             try {
                 // Verify OTP
-                const verifyResponse = await fetch(`${API_BASE}/auth/verify-otp`, {
+                const verifyResponse = await fetch(`${API_BASE}/verify-otp`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        phoneNumber: phoneToVerify,
+                        userId: phoneToVerify,
                         otp: otp
                     })
                 });
@@ -2529,8 +2592,8 @@
                 // Now update with verification flag
                 updates.isPhoneVerified = true;
 
-                const updateResponse = await fetch(`${API_BASE}/auth/profile/${state.currentUser.id}`, {
-                    method: 'PUT',
+                const updateResponse = await fetch(`${API_BASE}/${state.currentUser.userId}/fields`, {
+                    method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -2544,7 +2607,7 @@
                 }
 
                 // Update successful
-                state.currentUser = updateData.user;
+                state.currentUser = updateData.data;
                 showResult('editProfileCardResult', `✅ ${updateData.message}`);
                 
                 // Refresh profile view after 1 second

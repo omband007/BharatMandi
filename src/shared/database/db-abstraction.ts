@@ -1,4 +1,4 @@
-import type { User, OTPSession } from '../../features/auth/auth.types';
+import type { OTPSession } from '../../features/profile/types/profile.types';
 import type { Listing } from '../../features/marketplace/marketplace.types';
 import type { Transaction, EscrowAccount } from '../../features/transactions/transaction.types';
 import type { Notification, NotificationTemplate, NotificationType, TranslationFeedback, TranslationFeedbackStats } from '../../features/notifications/notification.types';
@@ -6,6 +6,20 @@ import type { PostgreSQLAdapter } from './pg-adapter';
 import type { SQLiteAdapter } from './sqlite-adapter';
 import type { ConnectionMonitor } from './connection-monitor';
 import type { SyncEngine } from './sync-engine';
+
+// Legacy User type for backward compatibility with old database operations
+// NOTE: New code should use UserProfile from profile.types.ts
+export interface User {
+  id: string;
+  phoneNumber: string;
+  name: string;
+  userType: 'farmer' | 'buyer' | 'both';
+  location: any;
+  bankAccount?: any;
+  languagePreference?: string; // Added for i18n support
+  createdAt: Date;
+  updatedAt?: Date;
+}
 
 /**
  * DatabaseAdapter Interface

@@ -1,5 +1,6 @@
 import { pool } from './pg-config';
-import type { User, OTPSession } from '../../features/auth/auth.types';
+import type { OTPSession } from '../../features/profile/types/profile.types';
+import type { User } from './db-abstraction'; // Legacy User type
 import type { Listing } from '../../features/marketplace/marketplace.types';
 import type { ListingMedia } from '../../features/marketplace/media.types';
 import type { Transaction, EscrowAccount } from '../../features/transactions/transaction.types';

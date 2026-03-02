@@ -7,7 +7,6 @@ import { DatabaseManager } from './shared/database/db-abstraction';
 import { i18nextMiddleware } from './features/i18n/i18n-backend.config';
 
 // Feature controllers
-import { authController } from './features/auth';
 import { gradingController } from './features/grading';
 import { marketplaceController, mediaController } from './features/marketplace';
 import { transactionController } from './features/transactions';
@@ -16,6 +15,8 @@ import { devController } from './features/dev';
 import i18nRoutes from './features/i18n/i18n.routes';
 import { voiceController } from './features/i18n/voice.controller';
 import kisanMitraRoutes from './features/i18n/kisan-mitra.routes';
+import profileRoutes from './features/profile/routes/profile.routes';
+import authRoutes from './features/profile/routes/auth.routes';
 
 const app = express();
 
@@ -100,7 +101,8 @@ app.get('/api/health', (req, res) => {
 });
 
 // Feature routes
-app.use('/api/auth', authController);
+app.use('/api/v1/profiles', profileRoutes); // Profile management routes
+app.use('/api/v1/profiles/auth', authRoutes); // Authentication routes
 app.use('/api/grading', gradingController);
 app.use('/api/marketplace', marketplaceController);
 app.use('/api/marketplace', mediaController); // Media routes under /api/marketplace

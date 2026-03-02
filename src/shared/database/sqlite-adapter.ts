@@ -1,6 +1,7 @@
 import * as sqliteHelpers from './sqlite-helpers';
 import { getSQLiteDB, openSQLiteDB } from './sqlite-config';
-import type { User, OTPSession } from '../../features/auth/auth.types';
+import type { OTPSession } from '../../features/profile/types/profile.types';
+import type { User } from './db-abstraction'; // Legacy User type
 import type { Listing } from '../../features/marketplace/marketplace.types';
 import type { Transaction, EscrowAccount } from '../../features/transactions/transaction.types';
 import type { ListingMedia, MediaOperation, MediaType, UploadStatus, PendingMediaOperation, LocalMediaFile } from '../../features/marketplace/media.types';
@@ -18,27 +19,30 @@ export class SQLiteAdapter implements DatabaseAdapter {
    * @param user - User object to create
    * @param pinHash - Optional hashed PIN for the user
    * @returns Created user object
+   * @deprecated Use UserProfile instead of User
    */
   async createUser(user: User, pinHash?: string): Promise<User> {
-    return await sqliteHelpers.createUser(user, pinHash);
+    throw new Error('createUser is deprecated. Use UserProfile registration instead.');
   }
 
   /**
    * Get user by ID
    * @param id - User ID
    * @returns User object or undefined if not found
+   * @deprecated Use UserProfile instead of User
    */
   async getUserById(id: string): Promise<User | undefined> {
-    return await sqliteHelpers.getUserById(id);
+    throw new Error('getUserById is deprecated. Use UserProfile queries instead.');
   }
 
   /**
    * Get user by phone number
    * @param phoneNumber - User's phone number
    * @returns User object or undefined if not found
+   * @deprecated Use UserProfile instead of User
    */
   async getUserByPhone(phoneNumber: string): Promise<User | undefined> {
-    return await sqliteHelpers.getUserByPhone(phoneNumber);
+    throw new Error('getUserByPhone is deprecated. Use UserProfile queries instead.');
   }
 
   /**
@@ -46,69 +50,77 @@ export class SQLiteAdapter implements DatabaseAdapter {
    * @param userId - User ID to update
    * @param updates - Partial user object with fields to update
    * @returns Updated user object or undefined if not found
+   * @deprecated Use UserProfile instead of User
    */
   async updateUser(userId: string, updates: Partial<User>): Promise<User | undefined> {
-    return await sqliteHelpers.updateUser(userId, updates);
+    throw new Error('updateUser is deprecated. Use UserProfile updates instead.');
   }
 
   /**
    * Get all users
    * @returns Array of all users
+   * @deprecated Use UserProfile instead of User
    */
   async getAllUsers(): Promise<User[]> {
-    return await sqliteHelpers.getAllUsers();
+    throw new Error('getAllUsers is deprecated. Use UserProfile queries instead.');
   }
 
   /**
    * Get user's PIN hash
    * @param phoneNumber - User's phone number
    * @returns PIN hash or undefined if not found
+   * @deprecated Use UserProfile auth service instead
    */
   async getUserPinHash(phoneNumber: string): Promise<string | undefined> {
-    return await sqliteHelpers.getUserPinHash(phoneNumber);
+    throw new Error('getUserPinHash is deprecated. Use UserProfile auth service instead.');
   }
 
   /**
    * Update user's PIN
    * @param phoneNumber - User's phone number
    * @param pinHash - New hashed PIN
+   * @deprecated Use UserProfile auth service instead
    */
   async updateUserPin(phoneNumber: string, pinHash: string): Promise<void> {
-    return await sqliteHelpers.updateUserPin(phoneNumber, pinHash);
+    throw new Error('updateUserPin is deprecated. Use UserProfile auth service instead.');
   }
 
   /**
    * Get failed login attempts for a user
    * @param phoneNumber - User's phone number
    * @returns Object with failed_attempts and locked_until or undefined
+   * @deprecated Use UserProfile auth service instead
    */
   async getFailedAttempts(phoneNumber: string): Promise<{ failed_attempts: number; locked_until?: string } | undefined> {
-    return await sqliteHelpers.getFailedAttempts(phoneNumber);
+    throw new Error('getFailedAttempts is deprecated. Use UserProfile auth service instead.');
   }
 
   /**
    * Increment failed login attempts
    * @param phoneNumber - User's phone number
+   * @deprecated Use UserProfile auth service instead
    */
   async incrementFailedAttempts(phoneNumber: string): Promise<void> {
-    return await sqliteHelpers.incrementFailedAttempts(phoneNumber);
+    throw new Error('incrementFailedAttempts is deprecated. Use UserProfile auth service instead.');
   }
 
   /**
    * Reset failed login attempts
    * @param phoneNumber - User's phone number
+   * @deprecated Use UserProfile auth service instead
    */
   async resetFailedAttempts(phoneNumber: string): Promise<void> {
-    return await sqliteHelpers.resetFailedAttempts(phoneNumber);
+    throw new Error('resetFailedAttempts is deprecated. Use UserProfile auth service instead.');
   }
 
   /**
    * Lock user account until specified time
    * @param phoneNumber - User's phone number
    * @param lockUntil - Date until which account should be locked
+   * @deprecated Use UserProfile auth service instead
    */
   async lockAccount(phoneNumber: string, lockUntil: Date): Promise<void> {
-    return await sqliteHelpers.lockAccount(phoneNumber, lockUntil);
+    throw new Error('lockAccount is deprecated. Use UserProfile auth service instead.');
   }
 
   /**

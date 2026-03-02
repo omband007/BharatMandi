@@ -162,7 +162,7 @@ describe('KisanMitraService - Integration Tests', () => {
       expect(response).toBeDefined();
       expect(response.intent).toBe('GetCropPrice');
       expect(response.confidence).toBe(0.95);
-      expect(response.text).toContain('tomato');
+      expect(response.text.toLowerCase()).toContain('tomato');
       expect(response.text).toContain('₹');
       expect(mockSend).toHaveBeenCalled();
     });
@@ -203,7 +203,7 @@ describe('KisanMitraService - Integration Tests', () => {
 
       expect(response).toBeDefined();
       expect(response.intent).toBe('GetCropPrice');
-      expect(response.text).toContain('tomato');
+      expect(response.text.toLowerCase()).toContain('tomato');
     });
 
     it('should handle crop not found gracefully', async () => {

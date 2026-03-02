@@ -67,7 +67,19 @@ const TrustScoreHistorySchema = new Schema({
 
 export const UserProfileSchema = new Schema({
   userId: { type: String, required: true, unique: true, index: true },
-  mobileNumber: { type: String, required: true, unique: true, index: true },
+  mobileNumber: { 
+    type: String, 
+    required: true, 
+    unique: true, 
+    index: true,
+    // Stores E.164 format (e.g., +919876543210, +447700900123)
+  },
+  countryCode: { 
+    type: String, 
+    required: true,
+    index: true,
+    // Stores country calling code (e.g., +91, +44, +1)
+  },
   mobileVerified: { type: Boolean, default: false },
   
   // Basic Information
@@ -90,6 +102,13 @@ export const UserProfileSchema = new Schema({
   
   // Financial
   bankAccount: { type: BankAccountSchema },
+  
+  // Authentication & Security
+  pinHash: { type: String },  // bcrypt hash of PIN
+  biometricEnabled: { type: Boolean, default: false },
+  failedLoginAttempts: { type: Number, default: 0, min: 0 },  // Counter for failed PIN/biometric attempts
+  lockedUntil: { type: Date },  // Account lockout timestamp
+  lastLoginAt: { type: Date },  // Last successful login
   
   // Metadata
   completionPercentage: { type: Number, default: 10, min: 0, max: 105 },
@@ -129,6 +148,8 @@ export const UserProfileSchema = new Schema({
 UserProfileSchema.index({ membershipTier: 1, 'points.lifetime': -1 });
 UserProfileSchema.index({ trustScore: -1 });
 UserProfileSchema.index({ completionPercentage: 1 });
+UserProfileSchema.index({ countryCode: 1 });  // For analytics
+UserProfileSchema.index({ lockedUntil: 1 });  // For lockout queries
 
 // ============================================================================
 // PROMPT TRACKING SCHEMA

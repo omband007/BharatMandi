@@ -1,9 +1,22 @@
 // In-memory database for POC
 import { UserType } from '../types/common.types';
-import type { User } from '../../features/auth/auth.types';
 import type { DigitalQualityCertificate } from '../../features/grading/grading.types';
 import type { Listing } from '../../features/marketplace/marketplace.types';
 import type { Transaction, EscrowAccount } from '../../features/transactions/transaction.types';
+
+// Legacy User type for backward compatibility with old database operations
+// NOTE: New code should use UserProfile from profile.types.ts
+export interface User {
+  id: string;
+  phoneNumber: string;
+  name: string;
+  userType: UserType;
+  location: any;
+  bankAccount?: any;
+  languagePreference?: string; // Added for i18n support
+  createdAt: Date;
+  updatedAt?: Date;
+}
 
 class MemoryDatabase {
   private users: Map<string, User> = new Map();

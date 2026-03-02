@@ -4,7 +4,12 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   rootDir: path.join(__dirname, '..'),
-  testMatch: ['<rootDir>/src/**/__tests__/**/*.ts', '<rootDir>/src/**/?(*.)+(spec|test).ts'],
+  testMatch: [
+    '<rootDir>/src/**/__tests__/**/*.test.ts',
+    '<rootDir>/src/**/__tests__/**/*.pbt.test.ts',
+    '<rootDir>/src/**/__tests__/**/*.integration.test.ts',
+    '<rootDir>/src/**/?(*.)+(spec|test).ts'
+  ],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/__tests__/**',

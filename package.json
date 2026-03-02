@@ -64,6 +64,7 @@
     "i18next-http-backend": "^3.0.2",
     "i18next-http-middleware": "^3.9.2",
     "jsonwebtoken": "^9.0.3",
+    "libphonenumber-js": "^1.12.38",
     "mongoose": "^8.23.0",
     "multer": "^2.0.2",
     "node-fetch": "^2.7.0",

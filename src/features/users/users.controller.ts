@@ -50,11 +50,14 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
     
+    // Normalize user type to lowercase for legacy User type
+    const normalizedType = (type as string).toLowerCase() as 'farmer' | 'buyer' | 'both';
+    
     const user = {
       id: uuidv4(),
       name,
       phoneNumber: userPhone,
-      userType: type as UserType,
+      userType: normalizedType,
       location: typeof location === 'string' ? { address: location, latitude: 0, longitude: 0 } : location,
       createdAt: new Date()
     };

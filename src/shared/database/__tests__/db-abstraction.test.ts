@@ -1,5 +1,4 @@
 import { DatabaseManager } from '../db-abstraction';
-import { UserType } from '../../../shared/types/common.types';
 
 describe('DatabaseManager', () => {
   let dbManager: DatabaseManager;
@@ -110,7 +109,7 @@ describe('DatabaseManager', () => {
       id: '123e4567-e89b-12d3-a456-426614174000',
       phoneNumber: '9876543210',
       name: 'Test User',
-      userType: UserType.FARMER,
+      userType: 'farmer' as const,
       location: {
         latitude: 28.7041,
         longitude: 77.1025,
@@ -355,7 +354,7 @@ describe('DatabaseManager', () => {
       id: '123e4567-e89b-12d3-a456-426614174000',
       phoneNumber: '9876543210',
       name: 'Test User',
-      userType: UserType.FARMER,
+      userType: 'farmer' as const,
       location: {
         latitude: 28.7041,
         longitude: 77.1025,

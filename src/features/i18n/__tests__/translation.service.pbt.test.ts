@@ -183,8 +183,8 @@ describe('TranslationService - Property-Based Tests', () => {
 
       await fc.assert(
         fc.asyncProperty(
-          fc.unicodeString({ minLength: 1, maxLength: 200 }),
-          async (text) => {
+          fc.string({ minLength: 1, maxLength: 200 }),
+          async (text: string) => {
             const redis = getRedisClient();
             const cacheKey = service.generateCacheKey(text, 'en', 'hi');
             
@@ -220,11 +220,11 @@ describe('TranslationService - Property-Based Tests', () => {
   });
 
   describe('Property: Language Detection Consistency', () => {
-    it('should return "en" for all short texts (< 20 chars)', () => {
-      fc.assert(
-        fc.property(
+    it('should return "en" for all short texts (< 20 chars)', async () => {
+      await fc.assert(
+        fc.asyncProperty(
           fc.string({ minLength: 0, maxLength: 19 }),
-          async (text) => {
+          async (text: string) => {
             const detected = await service.detectLanguage(text);
             return detected === 'en';
           }

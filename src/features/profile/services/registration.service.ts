@@ -5,43 +5,89 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
+import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
 import { UserProfileModel } from '../models/profile.model';
-import { DatabaseManager } from '../../../shared/database/database-manager';
+import * as sqliteHelpers from '../../../shared/database/sqlite-helpers';
 import { VALIDATION_RULES, TRUST_SCORE_RULES, DEFAULT_PRIVACY_SETTINGS } from '../constants/profile.constants';
-import type { UserProfile, RegisterRequest, RegisterResponse, VerifyOTPRequest, VerifyOTPResponse } from '../types/profile.types';
-import type { OTPSession } from '../../auth/auth.types';
+import * as authService from './auth.service';
+import type { UserProfile, RegisterRequest, RegisterResponse, VerifyOTPRequest, VerifyOTPResponse, PrivacyLevel, OTPSession } from '../types/profile.types';
 
 export class RegistrationService {
-  private dbManager: DatabaseManager;
   private otpExpiryMinutes = 10;
   private maxOTPAttempts = 3;
 
   constructor() {
-    this.dbManager = DatabaseManager.getInstance();
+    // No initialization needed - using sqliteHelpers directly
   }
 
   /**
-   * Validate Indian mobile number format
+   * Validate and normalize mobile number (international format support)
+   * 
+   * Accepts:
+   * - 10 digits (assumes India +91): "9876543210" → "+919876543210"
+   * - Full international format: "+447700900123", "+919876543210"
+   * 
+   * Returns normalized E.164 format and country code
    */
-  validateMobileNumber(mobileNumber: string): { valid: boolean; error?: string } {
+  validateMobileNumber(mobileNumber: string): { 
+    valid: boolean; 
+    normalized?: string; 
+    countryCode?: string;
+    error?: string;
+  } {
     // Remove any spaces or dashes
     const cleaned = mobileNumber.replace(/[\s-]/g, '');
 
-    if (cleaned.length !== VALIDATION_RULES.MOBILE_NUMBER.LENGTH) {
+    // Case 1: 10-digit Indian number (legacy support)
+    if (cleaned.length === VALIDATION_RULES.MOBILE_NUMBER.LENGTH && !cleaned.startsWith('+')) {
+      // Validate Indian mobile format (starts with 6-9)
+      if (!VALIDATION_RULES.MOBILE_NUMBER.PATTERN.test(cleaned)) {
+        return {
+          valid: false,
+          error: 'Invalid Indian mobile number format. Must start with 6-9'
+        };
+      }
+
+      // Normalize to E.164 format with +91
       return {
-        valid: false,
-        error: `Mobile number must be ${VALIDATION_RULES.MOBILE_NUMBER.LENGTH} digits`
+        valid: true,
+        normalized: `+91${cleaned}`,
+        countryCode: 'IN'
       };
     }
 
-    if (!VALIDATION_RULES.MOBILE_NUMBER.PATTERN.test(cleaned)) {
-      return {
-        valid: false,
-        error: 'Invalid Indian mobile number format. Must start with 6-9'
-      };
+    // Case 2: Full international format (starts with +)
+    if (cleaned.startsWith('+')) {
+      try {
+        // Validate using libphonenumber-js
+        if (!isValidPhoneNumber(cleaned)) {
+          return {
+            valid: false,
+            error: 'Invalid international phone number format'
+          };
+        }
+
+        // Parse to get country code and normalized format
+        const phoneNumber = parsePhoneNumber(cleaned);
+        
+        return {
+          valid: true,
+          normalized: phoneNumber.number, // E.164 format
+          countryCode: phoneNumber.country
+        };
+      } catch (error) {
+        return {
+          valid: false,
+          error: 'Failed to parse international phone number'
+        };
+      }
     }
 
-    return { valid: true };
+    // Invalid format
+    return {
+      valid: false,
+      error: 'Mobile number must be 10 digits (Indian) or full international format with country code (e.g., +447700900123)'
+    };
   }
 
   /**
@@ -101,14 +147,16 @@ export class RegistrationService {
   async register(request: RegisterRequest): Promise<RegisterResponse> {
     const { mobileNumber, referralCode } = request;
 
-    // Validate mobile number format
+    // Validate and normalize mobile number
     const validation = this.validateMobileNumber(mobileNumber);
     if (!validation.valid) {
       throw new Error(validation.error);
     }
 
-    // Check if user already exists
-    const existingUser = await UserProfileModel.findOne({ mobileNumber });
+    const normalizedMobile = validation.normalized!;
+
+    // Check if user already exists (using normalized mobile number)
+    const existingUser = await UserProfileModel.findOne({ mobileNumber: normalizedMobile });
     if (existingUser) {
       throw new Error('User with this mobile number already exists');
     }
@@ -125,56 +173,54 @@ export class RegistrationService {
     const otp = this.generateOTP();
     const expiresAt = new Date(Date.now() + this.otpExpiryMinutes * 60 * 1000);
 
-    // Create OTP session
+    // Create OTP session (use normalized mobile number)
     const otpSession: OTPSession = {
-      phoneNumber: mobileNumber,
+      phoneNumber: normalizedMobile,
       otp,
       expiresAt,
       attempts: 0
     };
 
-    await this.dbManager.createOTPSession(otpSession);
+    await sqliteHelpers.createOTPSession(otpSession);
 
     // Send OTP
-    const otpSent = await this.sendOTP(mobileNumber, otp);
-
-    // Generate temporary userId for OTP verification
-    const userId = uuidv4();
+    const otpSent = await this.sendOTP(normalizedMobile, otp);
 
     return {
-      userId,
+      userId: normalizedMobile, // Return normalized mobile number as userId for OTP verification
       otpSent
     };
   }
 
   /**
    * Verify OTP and create user profile
+   * After verification, offer optional PIN and biometric setup
    */
   async verifyOTP(request: VerifyOTPRequest): Promise<VerifyOTPResponse> {
     const { userId, otp } = request;
 
     // Get OTP session
-    const session = await this.dbManager.getOTPSession(userId);
+    const session = await sqliteHelpers.getOTPSession(userId);
     if (!session) {
       throw new Error('OTP session not found or expired');
     }
 
     // Check if OTP has expired
     if (new Date() > session.expiresAt) {
-      await this.dbManager.deleteOTPSession(session.phoneNumber);
+      await sqliteHelpers.deleteOTPSession(session.phoneNumber);
       throw new Error('OTP has expired. Please request a new one');
     }
 
     // Check attempts
     if (session.attempts >= this.maxOTPAttempts) {
-      await this.dbManager.deleteOTPSession(session.phoneNumber);
+      await sqliteHelpers.deleteOTPSession(session.phoneNumber);
       throw new Error('Maximum OTP attempts exceeded. Please request a new OTP');
     }
 
     // Verify OTP
     if (session.otp !== otp) {
       // Increment attempts
-      await this.dbManager.updateOTPAttempts(session.phoneNumber, session.attempts + 1);
+      await sqliteHelpers.updateOTPAttempts(session.phoneNumber, session.attempts + 1);
       throw new Error('Invalid OTP');
     }
 
@@ -182,24 +228,40 @@ export class RegistrationService {
     const profile = await this.createInitialProfile(session.phoneNumber);
 
     // Delete OTP session
-    await this.dbManager.deleteOTPSession(session.phoneNumber);
+    await sqliteHelpers.deleteOTPSession(session.phoneNumber);
+
+    // Generate JWT token for authenticated session
+    const token = authService.generateToken(profile);
 
     return {
       verified: true,
-      profile
+      profile,
+      token  // Return JWT token for immediate authentication
     };
   }
 
   /**
    * Create initial user profile with default values
+   * Stores mobile number in E.164 international format
    */
   private async createInitialProfile(mobileNumber: string): Promise<UserProfile> {
     const userId = uuidv4();
     const referralCode = await this.generateReferralCode();
 
+    // Extract country code from E.164 format
+    let countryCode: string | undefined;
+    try {
+      const phoneNumber = parsePhoneNumber(mobileNumber);
+      countryCode = phoneNumber.country;
+    } catch (error) {
+      console.warn('[RegistrationService] Failed to extract country code:', error);
+      // Default to India if parsing fails
+      countryCode = 'IN';
+    }
+
     const profile: UserProfile = {
       userId,
-      mobileNumber,
+      mobileNumber,  // Already in E.164 format (e.g., +919876543210, +447700900123)
       mobileVerified: true,
       
       // Optional fields - all null initially
@@ -240,24 +302,42 @@ export class RegistrationService {
         change: TRUST_SCORE_RULES.INITIAL,
         reason: 'Initial registration',
         newScore: TRUST_SCORE_RULES.INITIAL
-      }]
+      }],
+
+      // Authentication fields - initialized for optional PIN/biometric setup
+      pinHash: undefined,
+      biometricEnabled: false,
+      failedLoginAttempts: 0,
+      lockedUntil: undefined,
+      lastLoginAt: new Date()
     };
 
     // Save to database
     const savedProfile = await UserProfileModel.create(profile);
 
-    return savedProfile.toObject() as UserProfile;
+    // Convert Map to Record for type compatibility
+    const privacySettingsObj: Record<string, PrivacyLevel> = {};
+    savedProfile.privacySettings.forEach((value, key) => {
+      privacySettingsObj[key] = value as PrivacyLevel;
+    });
+
+    return {
+      ...savedProfile.toObject(),
+      privacySettings: privacySettingsObj
+    } as UserProfile;
   }
 
   /**
    * Resend OTP
    */
   async resendOTP(mobileNumber: string): Promise<boolean> {
-    // Validate mobile number
+    // Validate and normalize mobile number
     const validation = this.validateMobileNumber(mobileNumber);
     if (!validation.valid) {
       throw new Error(validation.error);
     }
+
+    const normalizedMobile = validation.normalized!;
 
     // Generate new OTP
     const otp = this.generateOTP();
@@ -265,15 +345,15 @@ export class RegistrationService {
 
     // Create new OTP session (this will delete the old one)
     const otpSession: OTPSession = {
-      phoneNumber: mobileNumber,
+      phoneNumber: normalizedMobile,
       otp,
       expiresAt,
       attempts: 0
     };
 
-    await this.dbManager.createOTPSession(otpSession);
+    await sqliteHelpers.createOTPSession(otpSession);
 
     // Send OTP
-    return await this.sendOTP(mobileNumber, otp);
+    return await this.sendOTP(normalizedMobile, otp);
   }
 }

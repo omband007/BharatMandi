@@ -1,0 +1,877 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Management Test - Bharat Mandi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .brand-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand-logo {
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+        }
+
+        .brand-text {
+            text-align: left;
+        }
+
+        .brand-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            line-height: 1.2;
+            margin: 0;
+        }
+
+        .brand-subtitle {
+            font-size: 0.85rem;
+            color: white;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .nav-link {
+            padding: 8px 20px;
+            color: #666;
+            text-decoration: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            background: #f0f0f0;
+            color: #667eea;
+        }
+
+        .nav-link.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .info-card {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .info-card p {
+            color: #666;
+            font-size: 14px;
+            margin: 0 0 3px 0;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="brand-header">
+            <div class="brand-logo-container">
+                <svg class="brand-logo" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 35 Q12 25 18 22 Q22 25 20 35 Q18 40 14 42 Z" fill="#FF9933"/>
+                    <path d="M13 28 Q15 32 13 37" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
+                    <path d="M25 15 Q28 10 30 8 Q32 10 35 15 Q33 30 30 35 Q27 30 25 15 Z" fill="white" stroke="#FF9933" stroke-width="1.5"/>
+                    <line x1="30" y1="12" x2="30" y2="32" stroke="#003DA5" stroke-width="1.5"/>
+                    <path d="M40 22 Q43 25 46 30 Q48 36 46 40 Q42 42 38 37 Q37 28 40 22 Z" fill="#138808"/>
+                    <path d="M41 28 Q43 32 42 37" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
+                    <rect x="28" y="35" width="4" height="15" fill="#8B4513" rx="1"/>
+                    <path d="M18 45 Q30 48 42 45" stroke="#138808" stroke-width="2" fill="none" opacity="0.6"/>
+                </svg>
+                <div class="brand-text">
+                    <div class="brand-title">Bharat Mandi</div>
+                    <div class="brand-subtitle">AI Powered Marketplace</div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="nav-bar">
+            <a href="/" class="nav-link">Main</a>
+            <a href="/profile-test.html" class="nav-link active">Profile</a>
+            <a href="/media-test.html" class="nav-link">Media</a>
+            <a href="/language-test.html" class="nav-link">Localization</a>
+            <a href="/translation-test.html" class="nav-link">Translation</a>
+            <a href="/voice-test.html" class="nav-link">Voice</a>
+            <a href="/voice-integration-demo.html" class="nav-link">Voice Integration</a>
+            <a href="/kisan-mitra-test.html" class="nav-link">Kisan Mitra</a>
+            <a href="/data-purge.html" class="nav-link">Data</a>
+        </nav>
+
+        <div class="info-card">
+            <p><strong>✨ Registration & Authentication:</strong></p>
+            <p>✓ Minimal registration - only mobile number required</p>
+            <p>✓ OTP-based mobile verification (6-digit code)</p>
+            <p>✓ Optional referral code support</p>
+            <p>✓ Automatic profile creation after OTP verification</p>
+            <p>✓ JWT token generation for authenticated sessions</p>
+            
+            <p style="margin-top: 15px;"><strong>✨ Profile Management:</strong></p>
+            <p>✓ Progressive profile data collection</p>
+            <p>✓ Profile completeness tracking (starts at 10%)</p>
+            <p>✓ Field-level profile updates</p>
+            <p>✓ Profile data export (JSON download)</p>
+            
+            <p style="margin-top: 15px;"><strong>✨ Security Features:</strong></p>
+            <p>✓ PIN setup (4-6 digits) for secure login</p>
+            <p>✓ PIN-based authentication</p>
+            <p>✓ Biometric authentication support</p>
+            <p>✓ Account lockout protection (3 failed attempts → 30 min lockout)</p>
+            <p>✓ JWT token verification and validation</p>
+            
+            <p style="margin-top: 15px;"><strong>🔐 Complete Flow:</strong></p>
+            <p>Register (mobile only) → Verify OTP → Profile Created → Setup PIN → Login with PIN/Biometric</p>
+        </div>
+
+        <!-- Step 1: Register -->
+        <div class="card">
+            <h2><span class="step-number">1</span> Register with Mobile</h2>
+            <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                Registration only requires your mobile number. An OTP will be sent for verification.
+            </p>
+            <div class="form-group">
+                <label>Mobile Number (10 digits)</label>
+                <input type="tel" id="regMobile" placeholder="9876543210" maxlength="10">
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    Enter 10-digit mobile number (without +91) or full international format
+                </small>
+            </div>
+            <div class="form-group">
+                <label>Referral Code (Optional)</label>
+                <input type="text" id="regReferral" placeholder="Leave empty if you don't have one">
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    If someone referred you, enter their referral code here
+                </small>
+            </div>
+            <button onclick="register()">Send OTP</button>
+            <div id="regResult" class="result"></div>
+        </div>
+
+        <!-- Step 2: Verify OTP -->
+        <div class="card">
+            <h2><span class="step-number">2</span> Verify OTP</h2>
+            <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                After registration, verify the OTP sent to your mobile number. Your profile will be created automatically.
+            </p>
+            <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="text" id="verifyUserId" placeholder="Auto-filled after registration" readonly>
+            </div>
+            <div class="form-group">
+                <label>OTP Code (6 digits)</label>
+                <input type="text" id="verifyOTP" placeholder="Check server console for OTP" maxlength="6">
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    In production, OTP would be sent via SMS. For testing, check the server console.
+                </small>
+            </div>
+            <button onclick="verifyOTP()">Verify OTP & Create Profile</button>
+            <div id="verifyResult" class="result"></div>
+        </div>
+
+        <!-- Step 3: Get Profile -->
+        <div class="card">
+            <h2><span class="step-number">3</span> Get Profile</h2>
+            <div class="form-group">
+                <label>User ID (Mobile Number)</label>
+                <input type="text" id="getProfileUserId" placeholder="Auto-filled after verification" readonly>
+            </div>
+            <button onclick="getProfile()">Fetch Profile</button>
+            <div id="getProfileResult" class="result"></div>
+        </div>
+
+        <!-- Step 4: Update Profile -->
+        <div class="card">
+            <h2><span class="step-number">4</span> Update Profile Field</h2>
+            <div class="form-group">
+                <label>User ID (Mobile Number)</label>
+                <input type="text" id="updateUserId" placeholder="Auto-filled after verification" readonly>
+            </div>
+            <div class="form-group">
+                <label>Field to Update</label>
+                <select id="updateFieldName">
+                    <option value="">-- Select field --</option>
+                    <option value="name">Name</option>
+                    <option value="userType">User Type (farmer/buyer/both)</option>
+                    <option value="languagePreference">Language Preference</option>
+                    <option value="location.address">Location Address</option>
+                    <option value="location.coordinates.latitude">Latitude</option>
+                    <option value="location.coordinates.longitude">Longitude</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>New Value</label>
+                <input type="text" id="updateFieldValue" placeholder="Enter new value">
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    For userType: use "farmer", "buyer", or "both"
+                </small>
+            </div>
+            <button onclick="updateProfile()">Update Field</button>
+            <div id="updateResult" class="result"></div>
+        </div>
+
+        <!-- Step 5: Setup PIN -->
+        <div class="card">
+            <h2><span class="step-number">5</span> Setup PIN</h2>
+            <div class="form-group">
+                <label>User ID (Mobile Number)</label>
+                <input type="text" id="setupPinUserId" placeholder="Auto-filled after verification" readonly>
+            </div>
+            <div class="form-group">
+                <label>PIN (4-6 digits)</label>
+                <input type="password" id="setupPin" placeholder="1234" maxlength="6" pattern="[0-9]*" inputmode="numeric">
+            </div>
+            <div class="form-group">
+                <label>Confirm PIN</label>
+                <input type="password" id="setupConfirmPin" placeholder="1234" maxlength="6" pattern="[0-9]*" inputmode="numeric">
+            </div>
+            <button onclick="setupPIN()">Setup PIN</button>
+            <div id="setupPinResult" class="result"></div>
+        </div>
+
+        <!-- Step 6: Login with PIN -->
+        <div class="card">
+            <h2><span class="step-number">6</span> Login with PIN</h2>
+            <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="tel" id="loginMobile" placeholder="9876543210" maxlength="10">
+            </div>
+            <div class="form-group">
+                <label>PIN</label>
+                <input type="password" id="loginPin" placeholder="Enter your PIN" maxlength="6" pattern="[0-9]*" inputmode="numeric">
+            </div>
+            <button onclick="loginWithPIN()">Login with PIN</button>
+            <div id="loginPinResult" class="result"></div>
+        </div>
+
+        <!-- Step 7: Login with Biometric -->
+        <div class="card">
+            <h2><span class="step-number">7</span> Login with Biometric</h2>
+            <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="tel" id="biometricMobile" placeholder="9876543210" maxlength="10">
+            </div>
+            <small style="color: #666; display: block; margin-bottom: 10px;">
+                Note: In production, biometric verification happens on the device first
+            </small>
+            <button onclick="loginWithBiometric()">Login with Biometric</button>
+            <div id="loginBiometricResult" class="result"></div>
+        </div>
+
+        <!-- Step 8: Verify Token -->
+        <div class="card">
+            <h2><span class="step-number">8</span> Verify JWT Token</h2>
+            <div class="form-group">
+                <label>JWT Token</label>
+                <input type="text" id="verifyToken" placeholder="Paste JWT token here">
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    Token is returned after successful login
+                </small>
+            </div>
+            <button onclick="verifyToken()">Verify Token</button>
+            <div id="verifyTokenResult" class="result"></div>
+        </div>
+
+        <!-- Step 9: Enable/Disable Biometric -->
+        <div class="card">
+            <h2><span class="step-number">9</span> Biometric Management</h2>
+            <div class="form-group">
+                <label>User ID (Mobile Number)</label>
+                <input type="text" id="biometricUserId" placeholder="Auto-filled after verification" readonly>
+            </div>
+            <button onclick="enableBiometric()" style="background: #28a745; margin-right: 10px;">Enable Biometric</button>
+            <button onclick="disableBiometric()" style="background: #dc3545;">Disable Biometric</button>
+            <div id="biometricMgmtResult" class="result"></div>
+        </div>
+
+        <!-- Step 10: Export Profile -->
+        <div class="card">
+            <h2><span class="step-number">10</span> Export Profile Data</h2>
+            <div class="form-group">
+                <label>User ID (Mobile Number)</label>
+                <input type="text" id="exportUserId" placeholder="Auto-filled after verification" readonly>
+            </div>
+            <button onclick="exportProfile()">Export as JSON</button>
+            <div id="exportResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api/v1/profiles';
+        const API_AUTH = 'http://localhost:3000/api/v1/profiles/auth';
+        let sessionUserId = null;
+        let sessionToken = null;
+
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.className = `result ${isError ? 'error' : 'success'}`;
+            
+            if (typeof data === 'string') {
+                element.innerHTML = data;
+            } else {
+                element.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+        }
+
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            try {
+                const options = {
+                    method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+
+                const response = await fetch(endpoint, options);
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Request failed');
+                }
+
+                return data;
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        function formatMobileNumber(mobile) {
+            // Remove any non-digit characters
+            mobile = mobile.replace(/\D/g, '');
+            
+            // If it's 10 digits, add +91
+            if (mobile.length === 10) {
+                return `+91${mobile}`;
+            }
+            
+            // If it already has country code
+            if (mobile.startsWith('91') && mobile.length === 12) {
+                return `+${mobile}`;
+            }
+            
+            // If it already has +91
+            if (mobile.startsWith('+91')) {
+                return mobile;
+            }
+            
+            return mobile;
+        }
+
+        async function register() {
+            const mobileNumber = document.getElementById('regMobile').value.trim();
+            const referralCode = document.getElementById('regReferral').value.trim();
+
+            if (!mobileNumber) {
+                showResult('regResult', '❌ Please enter a mobile number', true);
+                return;
+            }
+
+            // Validate mobile number format (10 digits or international format)
+            const isIndianFormat = /^[6-9]\d{9}$/.test(mobileNumber);
+            const isInternationalFormat = /^\+\d{10,15}$/.test(mobileNumber);
+
+            if (!isIndianFormat && !isInternationalFormat) {
+                showResult('regResult', '❌ Invalid mobile number format. Enter 10 digits (6-9 start) or international format (+country code)', true);
+                return;
+            }
+
+            try {
+                showResult('regResult', '🔄 Sending OTP...', false);
+                
+                const requestBody: any = { mobileNumber };
+                
+                // Only include referralCode if it's not empty
+                if (referralCode) {
+                    requestBody.referralCode = referralCode;
+                }
+                
+                const data = await apiCall(`${API_BASE}/register`, 'POST', requestBody);
+
+                sessionUserId = data.data.userId;
+                
+                // Auto-fill user ID in other forms
+                document.getElementById('verifyUserId').value = data.data.userId;
+                document.getElementById('getProfileUserId').value = data.data.userId;
+                document.getElementById('updateUserId').value = data.data.userId;
+                document.getElementById('exportUserId').value = data.data.userId;
+                document.getElementById('setupPinUserId').value = data.data.userId;
+                document.getElementById('biometricUserId').value = data.data.userId;
+
+                showResult('regResult', 
+                    `✅ OTP sent successfully!<br>
+                    <strong>Mobile:</strong> ${data.data.userId}<br>
+                    ${referralCode ? `<strong>Referral Code:</strong> ${referralCode}<br>` : ''}
+                    <strong>⚠️ Check server console for OTP code</strong><br>
+                    <small style="color: #666;">In production, OTP would be sent via SMS</small>`, 
+                    false);
+                
+                console.log('📱 OTP sent! Check server console for the code');
+                console.log('Mobile:', data.data.userId);
+            } catch (error) {
+                showResult('regResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function verifyOTP() {
+            const userId = document.getElementById('verifyUserId').value.trim();
+            const otp = document.getElementById('verifyOTP').value.trim();
+
+            if (!userId || !otp) {
+                showResult('verifyResult', '❌ Please enter mobile number and OTP', true);
+                return;
+            }
+
+            if (otp.length !== 6) {
+                showResult('verifyResult', '❌ OTP must be 6 digits', true);
+                return;
+            }
+
+            try {
+                showResult('verifyResult', '🔄 Verifying OTP...', false);
+                
+                const data = await apiCall(`${API_BASE}/verify-otp`, 'POST', {
+                    userId,
+                    otp
+                });
+
+                sessionUserId = data.data.profile.userId;
+                sessionToken = data.data.token;
+                
+                // Auto-fill user ID in other forms
+                document.getElementById('getProfileUserId').value = data.data.profile.userId;
+                document.getElementById('updateUserId').value = data.data.profile.userId;
+                document.getElementById('exportUserId').value = data.data.profile.userId;
+                document.getElementById('setupPinUserId').value = data.data.profile.userId;
+                document.getElementById('biometricUserId').value = data.data.profile.userId;
+                document.getElementById('verifyToken').value = data.data.token;
+
+                showResult('verifyResult', 
+                    `✅ Profile created successfully!<br>
+                    <strong>User ID:</strong> ${data.data.profile.userId}<br>
+                    <strong>Mobile:</strong> ${data.data.profile.mobileNumber}<br>
+                    <strong>Mobile Verified:</strong> ✓<br>
+                    <strong>Completion:</strong> ${data.data.profile.completionPercentage}%<br>
+                    <strong>Referral Code:</strong> ${data.data.profile.referralCode}<br>
+                    <strong>JWT Token:</strong> ${data.data.token.substring(0, 30)}...<br>
+                    <strong>Created:</strong> ${new Date(data.data.profile.createdAt).toLocaleString()}<br>
+                    <br>
+                    <small style="color: #666;">✨ Your profile is ready! You can now setup a PIN for secure login.</small>`, 
+                    false);
+            } catch (error) {
+                showResult('verifyResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function getProfile() {
+            const userId = document.getElementById('getProfileUserId').value.trim();
+
+            if (!userId) {
+                showResult('getProfileResult', '❌ Please enter user ID', true);
+                return;
+            }
+
+            try {
+                showResult('getProfileResult', '🔄 Loading profile...', false);
+                
+                const data = await apiCall(`${API_BASE}/${userId}`);
+                
+                showResult('getProfileResult', data.data, false);
+            } catch (error) {
+                showResult('getProfileResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function updateProfile() {
+            const userId = document.getElementById('updateUserId').value.trim();
+            const fieldName = document.getElementById('updateFieldName').value;
+            const value = document.getElementById('updateFieldValue').value.trim();
+
+            if (!userId || !fieldName || !value) {
+                showResult('updateResult', '❌ Please fill all fields', true);
+                return;
+            }
+
+            try {
+                showResult('updateResult', '🔄 Updating profile...', false);
+                
+                const data = await apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
+                    fieldName,
+                    value
+                });
+
+                showResult('updateResult', 
+                    `✅ Profile updated successfully!<br>
+                    <strong>Field:</strong> ${fieldName}<br>
+                    <strong>New Value:</strong> ${value}<br>
+                    <strong>Completion:</strong> ${data.data.profile.completionPercentage}%`, 
+                    false);
+            } catch (error) {
+                showResult('updateResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function setupPIN() {
+            const userId = document.getElementById('setupPinUserId').value.trim();
+            const pin = document.getElementById('setupPin').value.trim();
+            const confirmPin = document.getElementById('setupConfirmPin').value.trim();
+
+            if (!userId || !pin || !confirmPin) {
+                showResult('setupPinResult', '❌ Please fill all fields', true);
+                return;
+            }
+
+            if (pin !== confirmPin) {
+                showResult('setupPinResult', '❌ PINs do not match', true);
+                return;
+            }
+
+            if (pin.length < 4 || pin.length > 6) {
+                showResult('setupPinResult', '❌ PIN must be 4-6 digits', true);
+                return;
+            }
+
+            try {
+                showResult('setupPinResult', '🔄 Setting up PIN...', false);
+                
+                const data = await apiCall(`${API_AUTH}/setup-pin`, 'POST', {
+                    userId,
+                    pin,
+                    confirmPin
+                });
+
+                showResult('setupPinResult', 
+                    `✅ ${data.message}<br>
+                    <strong>User ID:</strong> ${userId}<br>
+                    You can now login with PIN!`, 
+                    false);
+            } catch (error) {
+                showResult('setupPinResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function loginWithPIN() {
+            const mobileNumber = document.getElementById('loginMobile').value.trim();
+            const pin = document.getElementById('loginPin').value.trim();
+
+            if (!mobileNumber || !pin) {
+                showResult('loginPinResult', '❌ Please enter mobile number and PIN', true);
+                return;
+            }
+
+            try {
+                showResult('loginPinResult', '🔄 Logging in...', false);
+                
+                const formattedMobile = formatMobileNumber(mobileNumber);
+                
+                const data = await apiCall(`${API_AUTH}/login/pin`, 'POST', {
+                    mobileNumber: formattedMobile,
+                    pin
+                });
+
+                sessionUserId = data.data.profile.userId;
+                sessionToken = data.data.token;
+                
+                // Auto-fill token
+                document.getElementById('verifyToken').value = data.data.token;
+
+                showResult('loginPinResult', 
+                    `✅ ${data.message}<br>
+                    <strong>User ID:</strong> ${data.data.profile.userId}<br>
+                    <strong>Name:</strong> ${data.data.profile.name || 'Not set'}<br>
+                    <strong>Token:</strong> ${data.data.token.substring(0, 20)}...`, 
+                    false);
+            } catch (error) {
+                showResult('loginPinResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function loginWithBiometric() {
+            const mobileNumber = document.getElementById('biometricMobile').value.trim();
+
+            if (!mobileNumber) {
+                showResult('loginBiometricResult', '❌ Please enter mobile number', true);
+                return;
+            }
+
+            try {
+                showResult('loginBiometricResult', '🔄 Logging in with biometric...', false);
+                
+                const formattedMobile = formatMobileNumber(mobileNumber);
+                
+                const data = await apiCall(`${API_AUTH}/login/biometric`, 'POST', {
+                    mobileNumber: formattedMobile
+                });
+
+                sessionUserId = data.data.profile.userId;
+                sessionToken = data.data.token;
+                
+                // Auto-fill token
+                document.getElementById('verifyToken').value = data.data.token;
+
+                showResult('loginBiometricResult', 
+                    `✅ ${data.message}<br>
+                    <strong>User ID:</strong> ${data.data.profile.userId}<br>
+                    <strong>Name:</strong> ${data.data.profile.name || 'Not set'}<br>
+                    <strong>Token:</strong> ${data.data.token.substring(0, 20)}...`, 
+                    false);
+            } catch (error) {
+                showResult('loginBiometricResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function verifyToken() {
+            const token = document.getElementById('verifyToken').value.trim();
+
+            if (!token) {
+                showResult('verifyTokenResult', '❌ Please enter a token', true);
+                return;
+            }
+
+            try {
+                showResult('verifyTokenResult', '🔄 Verifying token...', false);
+                
+                const data = await apiCall(`${API_AUTH}/verify-token`, 'POST', {
+                    token
+                });
+
+                showResult('verifyTokenResult', 
+                    `✅ Token is valid!<br>
+                    <strong>User ID:</strong> ${data.data.payload.userId}<br>
+                    <strong>Issued At:</strong> ${new Date(data.data.payload.iat * 1000).toLocaleString()}<br>
+                    <strong>Expires At:</strong> ${new Date(data.data.payload.exp * 1000).toLocaleString()}`, 
+                    false);
+            } catch (error) {
+                showResult('verifyTokenResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function enableBiometric() {
+            const userId = document.getElementById('biometricUserId').value.trim();
+
+            if (!userId) {
+                showResult('biometricMgmtResult', '❌ Please enter user ID', true);
+                return;
+            }
+
+            try {
+                showResult('biometricMgmtResult', '🔄 Enabling biometric...', false);
+                
+                const data = await apiCall(`${API_AUTH}/biometric/enable`, 'POST', {
+                    userId
+                });
+
+                showResult('biometricMgmtResult', 
+                    `✅ ${data.message}<br>
+                    <strong>User ID:</strong> ${userId}`, 
+                    false);
+            } catch (error) {
+                showResult('biometricMgmtResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function disableBiometric() {
+            const userId = document.getElementById('biometricUserId').value.trim();
+
+            if (!userId) {
+                showResult('biometricMgmtResult', '❌ Please enter user ID', true);
+                return;
+            }
+
+            try {
+                showResult('biometricMgmtResult', '🔄 Disabling biometric...', false);
+                
+                const data = await apiCall(`${API_AUTH}/biometric/disable`, 'POST', {
+                    userId
+                });
+
+                showResult('biometricMgmtResult', 
+                    `✅ ${data.message}<br>
+                    <strong>User ID:</strong> ${userId}`, 
+                    false);
+            } catch (error) {
+                showResult('biometricMgmtResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function exportProfile() {
+            const userId = document.getElementById('exportUserId').value.trim();
+
+            if (!userId) {
+                showResult('exportResult', '❌ Please enter user ID', true);
+                return;
+            }
+
+            try {
+                showResult('exportResult', '🔄 Exporting profile...', false);
+                
+                const data = await apiCall(`${API_BASE}/${userId}/export`);
+                
+                showResult('exportResult', data.data, false);
+
+                // Download as JSON file
+                const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `profile-${userId}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                showResult('exportResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+    </script>
+</body>
+</html>
