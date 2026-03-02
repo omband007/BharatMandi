@@ -4,7 +4,7 @@
 
 The User Authentication & Profile Management system provides unified user authentication and comprehensive profile management for Bharat Mandi. It consolidates registration, authentication (OTP, PIN, biometric), session management, account security, and profile data management into a single, cohesive system. 
 
-The system requires minimal mandatory information (name, mobile, location) at registration, then progressively collects optional profile data through contextual prompts and implicit updates during user interactions. This approach minimizes registration friction while building comprehensive user profiles over time.
+The system requires minimal mandatory information (name, mobile, location, user type) at registration, then progressively collects optional profile data through contextual prompts and implicit updates during user interactions. This approach minimizes registration friction while building comprehensive user profiles over time.
 
 **Note**: This spec consolidates the previous Auth spec and User Profile Management spec into a single unified specification to eliminate duplication and ensure consistency.
 
@@ -16,8 +16,8 @@ The system requires minimal mandatory information (name, mobile, location) at re
 - **Contextual_Prompt_Engine**: The system component that determines when and what profile data to request
 - **Implicit_Update_Service**: The system component that automatically updates profile fields from user interactions
 - **Profile_Field**: A single data element in a user profile
-- **Mandatory_Field**: A profile field that must be collected during registration (name, mobile, location)
-- **Optional_Field**: A profile field that can be collected progressively (user_type, crops_grown, etc.)
+- **Mandatory_Field**: A profile field that must be collected during registration (name, mobile, location, userType)
+- **Optional_Field**: A profile field that can be collected progressively (crops_grown, farm_size, etc.)
 - **OTP**: One-Time Password sent via SMS for verification
 - **PIN**: Personal Identification Number (4-6 digits) for quick login
 - **Biometric_Auth**: Authentication using device biometrics (fingerprint, face ID)
@@ -78,21 +78,24 @@ The system requires minimal mandatory information (name, mobile, location) at re
 
 ### Requirement 3: Complete Registration with Mandatory Fields
 
-**User Story:** As a new user who has verified my mobile number, I want to provide my name and location, so that I can complete my registration.
+**User Story:** As a new user who has verified my mobile number, I want to provide my name, location, and user type, so that I can complete my registration and access relevant features.
 
 #### Acceptance Criteria
 
-1. AFTER OTP verification, THE Registration_Service SHALL prompt for mandatory fields: name and location
+1. AFTER OTP verification, THE Registration_Service SHALL prompt for mandatory fields: name, location, and userType
 2. THE Registration_Service SHALL validate that name contains 2-100 characters
 3. THE Registration_Service SHALL validate that name contains only Unicode letters, spaces, and common name characters
-4. THE Registration_Service SHALL require location to be provided via GPS OR manual text entry
-5. WHEN GPS location is provided, THE Registration_Service SHALL store coordinates (latitude, longitude) with accuracy metadata
-6. WHEN manual location is provided, THE Registration_Service SHALL accept text input (minimum 3 characters)
-7. THE Registration_Service SHALL store location with a timestamp and capture method (GPS or manual)
-8. WHEN all mandatory fields are provided, THE Registration_Service SHALL create the user profile
-9. THE Registration_Service SHALL set initial profile completeness to 40% after registration
-10. THE Registration_Service SHALL generate a unique userId (UUID) for the new profile
-11. THE Registration_Service SHALL return a session token (JWT) after successful registration
+4. THE Registration_Service SHALL require userType to be one of: 'farmer', 'buyer', or 'both'
+5. THE Registration_Service SHALL validate that userType is provided and is a valid value
+6. THE Registration_Service SHALL require location to be provided via GPS OR manual text entry
+7. WHEN GPS location is provided, THE Registration_Service SHALL store coordinates (latitude, longitude) with accuracy metadata
+8. WHEN manual location is provided, THE Registration_Service SHALL accept text input (minimum 3 characters)
+9. THE Registration_Service SHALL store location with a timestamp and capture method (GPS or manual)
+10. WHEN all mandatory fields are provided (name, location, userType), THE Registration_Service SHALL create the user profile
+11. THE Registration_Service SHALL set initial profile completeness to 40% after registration with mandatory fields
+12. THE Registration_Service SHALL generate a unique userId (UUID) for the new profile
+13. THE Registration_Service SHALL return a session token (JWT) after successful registration
+14. THE Registration_Service SHALL NOT create the user profile until all mandatory fields are collected
 
 ### Requirement 4: GPS Location Capture
 
@@ -281,17 +284,18 @@ The system requires minimal mandatory information (name, mobile, location) at re
 #### Acceptance Criteria
 
 1. THE Profile_Manager SHALL calculate profile completeness as a percentage (0-100)
-2. THE Profile_Manager SHALL assign mobileNumber (verified) a weight of 20%
+2. THE Profile_Manager SHALL assign mobileNumber (verified) a weight of 10%
 3. THE Profile_Manager SHALL assign name a weight of 10%
 4. THE Profile_Manager SHALL assign location a weight of 10%
-5. THE Profile_Manager SHALL assign userType a weight of 15%
-6. THE Profile_Manager SHALL assign cropsGrown (at least one) a weight of 15%
+5. THE Profile_Manager SHALL assign userType a weight of 10%
+6. THE Profile_Manager SHALL assign cropsGrown (at least one) a weight of 20%
 7. THE Profile_Manager SHALL assign languagePreference a weight of 10%
 8. THE Profile_Manager SHALL assign farmSize a weight of 10%
-9. THE Profile_Manager SHALL assign bankAccount a weight of 5%
-10. THE Profile_Manager SHALL assign profilePicture a weight of 5%
+9. THE Profile_Manager SHALL assign bankAccount a weight of 10%
+10. THE Profile_Manager SHALL assign profilePicture a weight of 10%
 11. WHEN any field is updated, THE Profile_Manager SHALL recalculate completeness within 1 second
 12. THE Profile_Manager SHALL display completeness percentage in the user profile
+13. THE mandatory fields (mobileNumber, name, location, userType) SHALL total 40% completeness
 
 ### Requirement 17: Data Validation
 

@@ -255,16 +255,32 @@ describe.skip('Registration Service', () => {
       attempts: 0
     };
 
-    it('should successfully verify OTP and create profile', async () => {
+    const validMandatoryFields = {
+      name: 'Test User',
+      userType: 'farmer' as const,
+      location: {
+        type: 'manual' as const,
+        text: 'Test Village, Test District'
+      }
+    };
+
+    it('should successfully verify OTP and create profile with mandatory fields', async () => {
       (sqliteHelpers.getOTPSession as jest.Mock).mockResolvedValue(mockOTPSession);
       (sqliteHelpers.deleteOTPSession as jest.Mock).mockResolvedValue(true);
       
       const mockProfile = {
         userId: 'new-user-id',
         mobileNumber: '+919876543210',
+        name: 'Test User',
+        userType: 'farmer',
+        location: expect.any(Object),
+        completionPercentage: 40,
         toObject: jest.fn().mockReturnValue({
           userId: 'new-user-id',
-          mobileNumber: '+919876543210'
+          mobileNumber: '+919876543210',
+          name: 'Test User',
+          userType: 'farmer',
+          completionPercentage: 40
         })
       };
       
@@ -273,11 +289,15 @@ describe.skip('Registration Service', () => {
 
       const result = await registrationService.verifyOTP({
         userId: '+919876543210',
-        otp: '123456'
+        otp: '123456',
+        ...validMandatoryFields
       });
 
       expect(result.verified).toBe(true);
       expect(result.profile).toBeDefined();
+      expect(result.profile.name).toBe('Test User');
+      expect(result.profile.userType).toBe('farmer');
+      expect(result.profile.completionPercentage).toBe(40);
       expect(result.token).toBe('jwt-token');
       expect(sqliteHelpers.deleteOTPSession).toHaveBeenCalled();
     });
@@ -288,7 +308,8 @@ describe.skip('Registration Service', () => {
       await expect(
         registrationService.verifyOTP({
           userId: '+919876543210',
-          otp: '123456'
+          otp: '123456',
+          ...validMandatoryFields
         })
       ).rejects.toThrow('OTP session not found or expired');
     });
@@ -305,7 +326,8 @@ describe.skip('Registration Service', () => {
       await expect(
         registrationService.verifyOTP({
           userId: '+919876543210',
-          otp: '123456'
+          otp: '123456',
+          ...validMandatoryFields
         })
       ).rejects.toThrow('OTP has expired');
     });
@@ -322,7 +344,8 @@ describe.skip('Registration Service', () => {
       await expect(
         registrationService.verifyOTP({
           userId: '+919876543210',
-          otp: '123456'
+          otp: '123456',
+          ...validMandatoryFields
         })
       ).rejects.toThrow('Maximum OTP attempts exceeded');
     });
@@ -334,7 +357,8 @@ describe.skip('Registration Service', () => {
       await expect(
         registrationService.verifyOTP({
           userId: '+919876543210',
-          otp: 'wrong-otp'
+          otp: 'wrong-otp',
+          ...validMandatoryFields
         })
       ).rejects.toThrow('Invalid OTP');
 
@@ -351,6 +375,8 @@ describe.skip('Registration Service', () => {
       const mockProfile = {
         userId: 'new-user-id',
         mobileNumber: '+919876543210',
+        name: 'Test User',
+        userType: 'farmer',
         pinHash: undefined,
         biometricEnabled: false,
         failedLoginAttempts: 0,
@@ -358,7 +384,8 @@ describe.skip('Registration Service', () => {
         lastLoginAt: expect.any(Date),
         toObject: jest.fn().mockReturnValue({
           userId: 'new-user-id',
-          mobileNumber: '+919876543210'
+          mobileNumber: '+919876543210',
+          name: 'Test User'
         })
       };
       
@@ -367,11 +394,16 @@ describe.skip('Registration Service', () => {
 
       await registrationService.verifyOTP({
         userId: '+919876543210',
-        otp: '123456'
+        otp: '123456',
+        ...validMandatoryFields
       });
 
       expect(UserProfileModel.create).toHaveBeenCalledWith(
         expect.objectContaining({
+          name: 'Test User',
+          userType: 'farmer',
+          location: expect.any(Object),
+          completionPercentage: 40,
           pinHash: undefined,
           biometricEnabled: false,
           failedLoginAttempts: 0,
@@ -379,6 +411,127 @@ describe.skip('Registration Service', () => {
           lastLoginAt: expect.any(Date)
         })
       );
+    });
+
+    // Mandatory field validation tests
+    describe('mandatory field validation', () => {
+      beforeEach(() => {
+        (sqliteHelpers.getOTPSession as jest.Mock).mockResolvedValue(mockOTPSession);
+      });
+
+      it('should reject if name is missing', async () => {
+        await expect(
+          registrationService.verifyOTP({
+            userId: '+919876543210',
+            otp: '123456',
+            name: '',
+            userType: 'farmer',
+            location: { type: 'manual', text: 'Test Location' }
+          })
+        ).rejects.toThrow('Name is required');
+      });
+
+      it('should reject if name is too short', async () => {
+        await expect(
+          registrationService.verifyOTP({
+            userId: '+919876543210',
+            otp: '123456',
+            name: 'A',
+            userType: 'farmer',
+            location: { type: 'manual', text: 'Test Location' }
+          })
+        ).rejects.toThrow('Name must be between');
+      });
+
+      it('should reject if name is too long', async () => {
+        await expect(
+          registrationService.verifyOTP({
+            userId: '+919876543210',
+            otp: '123456',
+            name: 'A'.repeat(101),
+            userType: 'farmer',
+            location: { type: 'manual', text: 'Test Location' }
+          })
+        ).rejects.toThrow('Name must be between');
+      });
+
+      it('should reject if userType is invalid', async () => {
+        await expect(
+          registrationService.verifyOTP({
+            userId: '+919876543210',
+            otp: '123456',
+            name: 'Test User',
+            userType: 'invalid' as any,
+            location: { type: 'manual', text: 'Test Location' }
+          })
+        ).rejects.toThrow('User type must be one of');
+      });
+
+      it('should reject if GPS location is missing coordinates', async () => {
+        await expect(
+          registrationService.verifyOTP({
+            userId: '+919876543210',
+            otp: '123456',
+            name: 'Test User',
+            userType: 'farmer',
+            location: { type: 'gps' } as any
+          })
+        ).rejects.toThrow('GPS location requires latitude and longitude');
+      });
+
+      it('should reject if manual location is missing text', async () => {
+        await expect(
+          registrationService.verifyOTP({
+            userId: '+919876543210',
+            otp: '123456',
+            name: 'Test User',
+            userType: 'farmer',
+            location: { type: 'manual', text: '' }
+          })
+        ).rejects.toThrow('Manual location requires text');
+      });
+
+      it('should accept valid GPS location', async () => {
+        (sqliteHelpers.deleteOTPSession as jest.Mock).mockResolvedValue(true);
+        const mockProfile = {
+          userId: 'new-user-id',
+          mobileNumber: '+919876543210',
+          toObject: jest.fn().mockReturnValue({ userId: 'new-user-id' })
+        };
+        (UserProfileModel.create as jest.Mock).mockResolvedValue(mockProfile);
+        (authService.generateToken as jest.Mock).mockReturnValue('jwt-token');
+
+        const result = await registrationService.verifyOTP({
+          userId: '+919876543210',
+          otp: '123456',
+          name: 'Test User',
+          userType: 'farmer',
+          location: { type: 'gps', latitude: 28.6139, longitude: 77.2090 }
+        });
+
+        expect(result.verified).toBe(true);
+      });
+
+      it('should accept valid manual location', async () => {
+        (sqliteHelpers.deleteOTPSession as jest.Mock).mockResolvedValue(true);
+        const mockProfile = {
+          userId: 'new-user-id',
+          mobileNumber: '+919876543210',
+          toObject: jest.fn().mockReturnValue({ userId: 'new-user-id' })
+        };
+        (UserProfileModel.create as jest.Mock).mockResolvedValue(mockProfile);
+        (authService.generateToken as jest.Mock).mockReturnValue('jwt-token');
+
+        const result = await registrationService.verifyOTP({
+          userId: '+919876543210',
+          otp: '123456',
+          name: 'Test User',
+          userType: 'buyer',
+          location: { type: 'manual', text: 'Delhi, India' }
+        });
+
+        expect(result.verified).toBe(true);
+      });
     });
   });
 
@@ -446,7 +599,10 @@ describe.skip('Registration Service', () => {
 
       await registrationService.verifyOTP({
         userId: '+919876543210',
-        otp: '123456'
+        otp: '123456',
+        name: 'Test User',
+        userType: 'farmer',
+        location: { type: 'manual', text: 'Test Location' }
       });
 
       expect(UserProfileModel.create).toHaveBeenCalledWith(
@@ -476,7 +632,10 @@ describe.skip('Registration Service', () => {
 
       await registrationService.verifyOTP({
         userId: '+447700900123',
-        otp: '123456'
+        otp: '123456',
+        name: 'Test User',
+        userType: 'farmer',
+        location: { type: 'manual', text: 'Test Location' }
       });
 
       expect(UserProfileModel.create).toHaveBeenCalledWith(

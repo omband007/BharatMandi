@@ -196,6 +196,15 @@ export interface RegisterResponse {
 export interface VerifyOTPRequest {
   userId: string;
   otp: string;
+  // Mandatory fields for registration completion
+  name: string;
+  userType: UserType;
+  location: {
+    type: 'gps' | 'manual';
+    latitude?: number;
+    longitude?: number;
+    text?: string;
+  };
 }
 
 export interface VerifyOTPResponse {

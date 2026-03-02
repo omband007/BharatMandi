@@ -9,15 +9,18 @@
 // ============================================================================
 
 export const PROFILE_FIELD_WEIGHTS = {
+  // Mandatory fields (40% total)
   mobileNumber: 10,      // Always present after registration
-  name: 15,
-  location: 20,
-  userType: 15,
-  cropsGrown: 15,        // At least one crop
+  name: 10,
+  location: 10,
+  userType: 10,
+  
+  // Optional fields (60% total)
+  cropsGrown: 20,        // At least one crop
   languagePreference: 10,
   farmSize: 10,
-  bankAccount: 5,
-  profilePicture: 5
+  bankAccount: 10,
+  profilePicture: 10
 } as const;
 
 // ============================================================================

@@ -401,31 +401,50 @@
                 
                 <div id="authStep3" style="display: none;">
                     <h3 style="margin-bottom: 15px; color: #667eea;">Complete Registration</h3>
+                    <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                        Please provide the following mandatory information to complete your registration.
+                    </p>
                     <div class="form-group">
-                        <label>Full Name</label>
-                        <input type="text" id="regName" placeholder="John Doe">
+                        <label>Full Name <span style="color: red;">*</span></label>
+                        <input type="text" id="regName" placeholder="Enter your full name" minlength="2" maxlength="100">
+                        <small style="color: #666; display: block; margin-top: 5px;">2-100 characters</small>
                     </div>
                     <div class="form-group">
-                        <label>User Type</label>
+                        <label>User Type <span style="color: red;">*</span></label>
                         <select id="regUserType">
-                            <option value="FARMER">Farmer</option>
-                            <option value="BUYER">Buyer</option>
-                            <option value="LOGISTICS_PROVIDER">Logistics Provider</option>
-                            <option value="COLD_STORAGE_PROVIDER">Cold Storage Provider</option>
-                            <option value="SUPPLIER">Supplier</option>
+                            <option value="">-- Select your role --</option>
+                            <option value="farmer">Farmer</option>
+                            <option value="buyer">Buyer</option>
+                            <option value="both">Both (Farmer & Buyer)</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Address</label>
-                        <input type="text" id="regAddress" placeholder="City, State">
+                        <label>Location Type <span style="color: red;">*</span></label>
+                        <select id="regLocationType" onchange="toggleRegLocationFields()">
+                            <option value="">-- Select location type --</option>
+                            <option value="manual">Manual Entry</option>
+                            <option value="gps">GPS Coordinates</option>
+                        </select>
                     </div>
-                    <div class="form-group">
-                        <label>Latitude</label>
-                        <input type="number" id="regLat" value="19.0760" step="0.0001">
+                    <div id="regManualLocationFields" style="display: none;">
+                        <div class="form-group">
+                            <label>Location <span style="color: red;">*</span></label>
+                            <input type="text" id="regAddress" placeholder="Village/City, District, State" minlength="3" maxlength="200">
+                            <small style="color: #666; display: block; margin-top: 5px;">Example: Saharanpur, Uttar Pradesh</small>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Longitude</label>
-                        <input type="number" id="regLng" value="72.8777" step="0.0001">
+                    <div id="regGpsLocationFields" style="display: none;">
+                        <div class="form-group">
+                            <label>Latitude <span style="color: red;">*</span></label>
+                            <input type="number" id="regLat" placeholder="28.6139" step="0.000001" min="-90" max="90">
+                        </div>
+                        <div class="form-group">
+                            <label>Longitude <span style="color: red;">*</span></label>
+                            <input type="number" id="regLng" placeholder="77.2090" step="0.000001" min="-180" max="180">
+                        </div>
+                        <button type="button" onclick="getRegCurrentLocation()" style="background: #28a745; margin-bottom: 15px;">
+                            📍 Get Current Location
+                        </button>
                     </div>
                     <button onclick="completeRegistration()">Complete Registration</button>
                     <div id="registrationResult" class="result"></div>
@@ -1099,62 +1118,124 @@
             }
         }
 
+        function toggleRegLocationFields() {
+            const locationType = document.getElementById('regLocationType').value;
+            const manualFields = document.getElementById('regManualLocationFields');
+            const gpsFields = document.getElementById('regGpsLocationFields');
+            
+            if (locationType === 'manual') {
+                manualFields.style.display = 'block';
+                gpsFields.style.display = 'none';
+            } else if (locationType === 'gps') {
+                manualFields.style.display = 'none';
+                gpsFields.style.display = 'block';
+            } else {
+                manualFields.style.display = 'none';
+                gpsFields.style.display = 'none';
+            }
+        }
+
+        function getRegCurrentLocation() {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser');
+                return;
+            }
+
+            showResult('registrationResult', '🔄 Getting your location...', false);
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    document.getElementById('regLat').value = position.coords.latitude.toFixed(6);
+                    document.getElementById('regLng').value = position.coords.longitude.toFixed(6);
+                    showResult('registrationResult', '✅ Location captured successfully!', false);
+                },
+                (error) => {
+                    showResult('registrationResult', `❌ Error getting location: ${error.message}`, true);
+                }
+            );
+        }
+
         async function completeRegistration() {
             try {
+                const otp = document.getElementById('otpCode').value.trim();
                 const name = document.getElementById('regName').value.trim();
                 const userType = document.getElementById('regUserType').value;
-                const address = document.getElementById('regAddress').value.trim();
-                const lat = parseFloat(document.getElementById('regLat').value);
-                const lng = parseFloat(document.getElementById('regLng').value);
+                const locationType = document.getElementById('regLocationType').value;
                 
-                if (!name || !address) {
-                    showResult('registrationResult', '❌ Please fill all required fields', true);
+                // Validate mandatory fields
+                if (!name) {
+                    showResult('registrationResult', '❌ Please enter your full name', true);
                     return;
                 }
                 
-                const response = await fetch(`${API_BASE}/${state.authPhone}/fields`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        fieldName: 'name',
-                        value: name
-                    })
-                });
+                if (name.length < 2 || name.length > 100) {
+                    showResult('registrationResult', '❌ Name must be between 2 and 100 characters', true);
+                    return;
+                }
                 
-                // Update other fields
-                await fetch(`${API_BASE}/${state.authPhone}/fields`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        fieldName: 'userType',
-                        value: userType
-                    })
-                });
+                if (!userType) {
+                    showResult('registrationResult', '❌ Please select your user type', true);
+                    return;
+                }
                 
-                await fetch(`${API_BASE}/${state.authPhone}/fields`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        fieldName: 'location.address',
-                        value: address
-                    })
-                });
+                if (!locationType) {
+                    showResult('registrationResult', '❌ Please select location type', true);
+                    return;
+                }
                 
-                await fetch(`${API_BASE}/${state.authPhone}/fields`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        fieldName: 'location.coordinates.latitude',
-                        value: lat.toString()
-                    })
-                });
+                // Build location object
+                let location;
+                if (locationType === 'manual') {
+                    const address = document.getElementById('regAddress').value.trim();
+                    if (!address) {
+                        showResult('registrationResult', '❌ Please enter your location', true);
+                        return;
+                    }
+                    if (address.length < 3) {
+                        showResult('registrationResult', '❌ Location must be at least 3 characters', true);
+                        return;
+                    }
+                    location = {
+                        type: 'manual',
+                        text: address
+                    };
+                } else if (locationType === 'gps') {
+                    const lat = parseFloat(document.getElementById('regLat').value);
+                    const lng = parseFloat(document.getElementById('regLng').value);
+                    
+                    if (isNaN(lat) || isNaN(lng)) {
+                        showResult('registrationResult', '❌ Please enter valid GPS coordinates', true);
+                        return;
+                    }
+                    
+                    if (lat < -90 || lat > 90) {
+                        showResult('registrationResult', '❌ Latitude must be between -90 and 90', true);
+                        return;
+                    }
+                    
+                    if (lng < -180 || lng > 180) {
+                        showResult('registrationResult', '❌ Longitude must be between -180 and 180', true);
+                        return;
+                    }
+                    
+                    location = {
+                        type: 'gps',
+                        latitude: lat,
+                        longitude: lng
+                    };
+                }
                 
-                await fetch(`${API_BASE}/${state.authPhone}/fields`, {
-                    method: 'PATCH',
+                showResult('registrationResult', '🔄 Completing registration...', false);
+                
+                const response = await fetch(`${API_BASE}/verify-otp`, {
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        fieldName: 'location.coordinates.longitude',
-                        value: lng.toString()
+                        userId: `+91${state.authPhone}`,
+                        otp: otp,
+                        name: name,
+                        userType: userType,
+                        location: location
                     })
                 });
                 
@@ -1164,16 +1245,14 @@
                     throw new Error(data.error || 'Registration failed');
                 }
                 
-                // Get updated profile
-                const profileResponse = await fetch(`${API_BASE}/${state.authPhone}`);
-                const profileData = await profileResponse.json();
-                
-                state.currentUser = profileData.data;
+                state.currentUser = data.data.profile;
+                state.authToken = data.data.token;
+                localStorage.setItem('authToken', data.data.token);
                 
                 // Show PIN setup screen
                 document.getElementById('authStep3').style.display = 'none';
                 document.getElementById('authStep3b').style.display = 'block';
-                showResult('registrationResult', `✅ Registration complete! Now setup your PIN for secure login.`);
+                showResult('registrationResult', `✅ Registration complete! Profile is ${data.data.profile.completionPercentage}% complete. Now setup your PIN for secure login.`);
             } catch (error) {
                 showResult('registrationResult', `❌ Error: ${error.message}`, true);
             }

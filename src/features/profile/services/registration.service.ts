@@ -10,7 +10,7 @@ import { UserProfileModel } from '../models/profile.model';
 import * as sqliteHelpers from '../../../shared/database/sqlite-helpers';
 import { VALIDATION_RULES, TRUST_SCORE_RULES, DEFAULT_PRIVACY_SETTINGS } from '../constants/profile.constants';
 import * as authService from './auth.service';
-import type { UserProfile, RegisterRequest, RegisterResponse, VerifyOTPRequest, VerifyOTPResponse, PrivacyLevel, OTPSession } from '../types/profile.types';
+import type { UserProfile, RegisterRequest, RegisterResponse, VerifyOTPRequest, VerifyOTPResponse, PrivacyLevel, OTPSession, UserType, Location } from '../types/profile.types';
 
 export class RegistrationService {
   private otpExpiryMinutes = 10;
@@ -193,11 +193,11 @@ export class RegistrationService {
   }
 
   /**
-   * Verify OTP and create user profile
-   * After verification, offer optional PIN and biometric setup
+   * Verify OTP and complete registration with mandatory fields
+   * Collects name, userType, and location before creating profile
    */
   async verifyOTP(request: VerifyOTPRequest): Promise<VerifyOTPResponse> {
-    const { userId, otp } = request;
+    const { userId, otp, name, userType, location } = request;
 
     // Get OTP session
     const session = await sqliteHelpers.getOTPSession(userId);
@@ -224,8 +224,16 @@ export class RegistrationService {
       throw new Error('Invalid OTP');
     }
 
-    // OTP verified - create user profile
-    const profile = await this.createInitialProfile(session.phoneNumber);
+    // Validate mandatory fields
+    this.validateMandatoryFields(name, userType, location);
+
+    // OTP verified - create user profile with mandatory fields
+    const profile = await this.createInitialProfile(
+      session.phoneNumber,
+      name,
+      userType,
+      location
+    );
 
     // Delete OTP session
     await sqliteHelpers.deleteOTPSession(session.phoneNumber);
@@ -241,10 +249,74 @@ export class RegistrationService {
   }
 
   /**
-   * Create initial user profile with default values
+   * Validate mandatory registration fields
+   */
+  private validateMandatoryFields(
+    name: string,
+    userType: UserType,
+    location: { type: 'gps' | 'manual'; latitude?: number; longitude?: number; text?: string }
+  ): void {
+    // Validate name
+    if (!name || name.trim().length === 0) {
+      throw new Error('Name is required');
+    }
+    if (name.length < VALIDATION_RULES.NAME.MIN_LENGTH || name.length > VALIDATION_RULES.NAME.MAX_LENGTH) {
+      throw new Error(`Name must be between ${VALIDATION_RULES.NAME.MIN_LENGTH} and ${VALIDATION_RULES.NAME.MAX_LENGTH} characters`);
+    }
+    if (!VALIDATION_RULES.NAME.PATTERN.test(name)) {
+      throw new Error('Name can only contain letters, spaces, and common name characters');
+    }
+
+    // Validate userType
+    if (!userType) {
+      throw new Error('User type is required');
+    }
+    const validUserTypes: UserType[] = ['farmer', 'buyer', 'both'];
+    if (!validUserTypes.includes(userType)) {
+      throw new Error('User type must be one of: farmer, buyer, or both');
+    }
+
+    // Validate location
+    if (!location || !location.type) {
+      throw new Error('Location is required');
+    }
+
+    if (location.type === 'gps') {
+      if (location.latitude === undefined || location.longitude === undefined) {
+        throw new Error('GPS location requires latitude and longitude');
+      }
+      // Validate coordinate ranges
+      if (location.latitude < -90 || location.latitude > 90) {
+        throw new Error('Invalid latitude. Must be between -90 and 90');
+      }
+      if (location.longitude < -180 || location.longitude > 180) {
+        throw new Error('Invalid longitude. Must be between -180 and 180');
+      }
+    } else if (location.type === 'manual') {
+      if (!location.text || location.text.trim().length === 0) {
+        throw new Error('Manual location requires text');
+      }
+      if (location.text.trim().length < 3) {
+        throw new Error('Location text must be at least 3 characters');
+      }
+      if (location.text.length > 200) {
+        throw new Error('Location text must not exceed 200 characters');
+      }
+    } else {
+      throw new Error('Location type must be either "gps" or "manual"');
+    }
+  }
+
+  /**
+   * Create initial user profile with mandatory fields
    * Stores mobile number in E.164 international format
    */
-  private async createInitialProfile(mobileNumber: string): Promise<UserProfile> {
+  private async createInitialProfile(
+    mobileNumber: string,
+    name: string,
+    userType: UserType,
+    locationData: { type: 'gps' | 'manual'; latitude?: number; longitude?: number; text?: string }
+  ): Promise<UserProfile> {
     const userId = uuidv4();
     const referralCode = await this.generateReferralCode();
 
@@ -259,23 +331,45 @@ export class RegistrationService {
       countryCode = 'IN';
     }
 
+    // Build location object
+    const location: Location = locationData.type === 'gps'
+      ? {
+          latitude: locationData.latitude!,
+          longitude: locationData.longitude!,
+          country: countryCode || 'IN',
+          locationType: 'gps',
+          isVerified: false,
+          lastUpdated: new Date()
+        }
+      : {
+          latitude: 0,  // Placeholder for manual location
+          longitude: 0,  // Placeholder for manual location
+          addressLine1: locationData.text,
+          country: countryCode || 'IN',
+          locationType: 'manual',
+          isVerified: false,
+          lastUpdated: new Date()
+        };
+
     const profile: UserProfile = {
       userId,
       mobileNumber,  // Already in E.164 format (e.g., +919876543210, +447700900123)
       mobileVerified: true,
       
-      // Optional fields - all null initially
-      name: undefined,
+      // Mandatory fields - collected during registration
+      name,
+      userType,
+      location,
+      
+      // Optional fields - all undefined initially
       profilePicture: undefined,
-      location: undefined,
-      userType: undefined,
       cropsGrown: undefined,
       farmSize: undefined,
       languagePreference: undefined,
       bankAccount: undefined,
       
       // Metadata
-      completionPercentage: 10, // Only mobile number verified
+      completionPercentage: 40, // Mandatory fields complete (mobile 10% + name 10% + location 10% + userType 10%)
       createdAt: new Date(),
       updatedAt: new Date(),
       lastActiveAt: new Date(),

@@ -2,16 +2,16 @@
 
 ## Overview
 
-The User Authentication & Profile Management system provides unified user authentication and comprehensive profile management for Bharat Mandi. It implements a friction-minimized onboarding approach that collects only essential information (mobile number) at registration, then progressively builds comprehensive user profiles through contextual prompts and implicit data collection during natural platform interactions.
+The User Authentication & Profile Management system provides unified user authentication and comprehensive profile management for Bharat Mandi. It implements a friction-minimized onboarding approach that collects essential information (mobile number, name, location, user type) at registration, then progressively builds comprehensive user profiles through contextual prompts and implicit data collection during natural platform interactions.
 
 This design consolidates authentication (OTP, PIN, biometric, session management) and profile management into a single cohesive system with clean code separation.
 
 ### Core Design Principles
 
 1. **Unified Authentication & Profile**: Single system handling both authentication and profile data
-2. **Minimal Friction**: Registration requires only mobile number verification
+2. **Minimal Friction**: Registration requires mobile number, name, location, and user type (farmer/buyer)
 3. **Multiple Auth Methods**: OTP, PIN, and biometric authentication options
-4. **Contextual Collection**: Profile data is requested when relevant to user actions
+4. **Contextual Collection**: Additional profile data is requested when relevant to user actions
 5. **Implicit Intelligence**: System automatically infers profile attributes from user behavior
 6. **Gamified Engagement**: Points, tiers, and rewards motivate profile completion and platform usage
 7. **Trust Building**: Transparent trust scoring system builds community confidence
@@ -93,8 +93,10 @@ This design consolidates authentication (OTP, PIN, biometric, session management
 - Extracts and stores country code
 - Sends OTP via international SMS gateway
 - Verifies OTP codes
-- Creates initial user account
-- Initializes profile with default values
+- Collects mandatory fields after OTP verification: name, location, userType
+- Validates mandatory field formats and constraints
+- Creates user profile only after all mandatory fields are collected
+- Initializes profile with 40% completeness (mandatory fields complete)
 - Integrates with Auth Service for optional PIN/biometric setup
 - Generates initial JWT token after registration
 
@@ -339,7 +341,7 @@ interface Referral {
 
 ## Core Workflows
 
-### 1. User Registration Flow (with Optional Auth Setup)
+### 1. User Registration Flow (with Mandatory Fields & Optional Auth Setup)
 
 ```
 User → Enter Mobile Number (10 digits OR full international)
@@ -352,11 +354,33 @@ User ← Receive OTP
          ↓
 User → Enter OTP
          ↓
-    Verify OTP → Create UserProfile → Initialize (mobileVerified=true)
+    Verify OTP → OTP Session Valid
          ↓
-    Store (mobileNumber in E.164, countryCode)
+    [MANDATORY] Collect Registration Fields
          ↓
-    Set completionPercentage = 10%
+User → Enter Name (2-100 characters)
+         ↓
+User → Select User Type (farmer / buyer / both)
+         ↓
+User → Provide Location (GPS OR Manual Text)
+         ↓
+    IF GPS:
+      - Capture coordinates (latitude, longitude)
+      - Store accuracy metadata
+      - Mark as GPS location
+         ↓
+    IF Manual:
+      - Accept text input (min 3 characters)
+      - Suggest format: "Village/City, District, State"
+      - Mark as manual location
+         ↓
+    Validate All Mandatory Fields (name, userType, location)
+         ↓
+    Create UserProfile → Initialize with mandatory fields
+         ↓
+    Store (mobileNumber in E.164, countryCode, name, userType, location)
+         ↓
+    Set completionPercentage = 40% (mandatory fields complete)
          ↓
     Award Bronze Tier, 50 Trust Score
          ↓
@@ -387,6 +411,12 @@ User ← Return { userId, token, profile }
 - Full international (e.g., +447700900123) → Stored as-is, countryCode: +44
 - Validation uses libphonenumber-js for accuracy
 - Storage always in E.164 format for consistency
+
+**Mandatory Fields:**
+- Name: 2-100 characters, Unicode letters and spaces
+- User Type: Must be 'farmer', 'buyer', or 'both'
+- Location: GPS coordinates OR manual text (min 3 characters)
+- Profile completeness starts at 40% after mandatory fields are collected
 
 ### 2. PIN Login Flow
 
@@ -737,14 +767,25 @@ Request: { mobileNumber: string }
 Response: { userId: string, otpSent: boolean }
 ```
 
-#### Verify OTP
+#### Verify OTP and Complete Registration
 ```
 POST /api/v1/profiles/verify-otp
-Request: { userId: string, otp: string }
+Request: { 
+  userId: string,  // Mobile number from registration
+  otp: string,
+  name: string,  // MANDATORY: 2-100 characters
+  userType: 'farmer' | 'buyer' | 'both',  // MANDATORY
+  location: {  // MANDATORY: GPS OR manual
+    type: 'gps' | 'manual',
+    latitude?: number,  // Required if type='gps'
+    longitude?: number,  // Required if type='gps'
+    text?: string  // Required if type='manual', min 3 characters
+  }
+}
 Response: { 
   verified: boolean, 
   token: string,  // JWT token generated after verification
-  profile: UserProfile 
+  profile: UserProfile  // Profile with 40% completeness
 }
 ```
 
@@ -975,15 +1016,18 @@ function formatMobileNumber(mobileNumber: string, countryCode: string): string {
 ```typescript
 function calculateCompletionPercentage(profile: UserProfile): number {
   const weights = {
-    mobileNumber: 10,      // Always present
-    name: 15,
-    location: 20,
-    userType: 15,
-    cropsGrown: 15,        // At least one crop
+    // Mandatory fields (40% total)
+    mobileNumber: 10,      // Always present after registration
+    name: 10,
+    location: 10,
+    userType: 10,
+    
+    // Optional fields (60% total)
+    cropsGrown: 20,        // At least one crop
     languagePreference: 10,
     farmSize: 10,
-    bankAccount: 5,
-    profilePicture: 5      // New field
+    bankAccount: 10,
+    profilePicture: 10
   };
   
   let total = weights.mobileNumber; // Always verified
@@ -1000,6 +1044,10 @@ function calculateCompletionPercentage(profile: UserProfile): number {
   return total;
 }
 ```
+
+**Completeness Breakdown:**
+- **Mandatory fields (40%)**: mobileNumber (10%), name (10%), location (10%), userType (10%)
+- **Optional fields (60%)**: cropsGrown (20%), languagePreference (10%), farmSize (10%), bankAccount (10%), profilePicture (10%)
 
 ### Points Award Rules
 

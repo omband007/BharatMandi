@@ -251,15 +251,15 @@
 
         <div class="info-card">
             <p><strong>✨ Registration & Authentication:</strong></p>
-            <p>✓ Minimal registration - only mobile number required</p>
-            <p>✓ OTP-based mobile verification (6-digit code)</p>
+            <p>✓ Step 1: Mobile number registration</p>
+            <p>✓ Step 2: OTP verification (6-digit code)</p>
+            <p>✓ Step 3: Mandatory fields collection (name, user type, location)</p>
             <p>✓ Optional referral code support</p>
-            <p>✓ Automatic profile creation after OTP verification</p>
             <p>✓ JWT token generation for authenticated sessions</p>
             
             <p style="margin-top: 15px;"><strong>✨ Profile Management:</strong></p>
             <p>✓ Progressive profile data collection</p>
-            <p>✓ Profile completeness tracking (starts at 10%)</p>
+            <p>✓ Profile completeness tracking (starts at 40% after mandatory fields)</p>
             <p>✓ Field-level profile updates</p>
             <p>✓ Profile data export (JSON download)</p>
             
@@ -271,7 +271,7 @@
             <p>✓ JWT token verification and validation</p>
             
             <p style="margin-top: 15px;"><strong>🔐 Complete Flow:</strong></p>
-            <p>Register (mobile only) → Verify OTP → Profile Created → Setup PIN → Login with PIN/Biometric</p>
+            <p>Register (mobile) → Verify OTP → Complete Profile (name, type, location) → Setup PIN → Login with PIN/Biometric</p>
         </div>
 
         <!-- Step 1: Register -->
@@ -298,11 +298,11 @@
             <div id="regResult" class="result"></div>
         </div>
 
-        <!-- Step 2: Verify OTP -->
+        <!-- Step 2: Verify OTP & Complete Registration -->
         <div class="card">
-            <h2><span class="step-number">2</span> Verify OTP</h2>
+            <h2><span class="step-number">2</span> Verify OTP & Complete Registration</h2>
             <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
-                After registration, verify the OTP sent to your mobile number. Your profile will be created automatically.
+                After OTP verification, provide mandatory information to complete your registration.
             </p>
             <div class="form-group">
                 <label>Mobile Number</label>
@@ -315,7 +315,62 @@
                     In production, OTP would be sent via SMS. For testing, check the server console.
                 </small>
             </div>
-            <button onclick="verifyOTP()">Verify OTP & Create Profile</button>
+            
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+            <h3 style="color: #667eea; margin-bottom: 15px; font-size: 1.1em;">Mandatory Information</h3>
+            
+            <div class="form-group">
+                <label>Full Name <span style="color: red;">*</span></label>
+                <input type="text" id="verifyName" placeholder="Enter your full name" minlength="2" maxlength="100">
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    2-100 characters, letters and spaces only
+                </small>
+            </div>
+            
+            <div class="form-group">
+                <label>User Type <span style="color: red;">*</span></label>
+                <select id="verifyUserType">
+                    <option value="">-- Select your role --</option>
+                    <option value="farmer">Farmer</option>
+                    <option value="buyer">Buyer</option>
+                    <option value="both">Both (Farmer & Buyer)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Location Type <span style="color: red;">*</span></label>
+                <select id="verifyLocationType" onchange="toggleLocationFields()">
+                    <option value="">-- Select location type --</option>
+                    <option value="manual">Manual Entry</option>
+                    <option value="gps">GPS Coordinates</option>
+                </select>
+            </div>
+            
+            <div id="manualLocationFields" style="display: none;">
+                <div class="form-group">
+                    <label>Location <span style="color: red;">*</span></label>
+                    <input type="text" id="verifyLocationText" placeholder="Village/City, District, State" minlength="3" maxlength="200">
+                    <small style="color: #666; display: block; margin-top: 5px;">
+                        Example: Saharanpur, Uttar Pradesh
+                    </small>
+                </div>
+            </div>
+            
+            <div id="gpsLocationFields" style="display: none;">
+                <div class="form-group">
+                    <label>Latitude <span style="color: red;">*</span></label>
+                    <input type="number" id="verifyLatitude" placeholder="28.6139" step="0.000001" min="-90" max="90">
+                </div>
+                <div class="form-group">
+                    <label>Longitude <span style="color: red;">*</span></label>
+                    <input type="number" id="verifyLongitude" placeholder="77.2090" step="0.000001" min="-180" max="180">
+                </div>
+                <button type="button" onclick="getCurrentLocation()" style="background: #28a745; margin-bottom: 15px;">
+                    📍 Get Current Location
+                </button>
+            </div>
+            
+            <button onclick="verifyOTP()">Verify OTP & Complete Registration</button>
             <div id="verifyResult" class="result"></div>
         </div>
 
@@ -564,10 +619,51 @@
             }
         }
 
+        function toggleLocationFields() {
+            const locationType = document.getElementById('verifyLocationType').value;
+            const manualFields = document.getElementById('manualLocationFields');
+            const gpsFields = document.getElementById('gpsLocationFields');
+            
+            if (locationType === 'manual') {
+                manualFields.style.display = 'block';
+                gpsFields.style.display = 'none';
+            } else if (locationType === 'gps') {
+                manualFields.style.display = 'none';
+                gpsFields.style.display = 'block';
+            } else {
+                manualFields.style.display = 'none';
+                gpsFields.style.display = 'none';
+            }
+        }
+
+        function getCurrentLocation() {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser');
+                return;
+            }
+
+            showResult('verifyResult', '🔄 Getting your location...', false);
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    document.getElementById('verifyLatitude').value = position.coords.latitude.toFixed(6);
+                    document.getElementById('verifyLongitude').value = position.coords.longitude.toFixed(6);
+                    showResult('verifyResult', '✅ Location captured successfully!', false);
+                },
+                (error) => {
+                    showResult('verifyResult', `❌ Error getting location: ${error.message}`, true);
+                }
+            );
+        }
+
         async function verifyOTP() {
             const userId = document.getElementById('verifyUserId').value.trim();
             const otp = document.getElementById('verifyOTP').value.trim();
+            const name = document.getElementById('verifyName').value.trim();
+            const userType = document.getElementById('verifyUserType').value;
+            const locationType = document.getElementById('verifyLocationType').value;
 
+            // Validate OTP
             if (!userId || !otp) {
                 showResult('verifyResult', '❌ Please enter mobile number and OTP', true);
                 return;
@@ -578,12 +674,78 @@
                 return;
             }
 
+            // Validate mandatory fields
+            if (!name) {
+                showResult('verifyResult', '❌ Please enter your full name', true);
+                return;
+            }
+
+            if (name.length < 2 || name.length > 100) {
+                showResult('verifyResult', '❌ Name must be between 2 and 100 characters', true);
+                return;
+            }
+
+            if (!userType) {
+                showResult('verifyResult', '❌ Please select your user type', true);
+                return;
+            }
+
+            if (!locationType) {
+                showResult('verifyResult', '❌ Please select location type', true);
+                return;
+            }
+
+            // Build location object
+            let location;
+            if (locationType === 'manual') {
+                const locationText = document.getElementById('verifyLocationText').value.trim();
+                if (!locationText) {
+                    showResult('verifyResult', '❌ Please enter your location', true);
+                    return;
+                }
+                if (locationText.length < 3) {
+                    showResult('verifyResult', '❌ Location must be at least 3 characters', true);
+                    return;
+                }
+                location = {
+                    type: 'manual',
+                    text: locationText
+                };
+            } else if (locationType === 'gps') {
+                const latitude = parseFloat(document.getElementById('verifyLatitude').value);
+                const longitude = parseFloat(document.getElementById('verifyLongitude').value);
+                
+                if (isNaN(latitude) || isNaN(longitude)) {
+                    showResult('verifyResult', '❌ Please enter valid GPS coordinates', true);
+                    return;
+                }
+                
+                if (latitude < -90 || latitude > 90) {
+                    showResult('verifyResult', '❌ Latitude must be between -90 and 90', true);
+                    return;
+                }
+                
+                if (longitude < -180 || longitude > 180) {
+                    showResult('verifyResult', '❌ Longitude must be between -180 and 180', true);
+                    return;
+                }
+                
+                location = {
+                    type: 'gps',
+                    latitude,
+                    longitude
+                };
+            }
+
             try {
-                showResult('verifyResult', '🔄 Verifying OTP...', false);
+                showResult('verifyResult', '🔄 Verifying OTP and creating profile...', false);
                 
                 const data = await apiCall(`${API_BASE}/verify-otp`, 'POST', {
                     userId,
-                    otp
+                    otp,
+                    name,
+                    userType,
+                    location
                 });
 
                 sessionUserId = data.data.profile.userId;
@@ -597,17 +759,28 @@
                 document.getElementById('biometricUserId').value = data.data.profile.userId;
                 document.getElementById('verifyToken').value = data.data.token;
 
+                const profile = data.data.profile;
+                const locationDisplay = profile.location 
+                    ? (profile.location.locationType === 'gps' 
+                        ? `GPS (${profile.location.latitude}, ${profile.location.longitude})`
+                        : profile.location.addressLine1 || 'Manual location')
+                    : 'Not set';
+
                 showResult('verifyResult', 
-                    `✅ Profile created successfully!<br>
-                    <strong>User ID:</strong> ${data.data.profile.userId}<br>
-                    <strong>Mobile:</strong> ${data.data.profile.mobileNumber}<br>
-                    <strong>Mobile Verified:</strong> ✓<br>
-                    <strong>Completion:</strong> ${data.data.profile.completionPercentage}%<br>
-                    <strong>Referral Code:</strong> ${data.data.profile.referralCode}<br>
+                    `✅ Registration completed successfully!<br>
+                    <strong>User ID:</strong> ${profile.userId}<br>
+                    <strong>Name:</strong> ${profile.name}<br>
+                    <strong>Mobile:</strong> ${profile.mobileNumber} ✓<br>
+                    <strong>User Type:</strong> ${profile.userType}<br>
+                    <strong>Location:</strong> ${locationDisplay}<br>
+                    <strong>Completion:</strong> ${profile.completionPercentage}%<br>
+                    <strong>Referral Code:</strong> ${profile.referralCode}<br>
+                    <strong>Membership Tier:</strong> ${profile.membershipTier}<br>
+                    <strong>Trust Score:</strong> ${profile.trustScore}/100<br>
                     <strong>JWT Token:</strong> ${data.data.token.substring(0, 30)}...<br>
-                    <strong>Created:</strong> ${new Date(data.data.profile.createdAt).toLocaleString()}<br>
+                    <strong>Created:</strong> ${new Date(profile.createdAt).toLocaleString()}<br>
                     <br>
-                    <small style="color: #666;">✨ Your profile is ready! You can now setup a PIN for secure login.</small>`, 
+                    <small style="color: #666;">✨ Your profile is ready with ${profile.completionPercentage}% completion! You can now setup a PIN for secure login.</small>`, 
                     false);
             } catch (error) {
                 showResult('verifyResult', `❌ Error: ${error.message}`, true);
