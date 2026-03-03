@@ -67,34 +67,57 @@ export function validateName(name: string): ValidationResult {
 }
 
 /**
- * Validate location coordinates
+ * Validate location coordinates or text
  */
-export function validateLocation(location: {
-  latitude: number;
-  longitude: number;
-}): ValidationResult {
-  if (!location.latitude || !location.longitude) {
+export function validateLocation(location: any): ValidationResult {
+  if (!location || typeof location !== 'object') {
     return {
       valid: false,
-      error: 'Location must include latitude and longitude'
+      error: 'Location must be an object'
     };
   }
 
-  // Validate coordinates are within India boundaries (approximate)
-  // India: Latitude 6°N to 37°N, Longitude 68°E to 98°E
-  if (
-    location.latitude < 6 ||
-    location.latitude > 37 ||
-    location.longitude < 68 ||
-    location.longitude > 98
-  ) {
-    return {
-      valid: false,
-      error: 'Location coordinates must be within India boundaries'
-    };
+  // Handle manual text location
+  if (location.type === 'manual' && location.text) {
+    if (typeof location.text !== 'string' || location.text.length < 3) {
+      return {
+        valid: false,
+        error: 'Location text must be at least 3 characters'
+      };
+    }
+    return { valid: true };
   }
 
-  return { valid: true };
+  // Handle GPS coordinates
+  if (location.type === 'gps' || (location.latitude && location.longitude)) {
+    if (!location.latitude || !location.longitude) {
+      return {
+        valid: false,
+        error: 'GPS location must include latitude and longitude'
+      };
+    }
+
+    // Validate coordinates are within India boundaries (approximate)
+    // India: Latitude 6°N to 37°N, Longitude 68°E to 98°E
+    if (
+      location.latitude < 6 ||
+      location.latitude > 37 ||
+      location.longitude < 68 ||
+      location.longitude > 98
+    ) {
+      return {
+        valid: false,
+        error: 'Location coordinates must be within India boundaries'
+      };
+    }
+
+    return { valid: true };
+  }
+
+  return {
+    valid: false,
+    error: 'Location must include either text (manual) or coordinates (GPS)'
+  };
 }
 
 /**

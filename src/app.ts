@@ -4,6 +4,7 @@ import cors from 'cors';
 import fs from 'fs';
 import { openSQLiteDB, initializeSQLiteSchema } from './shared/database/sqlite-config';
 import { DatabaseManager } from './shared/database/db-abstraction';
+import { testSequelizeConnection, syncDatabase } from './shared/database/sequelize-config';
 import { i18nextMiddleware } from './features/i18n/i18n-backend.config';
 
 // Feature controllers
@@ -29,6 +30,19 @@ const dbManager = new DatabaseManager();
 // Initialize databases on startup
 (async () => {
   try {
+    // Initialize PostgreSQL with Sequelize (for profile management)
+    try {
+      const connected = await testSequelizeConnection();
+      if (connected) {
+        // Sync database schema (create tables if they don't exist)
+        await syncDatabase(false); // Use alter mode, not force
+        console.log('✓ PostgreSQL (Sequelize) initialized');
+      }
+    } catch (pgError: any) {
+      console.warn('⚠ PostgreSQL connection failed - profile features may not work:', pgError.message);
+      console.warn('  To fix: Check PostgreSQL connection settings in .env');
+    }
+    
     // Initialize SQLite (required for offline cache)
     await openSQLiteDB();
     await initializeSQLiteSchema();

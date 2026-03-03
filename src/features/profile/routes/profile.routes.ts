@@ -56,14 +56,18 @@ router.post('/register', async (req: Request, res: Response) => {
 
 /**
  * POST /api/v1/profiles/verify-otp
- * Verify OTP and create user profile
+ * Verify OTP and complete registration with mandatory fields
  * Returns JWT token for immediate authentication
+ * Requirements: 2.7, 3.1-3.14
  */
 router.post('/verify-otp', async (req: Request, res: Response) => {
   try {
     const request: VerifyOTPRequest = {
       userId: req.body.userId,
-      otp: req.body.otp
+      otp: req.body.otp,
+      name: req.body.name,
+      userType: req.body.userType,
+      location: req.body.location
     };
 
     // Validate request
@@ -71,6 +75,13 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         error: 'User ID and OTP are required'
+      });
+    }
+
+    if (!request.name || !request.userType || !request.location) {
+      return res.status(400).json({
+        success: false,
+        error: 'Name, user type, and location are required for registration'
       });
     }
 
@@ -143,8 +154,22 @@ router.get('/:userId', requireAuth, async (req: Request, res: Response) => {
       });
     }
 
+    console.log('[ProfileRoutes] Raw profile from DB:', {
+      userId: profile.userId,
+      mobileNumber: profile.mobileNumber,
+      name: profile.name,
+      userType: profile.userType
+    });
+
     // Apply privacy filters (for now, assume platform context)
     const filtered = profileManager.applyPrivacyFilters(profile, 'platform');
+
+    console.log('[ProfileRoutes] Filtered profile being sent:', {
+      userId: filtered.userId,
+      mobileNumber: filtered.mobileNumber,
+      name: filtered.name,
+      userType: filtered.userType
+    });
 
     res.status(200).json({
       success: true,

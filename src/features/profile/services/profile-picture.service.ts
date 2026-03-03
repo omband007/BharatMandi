@@ -6,7 +6,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
-import { UserProfileModel } from '../models/profile.model';
+import { UserProfileModel } from '../models/profile.sequelize.model';
 import { ContextualPromptService } from './contextual-prompt.service';
 import { validateProfilePicture } from '../utils/validators';
 import { VALIDATION_RULES } from '../constants/profile.constants';
@@ -76,7 +76,7 @@ export class ProfilePictureService {
     };
 
     // Update profile
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       throw new Error('Profile not found');
     }
@@ -194,7 +194,7 @@ export class ProfilePictureService {
    * Remove profile picture
    */
   async removeProfilePicture(userId: string): Promise<boolean> {
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       throw new Error('Profile not found');
     }
@@ -218,7 +218,7 @@ export class ProfilePictureService {
    * Get profile picture
    */
   async getProfilePicture(userId: string): Promise<ProfilePicture | null> {
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     return profile?.profilePicture || null;
   }
 
@@ -229,3 +229,4 @@ export class ProfilePictureService {
     return '/assets/default-avatar.png';
   }
 }
+

@@ -14,7 +14,8 @@
 
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { UserProfileModel } from '../models/profile.model';
+import { UserProfileModel } from '../models/profile.sequelize.model';
+import * as sqliteHelpers from '../../../shared/database/sqlite-helpers';
 import type { UserProfile } from '../types/profile.types';
 
 // JWT Configuration
@@ -73,7 +74,7 @@ export async function setupPIN(userId: string, pin: string, confirmPin: string):
     }
 
     // Get user profile
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       return { success: false, message: 'Profile not found' };
     }
@@ -120,7 +121,7 @@ export async function changePIN(
     }
 
     // Get user profile
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       return { success: false, message: 'Profile not found' };
     }
@@ -154,7 +155,7 @@ export async function changePIN(
 export async function loginWithPIN(mobileNumber: string, pin: string): Promise<LoginResponse> {
   try {
     // Get user profile by mobile number
-    const profile = await UserProfileModel.findOne({ mobileNumber });
+    const profile = await UserProfileModel.findOne({ where: { mobileNumber } });
     if (!profile) {
       return { success: false, message: 'User not found' };
     }
@@ -202,13 +203,9 @@ export async function loginWithPIN(mobileNumber: string, pin: string): Promise<L
     const token = generateToken(profile);
 
     // Convert profile to plain object for response
-    const profileObj = profile.toObject();
+    const profileObj = profile.toJSON();
     // Remove sensitive fields
     delete (profileObj as any).pinHash;
-    // Convert privacySettings Map to Record if needed
-    if (profileObj.privacySettings instanceof Map) {
-      (profileObj as any).privacySettings = Object.fromEntries(profileObj.privacySettings);
-    }
 
     return {
       success: true,
@@ -232,7 +229,7 @@ export async function loginWithPIN(mobileNumber: string, pin: string): Promise<L
 export async function loginWithBiometric(mobileNumber: string): Promise<LoginResponse> {
   try {
     // Get user profile by mobile number
-    const profile = await UserProfileModel.findOne({ mobileNumber });
+    const profile = await UserProfileModel.findOne({ where: { mobileNumber } });
     if (!profile) {
       return { success: false, message: 'User not found' };
     }
@@ -262,13 +259,9 @@ export async function loginWithBiometric(mobileNumber: string): Promise<LoginRes
     const token = generateToken(profile);
 
     // Convert profile to plain object for response
-    const profileObj = profile.toObject();
+    const profileObj = profile.toJSON();
     // Remove sensitive fields
     delete (profileObj as any).pinHash;
-    // Convert privacySettings Map to Record if needed
-    if (profileObj.privacySettings instanceof Map) {
-      (profileObj as any).privacySettings = Object.fromEntries(profileObj.privacySettings);
-    }
 
     return {
       success: true,
@@ -279,6 +272,83 @@ export async function loginWithBiometric(mobileNumber: string): Promise<LoginRes
   } catch (error) {
     console.error('[AuthService] Error during biometric login:', error);
     return { success: false, message: 'Biometric login failed' };
+  }
+}
+/**
+ * Login with OTP (for existing users)
+ * Always available, even when account is locked (account recovery)
+ * Requirements: 9.1-9.7, 24A.8
+ */
+export async function loginWithOTP(mobileNumber: string, otp: string): Promise<LoginResponse> {
+  try {
+    // Get OTP session
+    const session = await sqliteHelpers.getOTPSession(mobileNumber);
+    if (!session) {
+      return {
+        success: false,
+        message: 'OTP session not found or expired'
+      };
+    }
+
+    // Check if OTP has expired
+    if (new Date() > session.expiresAt) {
+      await sqliteHelpers.deleteOTPSession(session.phoneNumber);
+      return {
+        success: false,
+        message: 'OTP has expired. Please request a new one'
+      };
+    }
+
+    // Check attempts
+    if (session.attempts >= 3) {
+      await sqliteHelpers.deleteOTPSession(session.phoneNumber);
+      return {
+        success: false,
+        message: 'Maximum OTP attempts exceeded. Please request a new OTP'
+      };
+    }
+
+    // Verify OTP
+    if (session.otp !== otp) {
+      // Increment attempts
+      await sqliteHelpers.updateOTPAttempts(session.phoneNumber, session.attempts + 1);
+      return {
+        success: false,
+        message: 'Invalid OTP'
+      };
+    }
+
+    // OTP verified - get user profile
+    const profile = await UserProfileModel.findOne({ where: { mobileNumber } });
+    if (!profile) {
+      await sqliteHelpers.deleteOTPSession(session.phoneNumber);
+      return {
+        success: false,
+        message: 'User not found. Please register first'
+      };
+    }
+
+    // Delete OTP session
+    await sqliteHelpers.deleteOTPSession(session.phoneNumber);
+
+    // Reset failed login attempts and unlock account (OTP login bypasses lockout)
+    await handleSuccessfulLogin(profile.userId);
+
+    // Generate JWT token
+    const token = generateToken(profile);
+
+    return {
+      success: true,
+      token,
+      profile: profile.toJSON() as unknown as UserProfile,
+      message: 'OTP login successful'
+    };
+  } catch (error) {
+    console.error('[AuthService] OTP login error:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'OTP login failed'
+    };
   }
 }
 
@@ -369,7 +439,7 @@ export function isAccountLocked(profile: UserProfile | any): boolean {
  */
 export async function handleFailedLogin(userId: string, method: 'pin' | 'biometric'): Promise<void> {
   try {
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       throw new Error('Profile not found');
     }
@@ -405,7 +475,7 @@ export async function handleFailedLogin(userId: string, method: 'pin' | 'biometr
  */
 export async function handleSuccessfulLogin(userId: string): Promise<void> {
   try {
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       throw new Error('Profile not found');
     }
@@ -432,7 +502,7 @@ export async function handleSuccessfulLogin(userId: string): Promise<void> {
  */
 export async function enableBiometric(userId: string): Promise<SetupPINResponse> {
   try {
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       return { success: false, message: 'Profile not found' };
     }
@@ -454,7 +524,7 @@ export async function enableBiometric(userId: string): Promise<SetupPINResponse>
  */
 export async function disableBiometric(userId: string): Promise<SetupPINResponse> {
   try {
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       return { success: false, message: 'Profile not found' };
     }

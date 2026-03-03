@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Profile Management - Bharat Mandi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .brand-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand-logo {
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+        }
+
+        .brand-text {
+            text-align: left;
+        }
+
+        .brand-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            line-height: 1.2;
+            margin: 0;
+        }
+
+        .brand-subtitle {
+            font-size: 0.85rem;
+            color: white;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .nav-link {
+            padding: 8px 20px;
+            color: #666;
+            text-decoration: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            background: #f0f0f0;
+            color: #667eea;
+        }
+
+        .nav-link.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .info-card {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .info-card p {
+            color: #666;
+            font-size: 14px;
+            margin: 0 0 3px 0;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .workflow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="brand-header">
+            <div class="brand-logo-container">
+                <svg class="brand-logo" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 35 Q12 25 18 22 Q22 25 20 35 Q18 40 14 42 Z" fill="#FF9933"/>
+                    <path d="M13 28 Q15 32 13 37" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
+                    <path d="M25 15 Q28 10 30 8 Q32 10 35 15 Q33 30 30 35 Q27 30 25 15 Z" fill="white" stroke="#FF9933" stroke-width="1.5"/>
+                    <line x1="30" y1="12" x2="30" y2="32" stroke="#003DA5" stroke-width="1.5"/>
+                    <path d="M40 22 Q43 25 46 30 Q48 36 46 40 Q42 42 38 37 Q37 28 40 22 Z" fill="#138808"/>
+                    <path d="M41 28 Q43 32 42 37" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
+                    <rect x="28" y="35" width="4" height="15" fill="#8B4513" rx="1"/>
+                    <path d="M18 45 Q30 48 42 45" stroke="#138808" stroke-width="2" fill="none" opacity="0.6"/>
+                </svg>
+                <div class="brand-text">
+                    <div class="brand-title">Bharat Mandi</div>
+                    <div class="brand-subtitle">AI Powered Marketplace</div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="nav-bar">
+            <a href="/" class="nav-link">Main</a>
+            <a href="/profile.html" class="nav-link active">Profile</a>
+            <a href="/media-test.html" class="nav-link">Media</a>
+            <a href="/language-test.html" class="nav-link">Localization</a>
+            <a href="/translation-test.html" class="nav-link">Translation</a>
+            <a href="/voice-test.html" class="nav-link">Voice</a>
+            <a href="/voice-integration-demo.html" class="nav-link">Voice Integration</a>
+            <a href="/kisan-mitra-test.html" class="nav-link">Kisan Mitra</a>
+            <a href="/data-purge.html" class="nav-link">Data</a>
+        </nav>
+
+        <div class="info-card">
+            <p><strong>✨ Profile Management UI:</strong></p>
+            <p>✓ Complete registration flow with mandatory fields</p>
+            <p>✓ OTP verification and profile creation</p>
+            <p>✓ PIN setup and secure authentication</p>
+            <p>✓ Profile viewing and editing</p>
+            <p>✓ GPS location capture and manual entry</p>
+            <p>✓ Profile data export</p>
+            <p style="margin-top: 10px;"><strong>🚀 Coming Next:</strong></p>
+            <p>• Profile picture upload</p>
+            <p>• Biometric authentication</p>
+            <p>• Privacy settings management</p>
+            <p>• Gamification dashboard</p>
+        </div>
+
+        <div class="workflow">
+            <!-- Verify Mobile Card -->
+            <div class="card">
+                <h2><span class="step-number">1</span> Verify Mobile</h2>
+                <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                    Enter your mobile number to receive an OTP for verification.
+                </p>
+                <div class="form-group">
+                    <label>Mobile Number</label>
+                    <input type="tel" id="regMobile" placeholder="9876543210 or +919876543210">
+                    <small style="color: #666; display: block; margin-top: 5px;">
+                        10-digit number or international format (+91...)
+                    </small>
+                </div>
+                <button onclick="register()" id="registerBtn" disabled>Send OTP</button>
+                <div id="regResult" class="result"></div>
+            </div>
+
+            <!-- Register Card -->
+            <div class="card">
+                <h2><span class="step-number">2</span> Register</h2>
+                <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                    Verify OTP and complete your registration.
+                </p>
+                
+                <div class="form-group">
+                    <label>Mobile Number</label>
+                    <input type="text" id="verifyUserId" placeholder="Auto-filled" readonly style="background: #e9ecef; cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label>OTP Code <span style="color: red;">*</span></label>
+                    <input type="text" id="verifyOTP" placeholder="Check server console for OTP" maxlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label>Full Name <span style="color: red;">*</span></label>
+                    <input type="text" id="verifyName" placeholder="Your full name" minlength="2" maxlength="100">
+                </div>
+                
+                <div class="form-group">
+                    <label>User Type <span style="color: red;">*</span></label>
+                    <div style="display: flex; gap: 15px; margin-top: 8px;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="userType" value="farmer" checked style="margin-right: 5px;">
+                            <span>Farmer</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="userType" value="buyer" style="margin-right: 5px;">
+                            <span>Buyer</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Location <span style="color: red;">*</span></label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="verifyLocationText" placeholder="e.g., Agra, Uttar Pradesh" style="flex: 1;">
+                        <button type="button" onclick="fillCurrentLocation()" title="Use my current GPS location" style="width: auto; padding: 10px 15px; background: #28a745; margin-top: 0;">
+                            📍
+                        </button>
+                    </div>
+                    <input type="hidden" id="verifyLatitude">
+                    <input type="hidden" id="verifyLongitude">
+                </div>
+                
+                <button onclick="verifyOTP()" id="verifyOTPBtn" disabled>Complete Registration</button>
+                <div id="verifyResult" class="result"></div>
+            </div>
+
+            <!-- Setup PIN -->
+            <div class="card">
+                <h2><span class="step-number">3</span> Setup PIN</h2>
+                <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                    Create a 4-6 digit PIN for secure login.
+                </p>
+                <div class="form-group">
+                    <label>User ID</label>
+                    <input type="text" id="setupPinUserId" placeholder="Auto-filled" readonly style="background: #e9ecef; cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label>PIN (4-6 digits)</label>
+                    <input type="password" id="setupPin" placeholder="1234" maxlength="6" pattern="[0-9]*" inputmode="numeric">
+                </div>
+                <div class="form-group">
+                    <label>Confirm PIN</label>
+                    <input type="password" id="setupConfirmPin" placeholder="1234" maxlength="6" pattern="[0-9]*" inputmode="numeric">
+                </div>
+                <button onclick="setupPIN()" id="setupPINBtn" disabled>Setup PIN</button>
+                <div id="setupPinResult" class="result"></div>
+            </div>
+
+            <!-- Login with PIN -->
+            <div class="card">
+                <h2><span class="step-number">4</span> Login & Logout</h2>
+                <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                    Login with your PIN or biometric authentication.
+                </p>
+                <div class="form-group">
+                    <label>Mobile Number</label>
+                    <input type="tel" id="loginMobile" placeholder="9876543210 or +919876543210">
+                    <small style="color: #666; display: block; margin-top: 5px;">
+                        10-digit number or international format (+91...)
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label>PIN</label>
+                    <input type="password" id="loginPin" placeholder="Enter PIN" maxlength="6" pattern="[0-9]*" inputmode="numeric">
+                </div>
+                <button onclick="loginWithPIN()" id="loginPINBtn" style="margin-bottom: 10px;" disabled>Login with PIN</button>
+                <button onclick="loginWithBiometric()" id="loginBiometricBtn" style="background: #28a745;" disabled>Login with Biometric</button>
+                <div id="loginResult" class="result"></div>
+                
+                <div style="border-top: 2px solid #e0e0e0; margin-top: 20px; padding-top: 15px;">
+                    <button onclick="logout()" id="logoutBtn" style="background: #6c757d; display: none;">🚪 Logout</button>
+                </div>
+            </div>
+
+            <!-- View/Edit Profile -->
+            <div class="card">
+                <h2><span class="step-number">5</span> Profile</h2>
+                <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                    View and edit your profile information. Click "Load Profile" after logging in.
+                </p>
+                
+                <!-- Login Status -->
+                <div id="loginStatus" style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px;">🔒</span>
+                    <span><strong>Not logged in</strong> - Please login first</span>
+                </div>
+                
+                <input type="hidden" id="profileUserId">
+                
+                <div id="profileView" style="display: none;">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+                            <button onclick="enableEditMode()" style="width: auto; padding: 8px 15px; background: #667eea;">
+                                ✏️ Edit
+                            </button>
+                        </div>
+                        
+                        <div style="display: grid; gap: 10px;">
+                            <div>
+                                <label style="font-size: 12px; color: #666; margin-bottom: 2px;">Name</label>
+                                <div id="displayName" style="font-weight: 500;">-</div>
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: #666; margin-bottom: 2px;">Mobile Number</label>
+                                <div id="displayMobile" style="font-weight: 500;">-</div>
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: #666; margin-bottom: 2px;">User Type</label>
+                                <div id="displayUserType" style="font-weight: 500;">-</div>
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: #666; margin-bottom: 2px;">Location</label>
+                                <div id="displayLocation" style="font-weight: 500;">-</div>
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: #666; margin-bottom: 2px;">Language Preference</label>
+                                <div id="displayLanguage" style="font-weight: 500;">-</div>
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: #666; margin-bottom: 2px;">Crops Grown</label>
+                                <div id="displayCrops" style="font-weight: 500;">-</div>
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: #666; margin-bottom: 2px;">Farm Size</label>
+                                <div id="displayFarmSize" style="font-weight: 500;">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="profileEdit" style="display: none;">
+                    <div class="form-group">
+                        <label>Mobile Number</label>
+                        <input type="text" id="editMobile" readonly style="background: #e9ecef; cursor: not-allowed;">
+                    </div>
+                    <div class="form-group">
+                        <label>Name <span style="color: red;">*</span></label>
+                        <input type="text" id="editName" placeholder="Your full name">
+                    </div>
+                    <div class="form-group">
+                        <label>User Type <span style="color: red;">*</span></label>
+                        <div style="display: flex; gap: 15px; margin-top: 8px;">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="radio" name="editUserType" value="farmer" style="margin-right: 5px;">
+                                <span>Farmer</span>
+                            </label>
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="radio" name="editUserType" value="buyer" style="margin-right: 5px;">
+                                <span>Buyer</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Location <span style="color: red;">*</span></label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="editLocation" placeholder="e.g., Agra, Uttar Pradesh" style="flex: 1;">
+                            <button type="button" onclick="fillEditLocation()" title="Use my current GPS location" style="width: auto; padding: 10px 15px; background: #28a745; margin-top: 0;">
+                                📍
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Language Preference</label>
+                        <select id="editLanguage">
+                            <option value="">-- Select Language --</option>
+                            <option value="en">English</option>
+                            <option value="hi">Hindi</option>
+                            <option value="pa">Punjabi</option>
+                            <option value="bn">Bengali</option>
+                            <option value="te">Telugu</option>
+                            <option value="mr">Marathi</option>
+                            <option value="ta">Tamil</option>
+                            <option value="gu">Gujarati</option>
+                            <option value="kn">Kannada</option>
+                            <option value="ml">Malayalam</option>
+                            <option value="or">Odia</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Crops Grown</label>
+                        <input type="text" id="editCrops" placeholder="e.g., Wheat, Rice (comma separated)">
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            Enter crop names separated by commas
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label>Farm Size</label>
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+                            <input type="number" id="editFarmSizeValue" placeholder="e.g., 5" step="0.1" min="0">
+                            <select id="editFarmSizeUnit">
+                                <option value="acres">Acres</option>
+                                <option value="hectares">Hectares</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="saveProfile()" style="flex: 1; background: #28a745;">Save Changes</button>
+                        <button onclick="cancelEdit()" style="flex: 1; background: #6c757d;">Cancel</button>
+                    </div>
+                </div>
+                
+                <div id="profileFetch">
+                    <button onclick="fetchAndDisplayProfile()" id="loadProfileBtn" disabled>Load Profile</button>
+                </div>
+                
+                <div id="profileResult" class="result"></div>
+            </div>
+
+            <!-- Export Profile -->
+            <div class="card">
+                <h2><span class="step-number">6</span> Export Profile</h2>
+                <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                    Download your complete profile data as JSON.
+                </p>
+                
+                <!-- Login Status -->
+                <div id="exportLoginStatus" style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px;">🔒</span>
+                    <span><strong>Not logged in</strong> - Please login first</span>
+                </div>
+                
+                <button onclick="exportProfile()" id="exportProfileBtn" style="background: #17a2b8;" disabled>
+                    📥 Export Profile Data
+                </button>
+                <div id="exportResult" class="result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api/v1/profiles';
+        const API_AUTH = 'http://localhost:3000/api/v1/profiles/auth';
+        let sessionUserId = null;
+        let authToken = null; // Store token after login
+        let loggedInUserName = null; // Store user name after login
+
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.className = `result ${isError ? 'error' : 'success'}`;
+            
+            if (typeof data === 'string') {
+                element.innerHTML = data;
+            } else {
+                element.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+        }
+
+        // Update login status display
+        function updateLoginStatus(isLoggedIn, userName = '') {
+            const loginStatus = document.getElementById('loginStatus');
+            const exportLoginStatus = document.getElementById('exportLoginStatus');
+            const loadProfileBtn = document.getElementById('loadProfileBtn');
+            const exportProfileBtn = document.getElementById('exportProfileBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            
+            if (isLoggedIn) {
+                // Update status displays
+                loginStatus.style.background = '#d4edda';
+                loginStatus.style.color = '#155724';
+                loginStatus.innerHTML = `
+                    <span style="font-size: 20px;">✅</span>
+                    <span><strong>Logged in as:</strong> ${userName}</span>
+                `;
+                
+                exportLoginStatus.style.background = '#d4edda';
+                exportLoginStatus.style.color = '#155724';
+                exportLoginStatus.innerHTML = `
+                    <span style="font-size: 20px;">✅</span>
+                    <span><strong>Logged in as:</strong> ${userName}</span>
+                `;
+                
+                // Enable profile buttons
+                loadProfileBtn.disabled = false;
+                exportProfileBtn.disabled = false;
+                
+                // Show logout button
+                logoutBtn.style.display = 'block';
+            } else {
+                // Update status displays
+                loginStatus.style.background = '#f8d7da';
+                loginStatus.style.color = '#721c24';
+                loginStatus.innerHTML = `
+                    <span style="font-size: 20px;">🔒</span>
+                    <span><strong>Not logged in</strong> - Please login first</span>
+                `;
+                
+                exportLoginStatus.style.background = '#f8d7da';
+                exportLoginStatus.style.color = '#721c24';
+                exportLoginStatus.innerHTML = `
+                    <span style="font-size: 20px;">🔒</span>
+                    <span><strong>Not logged in</strong> - Please login first</span>
+                `;
+                
+                // Disable profile buttons
+                loadProfileBtn.disabled = true;
+                exportProfileBtn.disabled = true;
+                
+                // Hide logout button
+                logoutBtn.style.display = 'none';
+            }
+        }
+
+        // Logout function
+        function logout() {
+            // Clear authentication data
+            authToken = null;
+            loggedInUserName = null;
+            sessionUserId = null;
+            
+            // Clear profile data
+            clearProfileDisplay();
+            
+            // Clear profile user ID
+            document.getElementById('profileUserId').value = '';
+            
+            // Update login status
+            updateLoginStatus(false);
+            
+            // Show success message
+            showResult('loginResult', '✅ Logged out successfully', false);
+            
+            // Clear login form
+            document.getElementById('loginMobile').value = '';
+            document.getElementById('loginPin').value = '';
+        }
+
+        // Enable/disable buttons based on input fields
+        function setupInputValidation() {
+            // Tile 1: Register button
+            const regMobile = document.getElementById('regMobile');
+            const registerBtn = document.getElementById('registerBtn');
+            regMobile.addEventListener('input', () => {
+                registerBtn.disabled = !regMobile.value.trim();
+            });
+            
+            // Tile 2: Verify OTP button
+            const verifyOTP = document.getElementById('verifyOTP');
+            const verifyName = document.getElementById('verifyName');
+            const verifyLocationText = document.getElementById('verifyLocationText');
+            const verifyOTPBtn = document.getElementById('verifyOTPBtn');
+            
+            function checkVerifyFields() {
+                const hasOTP = verifyOTP.value.trim().length === 6;
+                const hasName = verifyName.value.trim().length >= 2;
+                const hasLocation = verifyLocationText.value.trim().length >= 3;
+                verifyOTPBtn.disabled = !(hasOTP && hasName && hasLocation);
+            }
+            
+            verifyOTP.addEventListener('input', checkVerifyFields);
+            verifyName.addEventListener('input', checkVerifyFields);
+            verifyLocationText.addEventListener('input', checkVerifyFields);
+            
+            // Tile 3: Setup PIN button
+            const setupPin = document.getElementById('setupPin');
+            const setupConfirmPin = document.getElementById('setupConfirmPin');
+            const setupPINBtn = document.getElementById('setupPINBtn');
+            
+            function checkPINFields() {
+                const hasPin = setupPin.value.trim().length >= 4;
+                const hasConfirm = setupConfirmPin.value.trim().length >= 4;
+                setupPINBtn.disabled = !(hasPin && hasConfirm);
+            }
+            
+            setupPin.addEventListener('input', checkPINFields);
+            setupConfirmPin.addEventListener('input', checkPINFields);
+            
+            // Tile 4: Login buttons
+            const loginMobile = document.getElementById('loginMobile');
+            const loginPin = document.getElementById('loginPin');
+            const loginPINBtn = document.getElementById('loginPINBtn');
+            const loginBiometricBtn = document.getElementById('loginBiometricBtn');
+            
+            function checkLoginFields() {
+                const hasMobile = loginMobile.value.trim().length >= 10;
+                const hasPin = loginPin.value.trim().length >= 4;
+                loginPINBtn.disabled = !(hasMobile && hasPin);
+                loginBiometricBtn.disabled = !hasMobile;
+            }
+            
+            loginMobile.addEventListener('input', checkLoginFields);
+            loginPin.addEventListener('input', checkLoginFields);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            setupInputValidation();
+            updateLoginStatus(false);
+        });
+
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            try {
+                const options = {
+                    method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                
+                // Add authorization header if token exists
+                if (authToken) {
+                    options.headers['Authorization'] = `Bearer ${authToken}`;
+                }
+                
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+
+                const response = await fetch(endpoint, options);
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Request failed');
+                }
+
+                return data;
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        async function register() {
+            let mobileNumber = document.getElementById('regMobile').value.trim();
+
+            if (!mobileNumber) {
+                showResult('regResult', '❌ Please enter a mobile number', true);
+                return;
+            }
+
+            // Normalize mobile number - add +91 if 10 digits
+            if (/^[6-9]\d{9}$/.test(mobileNumber)) {
+                mobileNumber = '+91' + mobileNumber;
+            } else if (!mobileNumber.startsWith('+')) {
+                showResult('regResult', '❌ Invalid format. Use 10 digits or international format (+91...)', true);
+                return;
+            }
+
+            try {
+                showResult('regResult', '🔄 Sending OTP...', false);
+                
+                const data = await apiCall(`${API_BASE}/register`, 'POST', { mobileNumber });
+
+                sessionUserId = data.data.userId;
+                
+                document.getElementById('verifyUserId').value = data.data.userId;
+                document.getElementById('profileUserId').value = data.data.userId;
+
+                showResult('regResult', 
+                    `✅ OTP sent!<br>
+                    <strong>Mobile:</strong> ${data.data.userId}<br>
+                    <strong>⚠️ Check server console for OTP</strong>`, 
+                    false);
+            } catch (error) {
+                showResult('regResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        function fillCurrentLocation() {
+            if (!navigator.geolocation) {
+                alert('Geolocation not supported by your browser');
+                return;
+            }
+
+            showResult('verifyResult', '🔄 Getting location...', false);
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude.toFixed(6);
+                    const lon = position.coords.longitude.toFixed(6);
+                    
+                    // Store coordinates in hidden fields
+                    document.getElementById('verifyLatitude').value = lat;
+                    document.getElementById('verifyLongitude').value = lon;
+                    
+                    // Set location text to coordinates
+                    document.getElementById('verifyLocationText').value = `${lat}, ${lon}`;
+                    
+                    showResult('verifyResult', '✅ Location captured!', false);
+                },
+                (error) => {
+                    showResult('verifyResult', `❌ Error: ${error.message}`, true);
+                }
+            );
+        }
+
+        async function verifyOTP() {
+            const userId = document.getElementById('verifyUserId').value.trim();
+            const otp = document.getElementById('verifyOTP').value.trim();
+            const name = document.getElementById('verifyName').value.trim();
+            const userType = document.querySelector('input[name="userType"]:checked')?.value;
+            const locationText = document.getElementById('verifyLocationText').value.trim();
+            const latitude = document.getElementById('verifyLatitude').value;
+            const longitude = document.getElementById('verifyLongitude').value;
+
+            if (!userId || !otp) {
+                showResult('verifyResult', '❌ Enter mobile and OTP', true);
+                return;
+            }
+
+            if (otp.length !== 6) {
+                showResult('verifyResult', '❌ OTP must be 6 digits', true);
+                return;
+            }
+
+            if (!name || name.length < 2) {
+                showResult('verifyResult', '❌ Enter valid name (2+ chars)', true);
+                return;
+            }
+
+            if (!userType) {
+                showResult('verifyResult', '❌ Select user type', true);
+                return;
+            }
+
+            if (!locationText || locationText.length < 3) {
+                showResult('verifyResult', '❌ Enter location (3+ chars)', true);
+                return;
+            }
+
+            // Determine location type based on whether coordinates are present
+            let location;
+            if (latitude && longitude) {
+                location = { 
+                    type: 'gps', 
+                    latitude: parseFloat(latitude), 
+                    longitude: parseFloat(longitude) 
+                };
+            } else {
+                location = { type: 'manual', text: locationText };
+            }
+
+            try {
+                showResult('verifyResult', '🔄 Verifying...', false);
+                
+                const data = await apiCall(`${API_BASE}/verify-otp`, 'POST', {
+                    userId,
+                    otp,
+                    name,
+                    userType,
+                    location
+                });
+
+                // Auto-fill Setup PIN with the actual userId from profile
+                document.getElementById('setupPinUserId').value = data.data.profile.userId;
+                document.getElementById('profileUserId').value = data.data.profile.userId;
+
+                showResult('verifyResult', 
+                    `✅ Registration complete!<br>
+                    <strong>User ID:</strong> ${data.data.profile.userId}<br>
+                    <strong>Profile:</strong> ${data.data.profile.completionPercentage}% complete<br>
+                    <strong>Token:</strong> ${data.data.token.substring(0, 20)}...`, 
+                    false);
+            } catch (error) {
+                showResult('verifyResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function setupPIN() {
+            const userId = document.getElementById('setupPinUserId').value.trim();
+            const pin = document.getElementById('setupPin').value.trim();
+            const confirmPin = document.getElementById('setupConfirmPin').value.trim();
+
+            if (!userId || !pin || !confirmPin) {
+                showResult('setupPinResult', '❌ Fill all fields', true);
+                return;
+            }
+
+            if (pin !== confirmPin) {
+                showResult('setupPinResult', '❌ PINs do not match', true);
+                return;
+            }
+
+            if (pin.length < 4 || pin.length > 6) {
+                showResult('setupPinResult', '❌ PIN must be 4-6 digits', true);
+                return;
+            }
+
+            try {
+                showResult('setupPinResult', '🔄 Setting up PIN...', false);
+                
+                const data = await apiCall(`${API_AUTH}/setup-pin`, 'POST', { userId, pin, confirmPin });
+
+                showResult('setupPinResult', '✅ PIN setup successful!', false);
+            } catch (error) {
+                showResult('setupPinResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function loginWithPIN() {
+            let mobileNumber = document.getElementById('loginMobile').value.trim();
+            const pin = document.getElementById('loginPin').value.trim();
+
+            if (!mobileNumber || !pin) {
+                showResult('loginResult', '❌ Enter mobile and PIN', true);
+                return;
+            }
+
+            // Normalize mobile number - add +91 if not present
+            if (!mobileNumber.startsWith('+')) {
+                mobileNumber = '+91' + mobileNumber;
+            }
+
+            try {
+                showResult('loginResult', '🔄 Logging in...', false);
+                
+                const data = await apiCall(`${API_AUTH}/login/pin`, 'POST', { mobileNumber, pin });
+
+                // Store token and user info for authenticated requests
+                authToken = data.data.token;
+                loggedInUserName = data.data.profile.name;
+
+                // Auto-fill User ID field
+                document.getElementById('profileUserId').value = data.data.profile.userId;
+
+                // Update login status
+                updateLoginStatus(true, loggedInUserName);
+
+                showResult('loginResult', 
+                    `✅ Login successful!<br>
+                    <strong>User:</strong> ${data.data.profile.name}<br>
+                    <strong>Token:</strong> ${data.data.token.substring(0, 20)}...`, 
+                    false);
+
+                // Automatically load profile after successful login
+                await fetchAndDisplayProfile();
+            } catch (error) {
+                showResult('loginResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function loginWithBiometric() {
+            let mobileNumber = document.getElementById('loginMobile').value.trim();
+
+            if (!mobileNumber) {
+                showResult('loginResult', '❌ Enter mobile number', true);
+                return;
+            }
+
+            // Normalize mobile number - add +91 if not present
+            if (!mobileNumber.startsWith('+')) {
+                mobileNumber = '+91' + mobileNumber;
+            }
+
+            try {
+                showResult('loginResult', '🔄 Authenticating...', false);
+                
+                const data = await apiCall(`${API_AUTH}/login/biometric`, 'POST', { mobileNumber });
+
+                // Store token and user info for authenticated requests
+                authToken = data.data.token;
+                loggedInUserName = data.data.profile.name;
+
+                // Auto-fill User ID field
+                document.getElementById('profileUserId').value = data.data.profile.userId;
+
+                // Update login status
+                updateLoginStatus(true, loggedInUserName);
+
+                showResult('loginResult', 
+                    `✅ Biometric login successful!<br>
+                    <strong>User:</strong> ${data.data.profile.name}<br>
+                    <strong>Token:</strong> ${data.data.token.substring(0, 20)}...`, 
+                    false);
+
+                // Automatically load profile after successful login
+                await fetchAndDisplayProfile();
+            } catch (error) {
+                showResult('loginResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        // Language code to name mapping
+        const languageNames = {
+            'en': 'English',
+            'hi': 'Hindi',
+            'pa': 'Punjabi',
+            'bn': 'Bengali',
+            'te': 'Telugu',
+            'mr': 'Marathi',
+            'ta': 'Tamil',
+            'gu': 'Gujarati',
+            'kn': 'Kannada',
+            'ml': 'Malayalam',
+            'or': 'Odia'
+        };
+
+        let currentProfile = null;
+
+        // Clear profile display
+        function clearProfileDisplay() {
+            // Clear current profile data
+            currentProfile = null;
+            
+            // Hide profile view and edit sections
+            document.getElementById('profileView').style.display = 'none';
+            document.getElementById('profileEdit').style.display = 'none';
+            
+            // Show fetch button
+            document.getElementById('profileFetch').style.display = 'block';
+            
+            // Clear all display fields
+            document.getElementById('displayName').textContent = '-';
+            document.getElementById('displayMobile').textContent = '-';
+            document.getElementById('displayUserType').textContent = '-';
+            document.getElementById('displayLocation').textContent = '-';
+            document.getElementById('displayLanguage').textContent = '-';
+            document.getElementById('displayCrops').textContent = '-';
+            document.getElementById('displayFarmSize').textContent = '-';
+            
+            // Clear result message
+            document.getElementById('profileResult').style.display = 'none';
+        }
+
+        async function fetchAndDisplayProfile() {
+            const userId = document.getElementById('profileUserId').value.trim();
+
+            if (!userId) {
+                showResult('profileResult', '❌ User ID not set. Please login first.', true);
+                return;
+            }
+
+            try {
+                // Clear old profile data first
+                clearProfileDisplay();
+                
+                showResult('profileResult', '🔄 Fetching profile...', false);
+                
+                const data = await apiCall(`${API_BASE}/${userId}`);
+                currentProfile = data.data;
+
+                console.log('Profile data received:', currentProfile); // Debug log
+                console.log('Mobile number field:', currentProfile.mobileNumber); // Debug log
+
+                // Display profile data
+                document.getElementById('displayName').textContent = currentProfile.name || '-';
+                document.getElementById('displayMobile').textContent = currentProfile.mobileNumber || '-';
+                document.getElementById('displayUserType').textContent = currentProfile.userType || '-';
+                
+                // Format location
+                let locationText = '-';
+                if (currentProfile.location) {
+                    if (currentProfile.location.addressLine1) {
+                        locationText = currentProfile.location.addressLine1;
+                    } else if (currentProfile.location.latitude && currentProfile.location.longitude) {
+                        locationText = `${currentProfile.location.latitude}, ${currentProfile.location.longitude}`;
+                    }
+                }
+                document.getElementById('displayLocation').textContent = locationText;
+                
+                // Display language with full name
+                const langCode = currentProfile.languagePreference;
+                const langName = langCode ? (languageNames[langCode] || langCode) : '-';
+                document.getElementById('displayLanguage').textContent = langName;
+                
+                // Display crops
+                let cropsText = '-';
+                if (currentProfile.cropsGrown && Array.isArray(currentProfile.cropsGrown) && currentProfile.cropsGrown.length > 0) {
+                    cropsText = currentProfile.cropsGrown.map(c => c.name || c).join(', ');
+                }
+                document.getElementById('displayCrops').textContent = cropsText;
+                
+                // Display farm size
+                let farmSizeText = '-';
+                if (currentProfile.farmSize && currentProfile.farmSize.value) {
+                    farmSizeText = `${currentProfile.farmSize.value} ${currentProfile.farmSize.unit}`;
+                }
+                document.getElementById('displayFarmSize').textContent = farmSizeText;
+
+                // Show profile view, hide fetch button
+                document.getElementById('profileView').style.display = 'block';
+                document.getElementById('profileFetch').style.display = 'none';
+                document.getElementById('profileResult').style.display = 'none';
+            } catch (error) {
+                console.error('Fetch profile error:', error);
+                showResult('profileResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        function enableEditMode() {
+            if (!currentProfile) return;
+
+            // Populate edit fields with current values
+            document.getElementById('editMobile').value = currentProfile.mobileNumber || '';
+            document.getElementById('editName').value = currentProfile.name || '';
+            
+            // Set user type radio button
+            const userType = currentProfile.userType || 'farmer';
+            const userTypeRadio = document.querySelector(`input[name="editUserType"][value="${userType}"]`);
+            if (userTypeRadio) {
+                userTypeRadio.checked = true;
+            }
+            
+            // Location
+            let locationText = '';
+            if (currentProfile.location) {
+                if (currentProfile.location.addressLine1) {
+                    locationText = currentProfile.location.addressLine1;
+                } else if (currentProfile.location.latitude && currentProfile.location.longitude) {
+                    locationText = `${currentProfile.location.latitude}, ${currentProfile.location.longitude}`;
+                }
+            }
+            document.getElementById('editLocation').value = locationText;
+            
+            // Optional fields
+            document.getElementById('editLanguage').value = currentProfile.languagePreference || '';
+            
+            // Crops
+            let cropsText = '';
+            if (currentProfile.cropsGrown && Array.isArray(currentProfile.cropsGrown) && currentProfile.cropsGrown.length > 0) {
+                cropsText = currentProfile.cropsGrown.map(c => c.name || c).join(', ');
+            }
+            document.getElementById('editCrops').value = cropsText;
+            
+            // Farm size
+            if (currentProfile.farmSize && currentProfile.farmSize.value) {
+                document.getElementById('editFarmSizeValue').value = currentProfile.farmSize.value;
+                document.getElementById('editFarmSizeUnit').value = currentProfile.farmSize.unit || 'acres';
+            } else {
+                document.getElementById('editFarmSizeValue').value = '';
+                document.getElementById('editFarmSizeUnit').value = 'acres';
+            }
+
+            // Show edit form, hide view
+            document.getElementById('profileView').style.display = 'none';
+            document.getElementById('profileEdit').style.display = 'block';
+        }
+
+        function cancelEdit() {
+            // Show view, hide edit form
+            document.getElementById('profileView').style.display = 'block';
+            document.getElementById('profileEdit').style.display = 'none';
+        }
+
+        function fillEditLocation() {
+            if (!navigator.geolocation) {
+                alert('Geolocation not supported by your browser');
+                return;
+            }
+
+            showResult('profileResult', '🔄 Getting location...', false);
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude.toFixed(6);
+                    const lon = position.coords.longitude.toFixed(6);
+                    document.getElementById('editLocation').value = `${lat}, ${lon}`;
+                    showResult('profileResult', '✅ Location captured!', false);
+                },
+                (error) => {
+                    showResult('profileResult', `❌ Error: ${error.message}`, true);
+                }
+            );
+        }
+
+        async function saveProfile() {
+            const userId = document.getElementById('profileUserId').value.trim();
+            const name = document.getElementById('editName').value.trim();
+            const userType = document.querySelector('input[name="editUserType"]:checked')?.value;
+            const location = document.getElementById('editLocation').value.trim();
+            const language = document.getElementById('editLanguage').value;
+            const cropsText = document.getElementById('editCrops').value.trim();
+            const farmSizeValue = document.getElementById('editFarmSizeValue').value;
+            const farmSizeUnit = document.getElementById('editFarmSizeUnit').value;
+
+            // Validate mandatory fields
+            if (!name || !userType || !location) {
+                showResult('profileResult', '❌ Name, User Type, and Location are required', true);
+                return;
+            }
+
+            try {
+                showResult('profileResult', '🔄 Saving changes...', false);
+
+                // Update mandatory fields
+                await apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
+                    fieldName: 'name',
+                    value: name
+                });
+
+                await apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
+                    fieldName: 'userType',
+                    value: userType
+                });
+
+                await apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
+                    fieldName: 'location',
+                    value: { type: 'manual', text: location }
+                });
+
+                // Update optional fields if provided
+                if (language) {
+                    await apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
+                        fieldName: 'languagePreference',
+                        value: language
+                    });
+                }
+
+                if (cropsText) {
+                    // Convert comma-separated text to crops array
+                    const cropsArray = cropsText.split(',').map(c => ({
+                        name: c.trim(),
+                        addedAt: new Date().toISOString()
+                    }));
+                    await apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
+                        fieldName: 'cropsGrown',
+                        value: cropsArray
+                    });
+                }
+
+                if (farmSizeValue) {
+                    await apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
+                        fieldName: 'farmSize',
+                        value: {
+                            value: parseFloat(farmSizeValue),
+                            unit: farmSizeUnit
+                        }
+                    });
+                }
+
+                showResult('profileResult', '✅ Profile updated successfully!', false);
+                
+                // Refresh profile display
+                await fetchAndDisplayProfile();
+                
+                // Hide edit form
+                document.getElementById('profileEdit').style.display = 'none';
+            } catch (error) {
+                showResult('profileResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function exportProfile() {
+            const userId = document.getElementById('profileUserId').value.trim();
+
+            if (!userId) {
+                showResult('exportResult', '❌ User ID not set. Please login first.', true);
+                return;
+            }
+
+            try {
+                showResult('exportResult', '🔄 Exporting profile...', false);
+                
+                const data = await apiCall(`${API_BASE}/${userId}/export`);
+
+                // Create a blob from the JSON data
+                const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: 'application/json' });
+                
+                // Create a download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `profile-${userId}-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                
+                // Cleanup
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                showResult('exportResult', '✅ Profile data exported successfully!', false);
+            } catch (error) {
+                showResult('exportResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        // Verify all functions are loaded
+        console.log('All functions loaded:', {
+            register: typeof register,
+            fillCurrentLocation: typeof fillCurrentLocation,
+            verifyOTP: typeof verifyOTP,
+            setupPIN: typeof setupPIN,
+            loginWithPIN: typeof loginWithPIN,
+            loginWithBiometric: typeof loginWithBiometric,
+            fetchAndDisplayProfile: typeof fetchAndDisplayProfile,
+            enableEditMode: typeof enableEditMode,
+            saveProfile: typeof saveProfile,
+            exportProfile: typeof exportProfile
+        });
+    </script>
+</body>
+</html>

@@ -4,7 +4,7 @@
  * Automatically updates profile fields from user interactions.
  */
 
-import { UserProfileModel } from '../models/profile.model';
+import { UserProfileModel } from '../models/profile.sequelize.model';
 import { ContextualPromptService } from './contextual-prompt.service';
 import type { UserProfile, CropGrown, UserType } from '../types/profile.types';
 
@@ -28,7 +28,7 @@ export class ImplicitUpdateService {
     }
 
     // Get current profile
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       return false;
     }
@@ -117,7 +117,7 @@ export class ImplicitUpdateService {
       return false; // Only add if confidence > 80%
     }
 
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       return false;
     }
@@ -138,12 +138,12 @@ export class ImplicitUpdateService {
     if (!profile.cropsGrown) {
       profile.cropsGrown = [] as any;
     }
-    profile.cropsGrown.push(newCrop as any);
+    profile.cropsGrown!.push(newCrop as any);
     profile.updatedAt = new Date();
     await profile.save();
 
     // Record collection if this is the first crop
-    if (profile.cropsGrown.length === 1) {
+    if (profile.cropsGrown!.length === 1) {
       await this.promptService.recordFieldCollected(userId, 'cropsGrown', 'implicit_update');
     }
 
@@ -154,7 +154,7 @@ export class ImplicitUpdateService {
    * Add crop from price query
    */
   async addCropFromPriceQuery(userId: string, cropName: string): Promise<boolean> {
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       return false;
     }
@@ -175,12 +175,12 @@ export class ImplicitUpdateService {
     if (!profile.cropsGrown) {
       profile.cropsGrown = [] as any;
     }
-    profile.cropsGrown.push(newCrop as any);
+    profile.cropsGrown!.push(newCrop as any);
     profile.updatedAt = new Date();
     await profile.save();
 
     // Record collection if this is the first crop
-    if (profile.cropsGrown.length === 1) {
+    if (profile.cropsGrown!.length === 1) {
       await this.promptService.recordFieldCollected(userId, 'cropsGrown', 'implicit_update');
     }
 
@@ -191,7 +191,7 @@ export class ImplicitUpdateService {
    * Add crop from sale post
    */
   async addCropFromSalePost(userId: string, cropName: string): Promise<boolean> {
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       return false;
     }
@@ -212,12 +212,12 @@ export class ImplicitUpdateService {
     if (!profile.cropsGrown) {
       profile.cropsGrown = [] as any;
     }
-    profile.cropsGrown.push(newCrop as any);
+    profile.cropsGrown!.push(newCrop as any);
     profile.updatedAt = new Date();
     await profile.save();
 
     // Record collection if this is the first crop
-    if (profile.cropsGrown.length === 1) {
+    if (profile.cropsGrown!.length === 1) {
       await this.promptService.recordFieldCollected(userId, 'cropsGrown', 'implicit_update');
     }
 
@@ -228,7 +228,7 @@ export class ImplicitUpdateService {
    * Infer user type from marketplace behavior
    */
   async inferUserType(userId: string, behavior: 'selling' | 'buying'): Promise<boolean> {
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       return false;
     }
@@ -271,7 +271,7 @@ export class ImplicitUpdateService {
    * Check if user should be explicitly prompted for user type
    */
   async shouldPromptForUserType(userId: string): Promise<boolean> {
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile || profile.userType) {
       return false; // Already has user type
     }
@@ -284,3 +284,5 @@ export class ImplicitUpdateService {
     return daysSinceCreation >= 5;
   }
 }
+
+

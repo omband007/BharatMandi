@@ -4,7 +4,9 @@
  * Determines when and what profile data to request based on user interactions.
  */
 
-import { PromptTrackingModel, UserProfileModel } from '../models/profile.model';
+import { UserProfileModel } from '../models/profile.sequelize.model';
+// TODO: Migrate PromptTrackingModel to Sequelize
+// import { PromptTrackingModel } from '../models/profile.model';
 import { FIELD_PRIORITY, PROMPT_LIMITS } from '../constants/profile.constants';
 import type { UserProfile, PromptTracking, PrivacyLevel } from '../types/profile.types';
 
@@ -21,54 +23,26 @@ export class ContextualPromptService {
    */
   async identifyPromptOpportunity(userId: string, interactionContext?: string): Promise<PromptOpportunity | null> {
     // Get user profile
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       throw new Error('Profile not found');
     }
 
     // Get all missing fields
-    // Convert Map to Record for type compatibility
-    const privacySettingsObj: Record<string, PrivacyLevel> = {};
-    profile.privacySettings.forEach((value, key) => {
-      privacySettingsObj[key] = value as PrivacyLevel;
-    });
-
-    const profileObj: UserProfile = {
-      ...profile.toObject(),
-      privacySettings: privacySettingsObj
-    } as UserProfile;
-
+    const profileObj = profile.toJSON() as UserProfile;
     const missingFields = this.getMissingFields(profileObj);
     if (missingFields.length === 0) {
       return null; // Profile is complete
     }
 
-    // Check prompt tracking for each missing field
-    const eligibleFields: PromptOpportunity[] = [];
-
-    for (const fieldName of missingFields) {
-      const tracking = await PromptTrackingModel.findOne({ userId, fieldName });
-
-      // Check if field is eligible for prompting
-      const isEligible = await this.isFieldEligibleForPrompt(tracking);
-      if (!isEligible) {
-        continue;
-      }
-
-      const priority = this.getFieldPriority(fieldName);
-      const reason = this.getPromptReason(fieldName, interactionContext);
-
-      eligibleFields.push({
-        fieldName,
-        priority,
-        reason,
-        shouldPrompt: true
-      });
-    }
-
-    if (eligibleFields.length === 0) {
-      return null;
-    }
+    // TODO: Re-enable prompt tracking after migrating PromptTrackingModel to Sequelize
+    // For now, return the highest priority missing field
+    const eligibleFields: PromptOpportunity[] = missingFields.map(fieldName => ({
+      fieldName,
+      priority: this.getFieldPriority(fieldName),
+      reason: this.getPromptReason(fieldName, interactionContext),
+      shouldPrompt: true
+    }));
 
     // Sort by priority (highest first)
     eligibleFields.sort((a, b) => b.priority - a.priority);
@@ -156,92 +130,56 @@ export class ContextualPromptService {
 
   /**
    * Check if user can receive a prompt now (timing check)
+   * TODO: Re-enable after migrating PromptTrackingModel to Sequelize
    */
   async canPromptNow(userId: string): Promise<boolean> {
-    // Get last prompt time across all fields
-    const recentPrompt = await PromptTrackingModel.findOne({
-      userId,
-      lastPromptedAt: {
-        $gte: new Date(Date.now() - PROMPT_LIMITS.MIN_PROMPT_INTERVAL_MINUTES * 60 * 1000)
-      }
-    });
-
-    return !recentPrompt;
+    // Temporarily always return true until PromptTrackingModel is migrated
+    return true;
   }
 
   /**
    * Record that a prompt was shown
+   * TODO: Re-enable after migrating PromptTrackingModel to Sequelize
    */
   async recordPromptShown(userId: string, fieldName: string): Promise<void> {
-    await PromptTrackingModel.findOneAndUpdate(
-      { userId, fieldName },
-      {
-        $inc: { promptCount: 1 },
-        $set: { lastPromptedAt: new Date() }
-      },
-      { upsert: true }
-    );
+    // Temporarily disabled until PromptTrackingModel is migrated
+    return;
   }
 
   /**
    * Record that a prompt was dismissed
+   * TODO: Re-enable after migrating PromptTrackingModel to Sequelize
    */
   async recordPromptDismissed(userId: string, fieldName: string): Promise<void> {
-    const tracking = await PromptTrackingModel.findOneAndUpdate(
-      { userId, fieldName },
-      {
-        $inc: { dismissalCount: 1 },
-        $set: { lastDismissedAt: new Date() }
-      },
-      { upsert: true, new: true }
-    );
-
-    // Check if should mark as user_declined
-    if (tracking && tracking.dismissalCount >= PROMPT_LIMITS.MAX_DISMISSALS) {
-      tracking.status = 'user_declined';
-      await tracking.save();
-    }
+    // Temporarily disabled until PromptTrackingModel is migrated
+    return;
   }
 
   /**
    * Record that a field was collected
+   * TODO: Re-enable after migrating PromptTrackingModel to Sequelize
    */
   async recordFieldCollected(
     userId: string,
     fieldName: string,
     source: 'explicit_prompt' | 'implicit_update' | 'manual_edit' | 'import'
   ): Promise<void> {
-    await PromptTrackingModel.findOneAndUpdate(
-      { userId, fieldName },
-      {
-        $set: {
-          status: 'collected',
-          collectedAt: new Date(),
-          collectionSource: source
-        }
-      },
-      { upsert: true }
-    );
+    // Temporarily disabled until PromptTrackingModel is migrated
+    return;
   }
 
   /**
    * Get prompt statistics for a user
+   * TODO: Re-enable after migrating PromptTrackingModel to Sequelize
    */
   async getPromptStats(userId: string): Promise<any> {
-    const trackings = await PromptTrackingModel.find({ userId });
-
+    // Temporarily return empty stats until PromptTrackingModel is migrated
     return {
-      totalFields: trackings.length,
-      collected: trackings.filter(t => t.status === 'collected').length,
-      pending: trackings.filter(t => t.status === 'pending').length,
-      declined: trackings.filter(t => t.status === 'user_declined').length,
-      trackings: trackings.map(t => ({
-        fieldName: t.fieldName,
-        status: t.status,
-        promptCount: t.promptCount,
-        dismissalCount: t.dismissalCount,
-        collectionSource: t.collectionSource
-      }))
+      totalFields: 0,
+      collected: 0,
+      pending: 0,
+      declined: 0,
+      trackings: []
     };
   }
 }

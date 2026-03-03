@@ -5,7 +5,7 @@
  * and privacy settings management.
  */
 
-import { UserProfileModel } from '../models/profile.model';
+import { UserProfileModel } from '../models/profile.sequelize.model';
 import { PROFILE_FIELD_WEIGHTS, VALIDATION_RULES, DEFAULT_PRIVACY_SETTINGS } from '../constants/profile.constants';
 import { ProfileCacheService } from './profile-cache.service';
 import { validateField } from '../utils/validators';
@@ -28,22 +28,14 @@ export class ProfileManagerService {
       return cached;
     }
 
-    // Fetch from database
-    const profile = await UserProfileModel.findOne({ userId });
+    // Fetch from database using Sequelize
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       return null;
     }
 
-    // Convert Map to Record for type compatibility
-    const privacySettingsObj: Record<string, PrivacyLevel> = {};
-    profile.privacySettings.forEach((value, key) => {
-      privacySettingsObj[key] = value as PrivacyLevel;
-    });
-
-    const profileObj: UserProfile = {
-      ...profile.toObject(),
-      privacySettings: privacySettingsObj
-    } as UserProfile;
+    // Convert to plain object
+    const profileObj = profile.toJSON() as UserProfile;
 
     // Cache for next time
     await this.cacheService.cacheProfile(userId, profileObj);
@@ -60,7 +52,7 @@ export class ProfileManagerService {
     value: any
   ): Promise<UpdateProfileFieldResponse> {
     // Get existing profile
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       throw new Error('Profile not found');
     }
@@ -77,19 +69,9 @@ export class ProfileManagerService {
 
     // Update the field
     (profile as any)[fieldName] = value;
-    profile.updatedAt = new Date();
 
     // Recalculate completion percentage
-    const privacySettingsObj: Record<string, PrivacyLevel> = {};
-    profile.privacySettings.forEach((value, key) => {
-      privacySettingsObj[key] = value as PrivacyLevel;
-    });
-
-    const profileObj: UserProfile = {
-      ...profile.toObject(),
-      privacySettings: privacySettingsObj
-    } as UserProfile;
-
+    const profileObj = profile.toJSON() as UserProfile;
     const completionPercentage = this.calculateCompletionPercentage(profileObj);
     profile.completionPercentage = completionPercentage;
 
@@ -166,13 +148,14 @@ export class ProfileManagerService {
     fieldName: string,
     privacyLevel: PrivacyLevel
   ): Promise<boolean> {
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       throw new Error('Profile not found');
     }
 
-    profile.privacySettings.set(fieldName, privacyLevel);
-    profile.updatedAt = new Date();
+    const settings = profile.privacySettings || {};
+    settings[fieldName] = privacyLevel;
+    profile.privacySettings = settings;
     await profile.save();
 
     return true;
@@ -182,12 +165,12 @@ export class ProfileManagerService {
    * Get privacy setting for a field
    */
   async getPrivacySetting(userId: string, fieldName: string): Promise<PrivacyLevel> {
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       throw new Error('Profile not found');
     }
 
-    return (profile.privacySettings.get(fieldName) as PrivacyLevel) || 'platform_only';
+    return (profile.privacySettings?.[fieldName] as PrivacyLevel) || 'platform_only';
   }
 
   /**
@@ -199,6 +182,26 @@ export class ProfileManagerService {
       return profile;
     }
 
+    // For platform context, include all basic fields by default
+    if (viewerContext === 'platform') {
+      return {
+        userId: profile.userId,
+        mobileNumber: profile.mobileNumber,
+        name: profile.name,
+        userType: profile.userType,
+        location: profile.location,
+        profilePicture: profile.profilePicture,
+        languagePreference: profile.languagePreference,
+        cropsGrown: profile.cropsGrown,
+        farmSize: profile.farmSize,
+        completionPercentage: profile.completionPercentage,
+        membershipTier: profile.membershipTier,
+        trustScore: profile.trustScore,
+        createdAt: profile.createdAt
+      };
+    }
+
+    // For public context, only include public fields
     const filtered: any = {
       userId: profile.userId,
       profilePicture: profile.profilePicture,
@@ -207,13 +210,11 @@ export class ProfileManagerService {
     };
 
     // Apply privacy filters for each field
-    Object.keys(profile.privacySettings).forEach(fieldName => {
+    Object.keys(profile.privacySettings || {}).forEach(fieldName => {
       const privacyLevel = profile.privacySettings[fieldName];
       const fieldValue = (profile as any)[fieldName];
 
-      if (viewerContext === 'public' && privacyLevel === 'public') {
-        filtered[fieldName] = fieldValue;
-      } else if (viewerContext === 'platform' && (privacyLevel === 'public' || privacyLevel === 'platform_only')) {
+      if (privacyLevel === 'public') {
         filtered[fieldName] = fieldValue;
       }
     });
@@ -225,14 +226,13 @@ export class ProfileManagerService {
    * Delete user profile (mark for deletion)
    */
   async deleteProfile(userId: string): Promise<boolean> {
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       throw new Error('Profile not found');
     }
 
     // Anonymize mobile number immediately
     profile.mobileNumber = `DELETED_${Date.now()}`;
-    profile.updatedAt = new Date();
     await profile.save();
 
     // TODO: Implement full deletion after 30 days
@@ -245,9 +245,9 @@ export class ProfileManagerService {
    * Update last active timestamp
    */
   async updateLastActive(userId: string): Promise<void> {
-    await UserProfileModel.updateOne(
-      { userId },
-      { lastActiveAt: new Date() }
+    await UserProfileModel.update(
+      { lastActiveAt: new Date() },
+      { where: { userId } }
     );
   }
 }

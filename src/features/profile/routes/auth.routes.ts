@@ -217,30 +217,22 @@ router.post('/login/otp', async (req: Request, res: Response) => {
       });
     }
 
-    // Verify OTP using registration service
-    const verifyResult = await registrationService.verifyOTP({
-      userId: mobileNumber,  // Use mobile number as userId for OTP verification
-      otp
-    });
+    // Login with OTP using auth service
+    const loginResult = await authService.loginWithOTP(mobileNumber, otp);
 
-    if (!verifyResult.verified) {
+    if (!loginResult.success) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid or expired OTP'
+        error: loginResult.message || 'Invalid or expired OTP'
       });
     }
 
-    // OTP verified - generate token and return profile
-    const token = authService.generateToken(verifyResult.profile);
-
-    // Handle successful login (reset lockout if any)
-    await authService.handleSuccessfulLogin(verifyResult.profile.userId);
-
+    // OTP verified and login successful
     res.status(200).json({
       success: true,
       data: {
-        token,
-        profile: verifyResult.profile
+        token: loginResult.token,
+        profile: loginResult.profile
       },
       message: 'OTP login successful'
     });

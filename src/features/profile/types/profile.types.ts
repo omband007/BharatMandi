@@ -65,10 +65,15 @@ export type UserType = 'farmer' | 'buyer' | 'both';
 export type MembershipTier = 'bronze' | 'silver' | 'gold' | 'platinum';
 export type PrivacyLevel = 'public' | 'private' | 'platform_only';
 
+// Type aliases for compatibility
+export type CropEntry = CropGrown;
+export type PrivacySettings = Record<string, PrivacyLevel>;
+
 export interface UserProfile {
   // Identity
   userId: string;
   mobileNumber: string;
+  countryCode: string;  // Country calling code (e.g., +91, +44)
   mobileVerified: boolean;
   
   // Basic Information
@@ -100,7 +105,7 @@ export interface UserProfile {
   completionPercentage: number;
   createdAt: Date;
   updatedAt: Date;
-  lastActiveAt: Date;
+  lastActiveAt?: Date;  // Made optional to match Sequelize model
   
   // Privacy
   privacySettings: Record<string, PrivacyLevel>;

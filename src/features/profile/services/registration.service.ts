@@ -6,7 +6,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
-import { UserProfileModel } from '../models/profile.model';
+import { UserProfileModel } from '../models/profile.sequelize.model';
 import * as sqliteHelpers from '../../../shared/database/sqlite-helpers';
 import { VALIDATION_RULES, TRUST_SCORE_RULES, DEFAULT_PRIVACY_SETTINGS } from '../constants/profile.constants';
 import * as authService from './auth.service';
@@ -112,7 +112,7 @@ export class RegistrationService {
       }
 
       // Check if code already exists
-      const existing = await UserProfileModel.findOne({ referralCode: code });
+      const existing = await UserProfileModel.findOne({ where: { referralCode: code } });
       if (!existing) {
         isUnique = true;
         return code;
@@ -156,14 +156,14 @@ export class RegistrationService {
     const normalizedMobile = validation.normalized!;
 
     // Check if user already exists (using normalized mobile number)
-    const existingUser = await UserProfileModel.findOne({ mobileNumber: normalizedMobile });
+    const existingUser = await UserProfileModel.findOne({ where: { mobileNumber: normalizedMobile } });
     if (existingUser) {
       throw new Error('User with this mobile number already exists');
     }
 
     // Validate referral code if provided
     if (referralCode) {
-      const referrer = await UserProfileModel.findOne({ referralCode });
+      const referrer = await UserProfileModel.findOne({ where: { referralCode } });
       if (!referrer) {
         throw new Error('Invalid referral code');
       }
@@ -354,6 +354,7 @@ export class RegistrationService {
     const profile: UserProfile = {
       userId,
       mobileNumber,  // Already in E.164 format (e.g., +919876543210, +447700900123)
+      countryCode: countryCode || '+91',  // Country calling code
       mobileVerified: true,
       
       // Mandatory fields - collected during registration
@@ -407,18 +408,14 @@ export class RegistrationService {
     };
 
     // Save to database
+    console.log('[RegistrationService] Creating profile with mobileNumber:', mobileNumber);
     const savedProfile = await UserProfileModel.create(profile);
+    console.log('[RegistrationService] Profile saved, mobileNumber in saved profile:', savedProfile.mobileNumber);
 
-    // Convert Map to Record for type compatibility
-    const privacySettingsObj: Record<string, PrivacyLevel> = {};
-    savedProfile.privacySettings.forEach((value, key) => {
-      privacySettingsObj[key] = value as PrivacyLevel;
-    });
-
-    return {
-      ...savedProfile.toObject(),
-      privacySettings: privacySettingsObj
-    } as UserProfile;
+    // Sequelize returns a model instance, convert to plain object
+    const profileObj = savedProfile.toJSON() as UserProfile;
+    console.log('[RegistrationService] Profile as JSON, mobileNumber:', profileObj.mobileNumber);
+    return profileObj;
   }
 
   /**

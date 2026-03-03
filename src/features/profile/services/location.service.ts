@@ -4,7 +4,7 @@
  * Handles location capture (GPS/manual) and geocoding.
  */
 
-import { UserProfileModel } from '../models/profile.model';
+import { UserProfileModel } from '../models/profile.sequelize.model';
 import { ContextualPromptService } from './contextual-prompt.service';
 import { validateLocation } from '../utils/validators';
 import type { Location } from '../types/profile.types';
@@ -31,7 +31,7 @@ export class LocationService {
       throw new Error(validation.error);
     }
 
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       throw new Error('Profile not found');
     }
@@ -79,7 +79,7 @@ export class LocationService {
       pincode?: string;
     }
   ): Promise<boolean> {
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       throw new Error('Profile not found');
     }
@@ -203,7 +203,7 @@ export class LocationService {
    * Update location
    */
   async updateLocation(userId: string, location: Partial<Location>): Promise<boolean> {
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile) {
       throw new Error('Profile not found');
     }
@@ -229,7 +229,7 @@ export class LocationService {
    * Get user location
    */
   async getLocation(userId: string): Promise<Location | null> {
-    const profile = await UserProfileModel.findOne({ userId });
+    const profile = await UserProfileModel.findOne({ where: { userId } });
     if (!profile?.location) {
       return null;
     }
@@ -252,3 +252,4 @@ export class LocationService {
     };
   }
 }
+

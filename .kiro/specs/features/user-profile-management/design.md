@@ -13,12 +13,35 @@ This design consolidates authentication (OTP, PIN, biometric, session management
 3. **Multiple Auth Methods**: OTP, PIN, and biometric authentication options
 4. **Contextual Collection**: Additional profile data is requested when relevant to user actions
 5. **Implicit Intelligence**: System automatically infers profile attributes from user behavior
-6. **Gamified Engagement**: Points, tiers, and rewards motivate profile completion and platform usage
-7. **Trust Building**: Transparent trust scoring system builds community confidence
-8. **Privacy First**: User-controlled privacy settings for all profile fields
-9. **Security First**: Account lockout protection, JWT tokens, secure credential storage
+6. **Privacy First**: User-controlled privacy settings for all profile fields
+7. **Security First**: Account lockout protection, JWT tokens, secure credential storage
 
 ## Architecture
+
+### Database Architecture
+
+**Primary Database: PostgreSQL (AWS RDS)**
+- User profiles and transactional data
+- ACID compliance for financial transactions
+- Relational data with proper foreign keys
+- Supports complex queries and joins
+- AWS RDS for managed backups and scaling
+
+**Cache Layer: SQLite (Local) + Redis**
+- SQLite: Offline-first cache for mobile/edge scenarios
+- Redis: Session management, OTP storage, rate limiting
+- Automatic sync between PostgreSQL and SQLite
+
+**Media Storage: AWS S3**
+- Profile pictures, listing images, voice recordings
+- CloudFront CDN for global delivery
+- Presigned URLs for secure access
+
+**Migration from MongoDB:**
+- Previous implementation used MongoDB (Mongoose models)
+- Migrating to PostgreSQL for better relational data handling
+- Using Sequelize ORM for PostgreSQL integration
+- Maintaining same API contracts for backward compatibility
 
 ### System Components
 
@@ -30,26 +53,21 @@ This design consolidates authentication (OTP, PIN, biometric, session management
         ┌────────────────────────┼────────────────────────┐
         │                        │                        │
 ┌───────▼────────┐    ┌─────────▼────────┐    ┌─────────▼────────┐
-│ Auth Service   │    │ Profile Manager  │    │ Gamification     │
-│                │    │ Service          │    │ Service          │
-│ - PIN/Bio Auth │    │ - Profile CRUD   │    │ - Points/Tiers   │
-│ - JWT Tokens   │    │ - Progressive    │    │ - Referrals      │
-│ - Lockout      │    │ - Privacy        │    │                  │
+│ Auth Service   │    │ Profile Manager  │    │ Contextual       │
+│                │    │ Service          │    │ Prompt Engine    │
+│ - PIN/Bio Auth │    │ - Profile CRUD   │    │ - Timing         │
+│ - JWT Tokens   │    │ - Progressive    │    │ - Frequency      │
+│ - Lockout      │    │ - Privacy        │    │ - Priority       │
 └────────────────┘    └──────────────────┘    └──────────────────┘
         │                        │                        │
         │             ┌──────────┼──────────┐            │
         │             │          │          │            │
-┌───────▼────────┐ ┌──▼────┐ ┌──▼────┐ ┌──▼────┐ ┌─────▼─────┐
-│ Registration   │ │Implicit│ │Profile│ │Trust  │ │Points &   │
-│ Service        │ │Update │ │Picture│ │Score  │ │Tier       │
-│ - OTP          │ │Service│ │Service│ │Service│ │Manager    │
-│ - Validation   │ │       │ │       │ │       │ │           │
-└────────────────┘ └───────┘ └───────┘ └───────┘ └───────────┘
-         │
-┌────────▼────────┐
-│ Contextual      │
-│ Prompt Engine   │
-└─────────────────┘
+┌───────▼────────┐ ┌──▼────┐ ┌──▼────┐ ┌──▼────────────▼─────┐
+│ Registration   │ │Implicit│ │Profile│ │ Analytics           │
+│ Service        │ │Update │ │Picture│ │ Service             │
+│ - OTP          │ │Service│ │Service│ │ - Completion Trends │
+│ - Validation   │ │       │ │       │ │ - Field Collection  │
+└────────────────┘ └───────┘ └───────┘ └─────────────────────┘
 ```
 
 ### Component Responsibilities
@@ -129,25 +147,7 @@ This design consolidates authentication (OTP, PIN, biometric, session management
 - Updates profile fields automatically
 - Maintains data source metadata
 
-#### 6. Gamification Service
-**Location**: `src/features/profile/services/gamification.service.ts`
-
-- Points calculation and awarding
-- Membership tier management
-- Referral code generation and tracking
-- Points redemption processing
-- Gamification analytics
-
-#### 7. Trust Score Service
-**Location**: `src/features/profile/services/trust-score.service.ts`
-
-- Calculates trust scores based on behaviors
-- Tracks positive and negative events
-- Maintains trust score history
-- Provides trust improvement recommendations
-- Enforces feature restrictions for low trust users
-
-#### 8. Profile Picture Service
+#### 6. Profile Picture Service
 **Location**: `src/features/profile/services/profile-picture.service.ts`
 
 - Image upload and validation
@@ -155,6 +155,16 @@ This design consolidates authentication (OTP, PIN, biometric, session management
 - Content moderation integration
 - Storage management
 - Default avatar handling
+
+#### 7. Analytics Service
+**Location**: `src/features/profile/services/analytics.service.ts`
+
+- Track profile completion patterns
+- Monitor field collection sources
+- Calculate average completion percentage
+- Track prompt acceptance/dismissal rates
+- Identify low collection rate fields
+- Correlation analysis with user retention
 
 ### API Routes Structure
 
@@ -195,7 +205,168 @@ This design consolidates authentication (OTP, PIN, biometric, session management
 
 ## Data Models
 
-### User Profile Schema
+### PostgreSQL Schema Design
+
+**Table: user_profiles**
+```sql
+CREATE TABLE user_profiles (
+  user_id VARCHAR(255) PRIMARY KEY,
+  mobile_number VARCHAR(20) UNIQUE NOT NULL,
+  country_code VARCHAR(10) NOT NULL,
+  mobile_verified BOOLEAN DEFAULT FALSE,
+  
+  -- Basic Information
+  name VARCHAR(100),
+  profile_picture_url TEXT,
+  profile_picture_thumbnail_url TEXT,
+  profile_picture_uploaded_at TIMESTAMP,
+  
+  -- Location (JSONB for flexibility)
+  location JSONB,
+  
+  -- User Details
+  user_type VARCHAR(20) CHECK (user_type IN ('farmer', 'buyer', 'both')),
+  crops_grown JSONB DEFAULT '[]'::jsonb,
+  farm_size JSONB,
+  language_preference VARCHAR(10),
+  
+  -- Financial
+  bank_account JSONB,
+  
+  -- Authentication & Security
+  pin_hash VARCHAR(255),
+  biometric_enabled BOOLEAN DEFAULT FALSE,
+  failed_login_attempts INTEGER DEFAULT 0,
+  locked_until TIMESTAMP,
+  last_login_at TIMESTAMP,
+  
+  -- Metadata
+  completion_percentage INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_active_at TIMESTAMP,
+  
+  -- Privacy (JSONB for flexible field-level settings)
+  privacy_settings JSONB DEFAULT '{}'::jsonb,
+  
+  -- Gamification
+  points_current INTEGER DEFAULT 0,
+  points_lifetime INTEGER DEFAULT 0,
+  points_last_updated TIMESTAMP,
+  membership_tier VARCHAR(20) DEFAULT 'bronze',
+  referral_code VARCHAR(20) UNIQUE,
+  referred_by VARCHAR(255),
+  daily_streak INTEGER DEFAULT 0,
+  last_streak_date DATE,
+  
+  -- Trust
+  trust_score INTEGER DEFAULT 50,
+  
+  -- Indexes
+  CONSTRAINT fk_referred_by FOREIGN KEY (referred_by) REFERENCES user_profiles(user_id)
+);
+
+CREATE INDEX idx_mobile_number ON user_profiles(mobile_number);
+CREATE INDEX idx_referral_code ON user_profiles(referral_code);
+CREATE INDEX idx_membership_tier ON user_profiles(membership_tier);
+CREATE INDEX idx_trust_score ON user_profiles(trust_score);
+CREATE INDEX idx_created_at ON user_profiles(created_at);
+```
+
+**Table: otp_sessions** (SQLite for offline support)
+```sql
+CREATE TABLE otp_sessions (
+  phone_number VARCHAR(20) PRIMARY KEY,
+  otp VARCHAR(6) NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  attempts INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**Table: points_transactions**
+```sql
+CREATE TABLE points_transactions (
+  transaction_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id VARCHAR(255) NOT NULL,
+  points INTEGER NOT NULL,
+  type VARCHAR(10) CHECK (type IN ('earn', 'redeem')),
+  activity VARCHAR(100) NOT NULL,
+  description TEXT,
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  metadata JSONB,
+  
+  CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES user_profiles(user_id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_points_user_id ON points_transactions(user_id);
+CREATE INDEX idx_points_timestamp ON points_transactions(timestamp);
+CREATE INDEX idx_points_type ON points_transactions(type);
+```
+
+**Table: trust_score_history**
+```sql
+CREATE TABLE trust_score_history (
+  id SERIAL PRIMARY KEY,
+  user_id VARCHAR(255) NOT NULL,
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  change INTEGER NOT NULL,
+  reason TEXT NOT NULL,
+  new_score INTEGER NOT NULL,
+  
+  CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES user_profiles(user_id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_trust_user_id ON trust_score_history(user_id);
+CREATE INDEX idx_trust_timestamp ON trust_score_history(timestamp);
+```
+
+**Table: referrals**
+```sql
+CREATE TABLE referrals (
+  referral_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  referrer_id VARCHAR(255) NOT NULL,
+  referee_id VARCHAR(255) NOT NULL,
+  referral_code VARCHAR(20) NOT NULL,
+  registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  registration_points_awarded BOOLEAN DEFAULT FALSE,
+  first_transaction_date TIMESTAMP,
+  transaction_points_awarded BOOLEAN DEFAULT FALSE,
+  status VARCHAR(20) DEFAULT 'registered' CHECK (status IN ('registered', 'active', 'inactive')),
+  
+  CONSTRAINT fk_referrer FOREIGN KEY (referrer_id) REFERENCES user_profiles(user_id) ON DELETE CASCADE,
+  CONSTRAINT fk_referee FOREIGN KEY (referee_id) REFERENCES user_profiles(user_id) ON DELETE CASCADE,
+  CONSTRAINT unique_referee UNIQUE (referee_id)
+);
+
+CREATE INDEX idx_referrals_referrer ON referrals(referrer_id);
+CREATE INDEX idx_referrals_referee ON referrals(referee_id);
+CREATE INDEX idx_referrals_code ON referrals(referral_code);
+```
+
+**Table: prompt_tracking**
+```sql
+CREATE TABLE prompt_tracking (
+  id SERIAL PRIMARY KEY,
+  user_id VARCHAR(255) NOT NULL,
+  field_name VARCHAR(100) NOT NULL,
+  prompt_count INTEGER DEFAULT 0,
+  last_prompted_at TIMESTAMP,
+  dismissal_count INTEGER DEFAULT 0,
+  last_dismissed_at TIMESTAMP,
+  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'collected', 'user_declined')),
+  collected_at TIMESTAMP,
+  collection_source VARCHAR(50),
+  
+  CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES user_profiles(user_id) ON DELETE CASCADE,
+  CONSTRAINT unique_user_field UNIQUE (user_id, field_name)
+);
+
+CREATE INDEX idx_prompt_user_id ON prompt_tracking(user_id);
+CREATE INDEX idx_prompt_status ON prompt_tracking(status);
+```
+
+### User Profile Schema (TypeScript Interface)
 
 ```typescript
 interface UserProfile {
