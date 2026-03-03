@@ -1,6 +1,9 @@
 import { EventEmitter } from 'events';
 import type { PostgreSQLAdapter } from './pg-adapter';
 
+// Logging control
+const VERBOSE_LOGGING = process.env.DB_VERBOSE_LOGGING === 'true';
+
 /**
  * Connection Monitor for PostgreSQL Database
  * Monitors PostgreSQL connectivity and emits events on state changes
@@ -17,7 +20,9 @@ export class ConnectionMonitor extends EventEmitter {
     super();
     this.pgAdapter = pgAdapter;
     this.instanceId = Math.random().toString(36).substring(7);
-    console.log(`[ConnectionMonitor] New instance created: ${this.instanceId}`);
+    if (VERBOSE_LOGGING) {
+      console.log(`[ConnectionMonitor] New instance created: ${this.instanceId}`);
+    }
   }
 
   /**
@@ -25,12 +30,16 @@ export class ConnectionMonitor extends EventEmitter {
    * Checks connectivity every 30 seconds (Requirement 9.1)
    */
   async start(): Promise<void> {
-    console.log(`[ConnectionMonitor:${this.instanceId}] Starting - performing initial connectivity check...`);
+    if (VERBOSE_LOGGING) {
+      console.log(`[ConnectionMonitor:${this.instanceId}] Starting - performing initial connectivity check...`);
+    }
     
     // Initial check (wait for it to complete)
     await this.checkConnectivity();
     
-    console.log(`[ConnectionMonitor:${this.instanceId}] Initial check complete - connected: ${this.connected}`);
+    if (VERBOSE_LOGGING) {
+      console.log(`[ConnectionMonitor:${this.instanceId}] Initial check complete - connected: ${this.connected}`);
+    }
 
     // Check connectivity every 30 seconds
     this.checkInterval = setInterval(() => {
@@ -67,7 +76,9 @@ export class ConnectionMonitor extends EventEmitter {
     // Only log on state change, not every check
     // Emit events on state change
     if (this.connected && !wasConnected) {
-      console.log(`[ConnectionMonitor:${this.instanceId}] PostgreSQL connected`);
+      if (VERBOSE_LOGGING) {
+        console.log(`[ConnectionMonitor:${this.instanceId}] PostgreSQL connected`);
+      }
       this.emit('connected');
     } else if (!this.connected && wasConnected) {
       console.log(`[ConnectionMonitor:${this.instanceId}] PostgreSQL disconnected`);

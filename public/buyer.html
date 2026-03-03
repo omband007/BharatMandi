@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buyer Marketplace - Bharat Mandi</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .brand-logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-logo {
+            max-width: 100%;
+            height: auto;
+            max-height: 80px;
+            object-fit: contain;
+        }
+
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .nav-link {
+            padding: 8px 20px;
+            color: #666;
+            text-decoration: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            background: #f0f0f0;
+            color: #667eea;
+        }
+
+        .nav-link.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .login-status {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .login-status.logged-out {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .login-status.logged-in {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .info-card {
+            background: #e3f2fd;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .info-card p {
+            color: #666;
+            font-size: 14px;
+            margin: 0 0 3px 0;
+        }
+
+        .tile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .tile {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .tile h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tile-number {
+            background: #667eea;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .listing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .listing-card {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .listing-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .listing-card.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .listing-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            background: #e0e0e0;
+        }
+
+        .listing-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .listing-details {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .listing-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #28a745;
+            margin-top: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .badge.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .transaction-card {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .transaction-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .status-pending { background: #ffc107; color: #000; }
+        .status-accepted { background: #17a2b8; color: white; }
+        .status-locked { background: #fd7e14; color: white; }
+        .status-transit { background: #6f42c1; color: white; }
+        .status-delivered { background: #20c997; color: white; }
+        .status-completed { background: #28a745; color: white; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="brand-header">
+            <div class="brand-logo-container">
+                <img src="/assets/bharat-mandi-logo.png" alt="Bharat Mandi Logo" class="brand-logo">
+            </div>
+        </div>
+
+        <nav class="nav-bar">
+            <a href="/" class="nav-link">Main</a>
+            <a href="/profile.html" class="nav-link">Profile</a>
+            <a href="/listing.html" class="nav-link">Listings</a>
+            <a href="/buyer.html" class="nav-link active">Marketplace</a>
+            <a href="/language-test.html" class="nav-link">Localization</a>
+            <a href="/translation-test.html" class="nav-link">Translation</a>
+            <a href="/voice-test.html" class="nav-link">Voice</a>
+            <a href="/voice-integration-demo.html" class="nav-link">Voice Integration</a>
+            <a href="/kisan-mitra-test.html" class="nav-link">Kisan Mitra</a>
+            <a href="/data-purge.html" class="nav-link">Data</a>
+        </nav>
+
+        <!-- Global Login Status -->
+        <div id="globalLoginStatus" class="login-status logged-out">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 20px;">🔒</span>
+                <span><strong>Not logged in</strong> - Please <a href="/profile.html" style="color: inherit; text-decoration: underline;">login on Profile page</a> first</span>
+            </div>
+            <button id="logoutBtn" onclick="logout()" style="display: none; width: auto; padding: 8px 20px; background: #6c757d; margin: 0;">
+                🚪 Logout
+            </button>
+        </div>
+
+        <div class="info-card">
+            <p><strong>🛒 Buyer Marketplace:</strong></p>
+            <p>✓ Browse available produce listings from farmers</p>
+            <p>✓ View detailed information and quality certificates</p>
+            <p>✓ Initiate secure purchases with escrow protection</p>
+            <p>✓ Track your orders from purchase to delivery</p>
+        </div>
+
+        <div class="tile-grid">
+            <!-- Tile 1: Browse Listings -->
+            <div class="tile">
+                <h2><span class="tile-number">1</span> Browse Listings</h2>
+                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
+                    Available produce from farmers
+                </p>
+                
+                <div id="listingsContainer" class="listing-grid"></div>
+                <div id="listingsResult" class="result"></div>
+            </div>
+
+            <!-- Tile 2: Listing Details & Purchase -->
+            <div class="tile">
+                <h2><span class="tile-number">2</span> Purchase</h2>
+                
+                <div id="noSelectionMessage" class="empty-state">
+                    <div class="empty-state-icon">📦</div>
+                    <p style="font-size: 16px;">Select a listing to view details and make a purchase</p>
+                </div>
+
+                <div id="listingDetails" style="display: none;">
+                    <div id="detailsContent"></div>
+                    
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>Quantity to Purchase (kg)</label>
+                        <input type="number" id="purchaseQuantity" min="1" placeholder="Enter quantity">
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Price per kg:</span>
+                            <span id="pricePerKg" style="font-weight: 600;">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 700; color: #28a745;">
+                            <span>Total Amount:</span>
+                            <span id="totalAmount">₹0</span>
+                        </div>
+                    </div>
+                    
+                    <button onclick="initiatePurchase()" id="purchaseBtn">🛒 Initiate Purchase</button>
+                    <div id="purchaseResult" class="result"></div>
+                </div>
+            </div>
+
+            <!-- Tile 3: My Orders -->
+            <div class="tile">
+                <h2><span class="tile-number">3</span> My Orders</h2>
+                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
+                    Track your purchases and transactions
+                </p>
+                
+                <div id="ordersContainer"></div>
+                <div id="ordersResult" class="result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        
+        let state = {
+            buyerId: null,
+            buyerName: null,
+            isLoggedIn: false,
+            listings: [],
+            selectedListing: null,
+            myOrders: []
+        };
+
+        // Check login status
+        function checkLoginStatus() {
+            const storedUserId = localStorage.getItem('bharatMandiUserId');
+            const storedUserName = localStorage.getItem('bharatMandiUserName');
+            const storedUserType = localStorage.getItem('bharatMandiUserType');
+            
+            if (storedUserId && storedUserType) {
+                const userType = storedUserType.toUpperCase();
+                if (userType === 'BUYER' || userType === 'BOTH') {
+                    state.buyerId = storedUserId;
+                    state.buyerName = storedUserName || 'Buyer';
+                    state.isLoggedIn = true;
+                    updateLoginStatus(true, state.buyerName);
+                    return;
+                }
+            }
+            
+            state.isLoggedIn = false;
+            updateLoginStatus(false);
+        }
+
+        function updateLoginStatus(isLoggedIn, userName = '') {
+            const globalStatus = document.getElementById('globalLoginStatus');
+            
+            if (isLoggedIn) {
+                globalStatus.className = 'login-status logged-in';
+                globalStatus.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 20px;">✅</span>
+                        <span><strong>Logged in as:</strong> ${userName}</span>
+                    </div>
+                    <button id="logoutBtn" onclick="logout()" style="width: auto; padding: 8px 20px; background: #6c757d; margin: 0;">
+                        🚪 Logout
+                    </button>
+                `;
+            } else {
+                globalStatus.className = 'login-status logged-out';
+                globalStatus.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 20px;">🔒</span>
+                        <span><strong>Not logged in</strong> - Please <a href="/profile.html" style="color: inherit; text-decoration: underline;">login on Profile page</a> first</span>
+                    </div>
+                `;
+            }
+        }
+
+        function logout() {
+            state.buyerId = null;
+            state.buyerName = null;
+            state.isLoggedIn = false;
+            
+            localStorage.removeItem('bharatMandiUserId');
+            localStorage.removeItem('bharatMandiUserName');
+            localStorage.removeItem('bharatMandiUserType');
+            localStorage.removeItem('bharatMandiToken');
+            
+            updateLoginStatus(false);
+            
+            alert('Logged out successfully! Redirecting to profile page...');
+            setTimeout(() => {
+                window.location.href = '/profile.html';
+            }, 1000);
+        }
+
+        async function loadListings() {
+            try {
+                showResult('listingsResult', '🔄 Loading listings...', false);
+                
+                const response = await fetch(`${API_BASE}/marketplace/listings`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch listings');
+                }
+                
+                const listings = await response.json();
+                state.listings = listings.filter(l => l.isActive);
+                
+                renderListings();
+                showResult('listingsResult', `✅ Loaded ${state.listings.length} listing(s)`, false);
+                
+            } catch (error) {
+                showResult('listingsResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        function renderListings() {
+            const container = document.getElementById('listingsContainer');
+            
+            if (state.listings.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No listings available at the moment</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = state.listings.map(listing => `
+                <div class="listing-card" onclick="selectListing('${listing.id}')">
+                    <div class="listing-title">${listing.produceType}</div>
+                    <div class="listing-details">
+                        <p><strong>Available:</strong> ${listing.quantity} kg</p>
+                        <p><strong>Farmer ID:</strong> ${listing.farmerId.substring(0, 8)}...</p>
+                    </div>
+                    <div class="listing-price">₹${listing.pricePerKg}/kg</div>
+                    <span class="badge active">Available</span>
+                </div>
+            `).join('');
+        }
+
+        async function selectListing(listingId) {
+            try {
+                const response = await fetch(`${API_BASE}/marketplace/listings/${listingId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch listing details');
+                }
+                
+                state.selectedListing = await response.json();
+                
+                // Update UI
+                document.querySelectorAll('.listing-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                event.target.closest('.listing-card')?.classList.add('selected');
+                
+                document.getElementById('noSelectionMessage').style.display = 'none';
+                document.getElementById('listingDetails').style.display = 'block';
+                
+                // Populate details
+                document.getElementById('detailsContent').innerHTML = `
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <h3 style="color: #667eea; margin-bottom: 10px;">${state.selectedListing.produceType}</h3>
+                        <p style="margin-bottom: 5px;"><strong>Farmer ID:</strong> ${state.selectedListing.farmerId}</p>
+                        <p style="margin-bottom: 5px;"><strong>Available Quantity:</strong> ${state.selectedListing.quantity} kg</p>
+                        <p style="margin-bottom: 5px;"><strong>Price:</strong> ₹${state.selectedListing.pricePerKg}/kg</p>
+                        <p style="margin-bottom: 5px;"><strong>Certificate:</strong> ${state.selectedListing.certificateId || 'None'}</p>
+                        <p><strong>Listed:</strong> ${new Date(state.selectedListing.createdAt).toLocaleDateString()}</p>
+                    </div>
+                `;
+                
+                document.getElementById('pricePerKg').textContent = `₹${state.selectedListing.pricePerKg}`;
+                document.getElementById('purchaseQuantity').value = '';
+                document.getElementById('totalAmount').textContent = '₹0';
+                
+            } catch (error) {
+                alert(`Error loading listing: ${error.message}`);
+            }
+        }
+
+        // Calculate total amount
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLoginStatus();
+            
+            if (state.isLoggedIn) {
+                loadListings();
+            }
+            
+            document.getElementById('purchaseQuantity')?.addEventListener('input', (e) => {
+                if (state.selectedListing) {
+                    const quantity = parseFloat(e.target.value) || 0;
+                    const total = quantity * state.selectedListing.pricePerKg;
+                    document.getElementById('totalAmount').textContent = `₹${total.toFixed(2)}`;
+                }
+            });
+        });
+
+        async function initiatePurchase() {
+            if (!state.isLoggedIn) {
+                showResult('purchaseResult', '❌ Please login first', true);
+                return;
+            }
+            
+            if (!state.selectedListing) {
+                showResult('purchaseResult', '❌ Please select a listing first', true);
+                return;
+            }
+            
+            const quantity = parseFloat(document.getElementById('purchaseQuantity').value);
+            if (!quantity || quantity <= 0) {
+                showResult('purchaseResult', '❌ Please enter a valid quantity', true);
+                return;
+            }
+            
+            if (quantity > state.selectedListing.quantity) {
+                showResult('purchaseResult', `❌ Only ${state.selectedListing.quantity} kg available`, true);
+                return;
+            }
+            
+            try {
+                showResult('purchaseResult', '🔄 Initiating purchase...', false);
+                
+                const amount = quantity * state.selectedListing.pricePerKg;
+                
+                const response = await fetch(`${API_BASE}/transactions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        listingId: state.selectedListing.id,
+                        farmerId: state.selectedListing.farmerId,
+                        buyerId: state.buyerId,
+                        amount: amount
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to initiate purchase');
+                }
+                
+                const transaction = await response.json();
+                
+                showResult('purchaseResult', `✅ Purchase initiated successfully!<br><strong>Transaction ID:</strong> ${transaction.id}<br><strong>Amount:</strong> ₹${amount}<br><strong>Status:</strong> Pending farmer acceptance`, false);
+                
+                // Reload listings and orders
+                setTimeout(() => {
+                    loadListings();
+                }, 1500);
+                
+            } catch (error) {
+                showResult('purchaseResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        function showResult(elementId, message, isError = false) {
+            const el = document.getElementById(elementId);
+            el.className = `result ${isError ? 'error' : 'success'}`;
+            el.innerHTML = message;
+        }
+    </script>
+</body>
+</html>

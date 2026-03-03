@@ -84,14 +84,6 @@ router.post('/listings/with-media', upload.array('media', 10), async (req: Reque
     const { farmerId, produceType, quantity, pricePerKg, certificateId } = req.body;
     const files = req.files as Express.Multer.File[];
 
-    console.log('[Marketplace] Creating listing with media:', {
-      farmerId,
-      produceType,
-      quantity,
-      pricePerKg,
-      fileCount: files?.length || 0
-    });
-
     // 1. Create the listing first
     const listing = await marketplaceService.createListing(
       farmerId,
@@ -101,15 +93,11 @@ router.post('/listings/with-media', upload.array('media', 10), async (req: Reque
       certificateId
     );
 
-    console.log('[Marketplace] Listing created:', listing.id);
-
     // 2. Upload media files if provided
     const mediaResults = [];
     if (files && files.length > 0) {
       for (const file of files) {
         try {
-          console.log(`[Marketplace] Uploading file: ${file.originalname} (${file.mimetype}, ${file.size} bytes)`);
-          
           // Auto-detect media type from MIME type
           let mediaType: 'photo' | 'video' | 'document' = 'photo';
           if (file.mimetype.startsWith('video/')) {
@@ -126,8 +114,6 @@ router.post('/listings/with-media', upload.array('media', 10), async (req: Reque
             mediaType
           });
 
-          console.log(`[Marketplace] Upload result for ${file.originalname}:`, result);
-
           mediaResults.push({
             fileName: file.originalname,
             success: result.success,
@@ -135,7 +121,6 @@ router.post('/listings/with-media', upload.array('media', 10), async (req: Reque
             error: result.error
           });
         } catch (fileError) {
-          console.error(`[Marketplace] Error uploading ${file.originalname}:`, fileError);
           mediaResults.push({
             fileName: file.originalname,
             success: false,
@@ -149,8 +134,6 @@ router.post('/listings/with-media', upload.array('media', 10), async (req: Reque
     // 3. Return combined result
     const successCount = mediaResults.filter(r => r.success).length;
     const failCount = mediaResults.filter(r => !r.success).length;
-
-    console.log('[Marketplace] Upload complete:', { successCount, failCount });
 
     res.status(201).json({
       listing,
@@ -246,6 +229,54 @@ router.put('/listings/:id', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('[Marketplace] Error updating listing:', error);
     res.status(500).json({ error: 'Failed to update listing' });
+  }
+});
+
+/**
+ * DELETE /api/marketplace/listings/:id
+ * Delete a listing and all associated media
+ */
+router.delete('/listings/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    // Get the listing first to verify ownership
+    const listing = await marketplaceService.getListing(id);
+    
+    if (!listing) {
+      return res.status(404).json({ error: 'Listing not found' });
+    }
+
+    // Verify ownership (optional - add if you want authorization)
+    if (userId && listing.farmerId !== userId) {
+      return res.status(403).json({ error: 'Unauthorized to delete this listing' });
+    }
+
+    // Delete all associated media first
+    try {
+      const mediaService = getMediaService();
+      const mediaList = await mediaService.getListingMedia(id);
+      
+      for (const media of mediaList.media) {
+        await mediaService.deleteMedia(id, media.id, userId || listing.farmerId);
+      }
+    } catch (mediaError) {
+      console.error('[Marketplace] Error deleting media:', mediaError);
+      // Continue with listing deletion even if media deletion fails
+    }
+
+    // Delete the listing by setting isActive to false
+    const deletedListing = await marketplaceService.updateListing(id, { isActive: false });
+    
+    if (!deletedListing) {
+      return res.status(404).json({ error: 'Failed to delete listing' });
+    }
+
+    res.json({ success: true, message: 'Listing deleted successfully' });
+  } catch (error) {
+    console.error('[Marketplace] Error deleting listing:', error);
+    res.status(500).json({ error: 'Failed to delete listing' });
   }
 });
 

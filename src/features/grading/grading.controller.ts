@@ -117,5 +117,28 @@ router.post('/grade', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/grading/certificates - Get certificates by farmer ID
+router.get('/certificates', async (req: Request, res: Response) => {
+  try {
+    const { farmerId } = req.query;
+
+    if (!farmerId) {
+      return res.status(400).json({ error: 'farmerId query parameter is required' });
+    }
+
+    // Get all certificates from memory DB
+    const { db } = await import('../../shared/database/memory-db');
+    const allCertificates = Array.from(db['certificates'].values());
+    
+    // Filter by farmer ID
+    const farmerCertificates = allCertificates.filter(cert => cert.farmerId === farmerId);
+
+    res.json(farmerCertificates);
+  } catch (error: any) {
+    console.error('Get certificates error:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch certificates' });
+  }
+});
+
 // Export as gradingController for feature-based architecture
 export const gradingController = router;

@@ -3,6 +3,9 @@ import type { SQLiteAdapter } from './sqlite-adapter';
 import type { ConnectionMonitor } from './connection-monitor';
 import * as sqliteHelpers from './sqlite-helpers';
 
+// Logging control
+const VERBOSE_LOGGING = process.env.DB_VERBOSE_LOGGING === 'true';
+
 /**
  * Sync Queue Item interface
  * Represents an operation queued for synchronization
@@ -349,11 +352,15 @@ export class SyncEngine {
    */
   start(): void {
     if (this.syncInterval) {
-      console.log('[SyncEngine] Already started');
+      if (VERBOSE_LOGGING) {
+        console.log('[SyncEngine] Already started');
+      }
       return;
     }
 
-    console.log('[SyncEngine] Starting periodic sync (every 30 seconds)');
+    if (VERBOSE_LOGGING) {
+      console.log('[SyncEngine] Starting periodic sync (every 30 seconds)');
+    }
     
     // Process queue immediately
     this.processSyncQueue().catch(err => {

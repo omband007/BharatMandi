@@ -1,39 +1,20 @@
 -- ============================================================================
 -- Bharat Mandi Platform - PostgreSQL Database Schema
 -- ============================================================================
+-- NOTE: This schema uses user_profiles table (managed by Sequelize) as the
+--       single source of truth for user data. The legacy users table has been
+--       removed and all foreign keys now reference user_profiles(user_id).
+-- ============================================================================
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- ============================================================================
--- USERS TABLE
--- ============================================================================
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name VARCHAR(255) NOT NULL,
-  phone VARCHAR(15) UNIQUE NOT NULL,
-  type VARCHAR(50) NOT NULL CHECK (type IN ('FARMER', 'BUYER', 'LOGISTICS_PROVIDER', 'COLD_STORAGE_PROVIDER', 'SUPPLIER')),
-  location VARCHAR(255) NOT NULL,
-  bank_account_number VARCHAR(50),
-  bank_ifsc_code VARCHAR(20),
-  bank_name VARCHAR(255),
-  bank_account_holder_name VARCHAR(255),
-  credibility_score INTEGER DEFAULT 500,
-  rating DECIMAL(3, 2) DEFAULT 0.00,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_users_phone ON users(phone);
-CREATE INDEX idx_users_type ON users(type);
-CREATE INDEX idx_users_location ON users(location);
 
 -- ============================================================================
 -- LISTINGS TABLE
 -- ============================================================================
 CREATE TABLE listings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  farmer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  farmer_id UUID NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
   produce_type VARCHAR(100) NOT NULL,
   quantity DECIMAL(10, 2) NOT NULL,
   price_per_kg DECIMAL(10, 2) NOT NULL,
@@ -55,8 +36,8 @@ CREATE INDEX idx_listings_created_at ON listings(created_at DESC);
 CREATE TABLE transactions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   listing_id UUID NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
-  farmer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  buyer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  farmer_id UUID NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
+  buyer_id UUID NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
   amount DECIMAL(12, 2) NOT NULL,
   status VARCHAR(50) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'ACCEPTED', 'PAYMENT_LOCKED', 'IN_TRANSIT', 'DELIVERED', 'COMPLETED', 'DISPUTED', 'REJECTED')),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -93,8 +74,8 @@ CREATE INDEX idx_escrow_is_locked ON escrow_accounts(is_locked);
 CREATE TABLE ratings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   transaction_id UUID NOT NULL REFERENCES transactions(id) ON DELETE CASCADE,
-  from_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  to_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  from_user_id UUID NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
+  to_user_id UUID NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
   rating DECIMAL(3, 2) NOT NULL CHECK (rating >= 0 AND rating <= 5),
   feedback TEXT,
   implicit_rating DECIMAL(3, 2) DEFAULT 0.00,
@@ -110,7 +91,7 @@ CREATE INDEX idx_ratings_created_at ON ratings(created_at DESC);
 -- ============================================================================
 CREATE TABLE credibility_scores (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  farmer_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  farmer_id UUID UNIQUE NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
   score INTEGER NOT NULL DEFAULT 500 CHECK (score >= 300 AND score <= 900),
   transaction_history DECIMAL(5, 2) DEFAULT 0.00,
   payment_reliability DECIMAL(5, 2) DEFAULT 0.00,
@@ -181,7 +162,7 @@ CREATE INDEX idx_logistics_status ON logistics_orders(status);
 -- ============================================================================
 CREATE TABLE storage_bookings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  farmer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  farmer_id UUID NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
   provider_id UUID NOT NULL REFERENCES service_providers(id) ON DELETE CASCADE,
   produce_type VARCHAR(100) NOT NULL,
   quantity DECIMAL(10, 2) NOT NULL,
@@ -203,10 +184,10 @@ CREATE INDEX idx_storage_status ON storage_bookings(status);
 CREATE TABLE auction_listings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   listing_id UUID UNIQUE NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
-  farmer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  farmer_id UUID NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
   minimum_bid_price DECIMAL(10, 2) NOT NULL,
   current_highest_bid DECIMAL(10, 2),
-  current_highest_bidder UUID REFERENCES users(id) ON DELETE SET NULL,
+  current_highest_bidder UUID REFERENCES user_profiles(user_id) ON DELETE SET NULL,
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP NOT NULL,
   status VARCHAR(50) NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'CLOSED', 'CANCELLED')),
@@ -224,7 +205,7 @@ CREATE INDEX idx_auction_end_time ON auction_listings(end_time);
 CREATE TABLE bids (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   auction_id UUID NOT NULL REFERENCES auction_listings(id) ON DELETE CASCADE,
-  bidder_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  bidder_id UUID NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
   amount DECIMAL(10, 2) NOT NULL,
   timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -260,7 +241,7 @@ CREATE INDEX idx_schemes_deadline ON government_schemes(application_deadline);
 CREATE TABLE scheme_applications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   scheme_id UUID NOT NULL REFERENCES government_schemes(id) ON DELETE CASCADE,
-  farmer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  farmer_id UUID NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
   documents TEXT[], -- Array of document URLs
   status VARCHAR(50) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
   applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -314,7 +295,7 @@ CREATE INDEX idx_vehicle_tracking_last_updated ON vehicle_tracking(last_updated 
 CREATE TABLE disputes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   transaction_id UUID NOT NULL REFERENCES transactions(id) ON DELETE CASCADE,
-  initiated_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  initiated_by UUID NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
   status VARCHAR(50) NOT NULL DEFAULT 'INITIATED' CHECK (status IN ('INITIATED', 'UNDER_REVIEW', 'RESOLVED', 'ESCALATED')),
   resolution TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -331,7 +312,7 @@ CREATE INDEX idx_disputes_status ON disputes(status);
 CREATE TABLE dispute_evidence (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   dispute_id UUID NOT NULL REFERENCES disputes(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES user_profiles(user_id) ON DELETE CASCADE,
   type VARCHAR(50) NOT NULL CHECK (type IN ('PHOTO', 'MESSAGE', 'DOCUMENT')),
   content TEXT NOT NULL,
   timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -354,9 +335,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Apply trigger to tables with updated_at column
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
 CREATE TRIGGER update_listings_updated_at BEFORE UPDATE ON listings
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

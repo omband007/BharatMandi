@@ -7,6 +7,9 @@ import type { SQLiteAdapter } from './sqlite-adapter';
 import type { ConnectionMonitor } from './connection-monitor';
 import type { SyncEngine } from './sync-engine';
 
+// Logging control - set to false to reduce console output
+const VERBOSE_LOGGING = process.env.DB_VERBOSE_LOGGING === 'true';
+
 // Legacy User type for backward compatibility with old database operations
 // NOTE: New code should use UserProfile from profile.types.ts
 export interface User {
@@ -335,7 +338,9 @@ export class DatabaseManager {
 
   constructor() {
     this.instanceId = Math.random().toString(36).substring(7);
-    console.log(`[DatabaseManager] New instance created: ${this.instanceId}`);
+    if (VERBOSE_LOGGING) {
+      console.log(`[DatabaseManager] New instance created: ${this.instanceId}`);
+    }
     
     // Import adapters dynamically to avoid circular dependencies
     const { PostgreSQLAdapter } = require('./pg-adapter');
@@ -363,7 +368,9 @@ export class DatabaseManager {
    * Begins connection monitoring and sync engine operations
    */
   async start(): Promise<void> {
-    console.log(`[DatabaseManager:${this.instanceId}] Starting connection monitor and sync engine`);
+    if (VERBOSE_LOGGING) {
+      console.log(`[DatabaseManager:${this.instanceId}] Starting connection monitor and sync engine`);
+    }
     await this.connectionMonitor.start();
     this.syncEngine.start();
   }
@@ -373,7 +380,9 @@ export class DatabaseManager {
    * Stops connection monitoring and sync engine operations
    */
   stop(): void {
-    console.log('[DatabaseManager] Stopping connection monitor and sync engine');
+    if (VERBOSE_LOGGING) {
+      console.log('[DatabaseManager] Stopping connection monitor and sync engine');
+    }
     this.connectionMonitor.stop();
     this.syncEngine.stop();
   }
@@ -620,35 +629,28 @@ export class DatabaseManager {
 
   async createListing(listing: Listing): Promise<Listing> {
     const isConnected = this.connectionMonitor.isConnected();
-    console.log(`[DatabaseManager:${this.instanceId}] createListing - PostgreSQL connected: ${isConnected}`);
     
     if (isConnected) {
       try {
-        console.log(`[DatabaseManager:${this.instanceId}] Attempting to create listing in PostgreSQL...`);
         const created = await this.pgAdapter.createListing(listing);
-        console.log(`[DatabaseManager:${this.instanceId}] ✅ Listing created in PostgreSQL:`, created.id);
         
         // Propagate to SQLite asynchronously (don't wait)
         this.syncEngine.propagateToSQLite('CREATE', 'listing', created.id, created).catch(err => {
-          console.error(`[DatabaseManager:${this.instanceId}] Failed to propagate to SQLite:`, err);
+          if (VERBOSE_LOGGING) {
+            console.error(`[DatabaseManager:${this.instanceId}] Failed to propagate to SQLite:`, err);
+          }
         });
         
         return created;
       } catch (error) {
-        console.error(`[DatabaseManager:${this.instanceId}] ❌ PostgreSQL createListing failed:`, error);
-        console.error(`[DatabaseManager:${this.instanceId}] Error details:`, {
-          message: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined
-        });
+        console.error(`[DatabaseManager:${this.instanceId}] PostgreSQL createListing failed:`, error);
         
         // PostgreSQL failed, create in SQLite and queue for sync
-        console.log(`[DatabaseManager:${this.instanceId}] Falling back to SQLite...`);
         const created = await this.sqliteAdapter.createListing(listing);
         await this.syncEngine.addToQueue('CREATE', 'listing', listing.id, listing);
         return created;
       }
     } else {
-      console.log(`[DatabaseManager:${this.instanceId}] PostgreSQL unavailable, creating listing in SQLite`);
       // PostgreSQL unavailable, create in SQLite and queue for sync
       const created = await this.sqliteAdapter.createListing(listing);
       await this.syncEngine.addToQueue('CREATE', 'listing', listing.id, listing);

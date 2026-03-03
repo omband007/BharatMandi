@@ -250,7 +250,7 @@
             <a href="/" class="nav-link">Main</a>
             <a href="/profile.html" class="nav-link active">Profile</a>
             <a href="/listing.html" class="nav-link">Listings</a>
-            <a href="/media-test.html" class="nav-link">Media</a>
+            <a href="/buyer.html" class="nav-link">Marketplace</a>
             <a href="/language-test.html" class="nav-link">Localization</a>
             <a href="/translation-test.html" class="nav-link">Translation</a>
             <a href="/voice-test.html" class="nav-link">Voice</a>
@@ -626,6 +626,12 @@
             loggedInUserName = null;
             sessionUserId = null;
             
+            // Clear localStorage
+            localStorage.removeItem('bharatMandiUserId');
+            localStorage.removeItem('bharatMandiUserName');
+            localStorage.removeItem('bharatMandiUserType');
+            localStorage.removeItem('bharatMandiToken');
+            
             // Clear profile data
             clearProfileDisplay();
             
@@ -703,7 +709,27 @@
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
             setupInputValidation();
-            updateLoginStatus(false);
+            
+            // Check if user is already logged in from localStorage
+            const storedUserId = localStorage.getItem('bharatMandiUserId');
+            const storedUserName = localStorage.getItem('bharatMandiUserName');
+            const storedToken = localStorage.getItem('bharatMandiToken');
+            
+            if (storedUserId && storedUserName && storedToken) {
+                // Restore login state
+                authToken = storedToken;
+                loggedInUserName = storedUserName;
+                sessionUserId = storedUserId;
+                document.getElementById('profileUserId').value = storedUserId;
+                
+                // Update UI
+                updateLoginStatus(true, storedUserName);
+                
+                // Auto-load profile
+                fetchAndDisplayProfile();
+            } else {
+                updateLoginStatus(false);
+            }
         });
 
         async function apiCall(endpoint, method = 'GET', body = null) {
@@ -928,6 +954,20 @@
                 // Auto-fill User ID field
                 document.getElementById('profileUserId').value = data.data.profile.userId;
 
+                // Store login info in localStorage for other pages
+                localStorage.setItem('bharatMandiUserId', data.data.profile.userId);
+                localStorage.setItem('bharatMandiUserName', data.data.profile.name);
+                localStorage.setItem('bharatMandiUserType', data.data.profile.userType);
+                localStorage.setItem('bharatMandiToken', data.data.token);
+                
+                // Verify storage
+                console.log('[Profile] PIN Login - Stored to localStorage:', {
+                    userId: localStorage.getItem('bharatMandiUserId'),
+                    userName: localStorage.getItem('bharatMandiUserName'),
+                    userType: localStorage.getItem('bharatMandiUserType'),
+                    hasToken: !!localStorage.getItem('bharatMandiToken')
+                });
+
                 // Update login status
                 updateLoginStatus(true, loggedInUserName);
 
@@ -968,6 +1008,20 @@
 
                 // Auto-fill User ID field
                 document.getElementById('profileUserId').value = data.data.profile.userId;
+
+                // Store login info in localStorage for other pages
+                localStorage.setItem('bharatMandiUserId', data.data.profile.userId);
+                localStorage.setItem('bharatMandiUserName', data.data.profile.name);
+                localStorage.setItem('bharatMandiUserType', data.data.profile.userType);
+                localStorage.setItem('bharatMandiToken', data.data.token);
+                
+                // Verify storage
+                console.log('[Profile] Biometric Login - Stored to localStorage:', {
+                    userId: localStorage.getItem('bharatMandiUserId'),
+                    userName: localStorage.getItem('bharatMandiUserName'),
+                    userType: localStorage.getItem('bharatMandiUserType'),
+                    hasToken: !!localStorage.getItem('bharatMandiToken')
+                });
 
                 // Update login status
                 updateLoginStatus(true, loggedInUserName);

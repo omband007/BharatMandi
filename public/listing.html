@@ -30,38 +30,24 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
         .brand-logo-container {
             display: flex;
             align-items: center;
-            gap: 15px;
+            justify-content: center;
         }
 
         .brand-logo {
-            width: 50px;
-            height: 50px;
-            flex-shrink: 0;
-        }
-
-        .brand-text {
-            text-align: left;
-        }
-
-        .brand-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: white;
-            line-height: 1.2;
-            margin: 0;
-        }
-
-        .brand-subtitle {
-            font-size: 0.85rem;
-            color: white;
-            opacity: 0.9;
-            margin: 0;
+            max-width: 100%;
+            height: auto;
+            max-height: 80px;
+            object-fit: contain;
         }
 
         .nav-bar {
@@ -112,6 +98,114 @@
             font-size: 14px;
             margin: 0 0 3px 0;
         }
+
+        .login-status {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .login-status.logged-out {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .login-status.logged-in {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .media-item {
+            border: 3px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .media-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .media-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .media-item .primary-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .media-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .media-actions button {
+            padding: 8px;
+            font-size: 18px;
+            margin: 0;
+            width: auto;
+            min-width: 40px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .media-actions button:hover {
+            transform: scale(1.1);
+        }
+
+        .certificate-card {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .certificate-card.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .grade-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .grade-A { background: #d4edda; color: #155724; }
+        .grade-B { background: #d1ecf1; color: #0c5460; }
+        .grade-C { background: #fff3cd; color: #856404; }
 
         .tile-grid {
             display: grid;
@@ -368,26 +462,114 @@
         .button-secondary:hover:not(:disabled) {
             background: #5a6268 !important;
         }
+
+        /* Lightbox styles */
+        .lightbox {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            overflow: hidden;
+        }
+
+        .lightbox.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-image {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.5);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            user-select: none;
+        }
+
+        .lightbox-nav:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .lightbox-prev {
+            left: 40px;
+        }
+
+        .lightbox-next {
+            right: 40px;
+        }
+
+        .lightbox-counter {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 18px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="brand-header">
             <div class="brand-logo-container">
-                <svg class="brand-logo" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10 35 Q12 25 18 22 Q22 25 20 35 Q18 40 14 42 Z" fill="#FF9933"/>
-                    <path d="M13 28 Q15 32 13 37" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
-                    <path d="M25 15 Q28 10 30 8 Q32 10 35 15 Q33 30 30 35 Q27 30 25 15 Z" fill="white" stroke="#FF9933" stroke-width="1.5"/>
-                    <line x1="30" y1="12" x2="30" y2="32" stroke="#003DA5" stroke-width="1.5"/>
-                    <path d="M40 22 Q43 25 46 30 Q48 36 46 40 Q42 42 38 37 Q37 28 40 22 Z" fill="#138808"/>
-                    <path d="M41 28 Q43 32 42 37" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
-                    <rect x="28" y="35" width="4" height="15" fill="#8B4513" rx="1"/>
-                    <path d="M18 45 Q30 48 42 45" stroke="#138808" stroke-width="2" fill="none" opacity="0.6"/>
-                </svg>
-                <div class="brand-text">
-                    <div class="brand-title">Bharat Mandi</div>
-                    <div class="brand-subtitle">AI Powered Marketplace</div>
-                </div>
+                <img src="/assets/bharat-mandi-logo.png" alt="Bharat Mandi Logo" class="brand-logo">
             </div>
         </div>
 
@@ -395,7 +577,7 @@
             <a href="/" class="nav-link">Main</a>
             <a href="/profile.html" class="nav-link">Profile</a>
             <a href="/listing.html" class="nav-link active">Listings</a>
-            <a href="/media-test.html" class="nav-link">Media</a>
+            <a href="/buyer.html" class="nav-link">Marketplace</a>
             <a href="/language-test.html" class="nav-link">Localization</a>
             <a href="/translation-test.html" class="nav-link">Translation</a>
             <a href="/voice-test.html" class="nav-link">Voice</a>
@@ -404,39 +586,69 @@
             <a href="/data-purge.html" class="nav-link">Data</a>
         </nav>
 
+        <!-- Global Login Status -->
+        <div id="globalLoginStatus" class="login-status logged-out" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 20px;">🔒</span>
+                <span><strong>Not logged in</strong> - Please <a href="/profile.html" style="color: inherit; text-decoration: underline;">login on Profile page</a> first</span>
+            </div>
+            <button id="logoutBtn" onclick="logout()" style="display: none; width: auto; padding: 8px 20px; background: #6c757d; margin: 0;">
+                🚪 Logout
+            </button>
+        </div>
+
         <div class="info-card">
-            <p><strong>✨ Listing Management Demo:</strong></p>
-            <p>✓ Create new listings with produce details</p>
-            <p>✓ Upload multiple media files (photos, videos, PDFs)</p>
-            <p>✓ View and manage your listings</p>
-            <p>✓ Edit listing details and status</p>
-            <p>✓ Multi-language support for produce descriptions</p>
+            <p><strong>✨ Marketplace Listing Features:</strong></p>
+            <p>✓ Get AI quality grades and certificates for your produce</p>
+            <p>✓ Create listings with photos, videos, and documents</p>
+            <p>✓ Manage your produce inventory and pricing</p>
+            <p>✓ Add, reorder, and delete media files</p>
+            <p>✓ Edit listing details anytime</p>
         </div>
 
         <div class="tile-grid">
-            <!-- Tile 1: Create New Listing -->
-            <div class="tile">
-                <h2><span class="tile-number">1</span> Create New Listing</h2>
-                <p class="info-text">Create a new produce listing with optional media files</p>
+            <!-- Tile 1: Grade Produce (formerly Quality Grading) -->
+            <div class="tile" id="tile1">
+                <h2><span class="tile-number">1</span> Grade Produce</h2>
+                <p class="info-text">Get an AI quality grade and certificate for your produce</p>
                 
                 <div class="form-group">
-                    <label>Farmer ID *</label>
-                    <input type="text" id="createFarmerId" placeholder="Auto-loaded from database" readonly>
-                    <p class="info-text">Automatically loaded from your profile</p>
+                    <label>Upload Produce Photo <span style="color: red;">*</span></label>
+                    <input type="file" id="gradingImage" accept="image/*" onchange="enableGradeButton()">
+                </div>
+
+                <button id="gradeProduceBtn" onclick="gradeProduceProduce()" disabled>🔍 Grade Produce</button>
+                <div id="gradingResult" class="result"></div>
+                
+                <!-- Grade Certificate Display -->
+                <div id="gradingDisplay" style="display: none; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                    <h4 style="color: #667eea; margin-bottom: 10px;">Grade Certificate</h4>
+                    <div id="gradingDetails"></div>
+                </div>
+            </div>
+
+            <!-- Tile 2: Create New Listing -->
+            <div class="tile" id="tile2">
+                <h2><span class="tile-number">2</span> Create New Listing</h2>
+                <p class="info-text">List your produce for sale in the marketplace</p>
+                
+                <div class="form-group">
+                    <label>Farmer ID <span style="color: red;">*</span></label>
+                    <input type="text" id="createFarmerId" placeholder="Your farmer ID" readonly style="background: #e9ecef; cursor: not-allowed;">
                 </div>
 
                 <div class="form-group">
-                    <label>Produce Type *</label>
+                    <label>Produce Type <span style="color: red;">*</span></label>
                     <input type="text" id="createProduceType" placeholder="e.g., Tomato, Wheat, Rice">
                 </div>
 
                 <div class="form-group">
-                    <label>Quantity (kg) *</label>
+                    <label>Quantity (kg) <span style="color: red;">*</span></label>
                     <input type="number" id="createQuantity" placeholder="e.g., 100" min="1">
                 </div>
 
                 <div class="form-group">
-                    <label>Price per kg (₹) *</label>
+                    <label>Price per kg (₹) <span style="color: red;">*</span></label>
                     <input type="number" id="createPricePerKg" placeholder="e.g., 25" min="1">
                 </div>
 
@@ -452,30 +664,47 @@
                     <div id="createMediaPreview" class="media-preview hidden"></div>
                 </div>
 
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="attachCertificate" onchange="toggleCertificateAttachment()" style="width: auto; cursor: pointer;">
+                        <span>Attach grade certificate</span>
+                    </label>
+                    <p class="info-text" id="certificateInfo" style="margin-top: 5px; color: #999;">
+                        Grade your produce first to attach a certificate
+                    </p>
+                </div>
+
                 <button id="createListingBtn" onclick="createListing()" disabled>Create Listing</button>
                 <div id="createResult" class="result"></div>
             </div>
 
-            <!-- Tile 2: My Listings -->
-            <div class="tile">
-                <h2><span class="tile-number">2</span> My Listings</h2>
-                <p class="info-text">View and select your listings to manage</p>
+            <!-- Tile 3: My Listings -->
+            <div class="tile" id="tile3">
+                <h2><span class="tile-number">3</span> My Listings</h2>
+                <p class="info-text">View and manage all your produce listings</p>
                 
-                <button onclick="loadMyListings()">Load My Listings</button>
                 <div id="myListingsContainer"></div>
                 <div id="loadListingsResult" class="result"></div>
             </div>
         </div>
 
-        <!-- Tile 3: View/Edit Listing (Full Width) -->
-        <div class="tile" id="tile3" style="display: none;">
-            <h2><span class="tile-number">3</span> Listing Details</h2>
+        <!-- Tile 4: Listing Details -->
+        <div class="tile" id="tile4">
+            <h2><span class="tile-number">4</span> Listing Details</h2>
+            
+            <!-- No Selection Message -->
+            <div id="noSelectionMessage" style="text-align: center; padding: 40px; color: #999;">
+                <p style="font-size: 48px; margin-bottom: 10px;">📋</p>
+                <p style="font-size: 16px;">Select a listing from "My Listings" to view details</p>
+            </div>
             
             <!-- View Mode -->
             <div id="viewMode" class="view-mode">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="color: #667eea;">Viewing Listing</h3>
-                    <button onclick="enterEditMode()" style="width: auto; padding: 8px 20px;">Edit Listing</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="enterEditMode()" style="width: auto; padding: 8px 20px;">✏️ Edit</button>
+                        <button onclick="deleteListing()" style="width: auto; padding: 8px 20px; background: #dc3545;">🗑️ Delete</button>
+                    </div>
                 </div>
                 
                 <div class="listing-details">
@@ -484,19 +713,24 @@
                     <p><strong>Quantity:</strong> <span id="viewQuantity">-</span> kg</p>
                     <p><strong>Price per kg:</strong> ₹<span id="viewPricePerKg">-</span></p>
                     <p><strong>Status:</strong> <span id="viewStatus">-</span></p>
+                    <p><strong>Certificate:</strong> <span id="viewCertificate">-</span></p>
                     <p><strong>Created:</strong> <span id="viewCreatedAt">-</span></p>
                 </div>
 
-                <div id="viewMediaSection" class="hidden" style="margin-top: 15px;">
-                    <h4 style="color: #667eea; margin-bottom: 10px;">Media Files</h4>
-                    <div id="viewMediaPreview" class="media-preview"></div>
+                <!-- Media Grid -->
+                <div id="viewMediaGrid" class="media-grid" style="margin-top: 25px;"></div>
+                
+                <!-- Upload New Media -->
+                <div class="form-group" style="margin-top: 20px;">
+                    <input type="file" id="viewMediaFiles" accept="image/*,video/*,.pdf" multiple>
+                    <button onclick="uploadAdditionalMedia()" style="margin-top: 10px;">📤 Add More Photos</button>
                 </div>
             </div>
 
             <!-- Edit Mode -->
             <div id="editMode" class="edit-mode">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="color: #667eea;">Editing Listing</h3>
+                    <div></div>
                 </div>
 
                 <div class="form-group">
@@ -505,7 +739,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Produce Type *</label>
+                    <label>Produce Type <span style="color: red;">*</span></label>
                     <input type="text" id="editProduceType" placeholder="e.g., Tomato">
                 </div>
 
@@ -534,36 +768,139 @@
                 <div id="editResult" class="result"></div>
             </div>
         </div>
+
+    </div>
+
+    <!-- Lightbox for image viewing -->
+    <div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+        <span class="lightbox-close" onclick="closeLightbox(event)">&times;</span>
+        <div class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1, event)">&#10094;</div>
+        <div class="lightbox-content">
+            <img id="lightboxImage" class="lightbox-image" src="" alt="Lightbox image">
+        </div>
+        <div class="lightbox-nav lightbox-next" onclick="navigateLightbox(1, event)">&#10095;</div>
+        <div class="lightbox-counter" id="lightboxCounter"></div>
     </div>
 
     <script>
         const API_BASE = 'http://localhost:3000/api';
+        const API_GRADING = 'http://localhost:3000/api/grading';
         
         let state = {
             farmerId: null,
+            loggedInUserName: null,
+            isLoggedIn: false,
             selectedListingId: null,
             myListings: [],
-            originalListing: null
+            originalListing: null,
+            mediaList: [],
+            certificates: [],
+            currentCertificate: null
         };
+
+        // Check login status from localStorage (set by profile.html)
+        function checkLoginStatus() {
+            // Try to get login info from localStorage
+            const storedUserId = localStorage.getItem('bharatMandiUserId');
+            const storedUserName = localStorage.getItem('bharatMandiUserName');
+            const storedUserType = localStorage.getItem('bharatMandiUserType');
+            
+            if (storedUserId && storedUserType && storedUserType.toUpperCase() === 'FARMER') {
+                state.farmerId = storedUserId;
+                state.loggedInUserName = storedUserName || 'Farmer';
+                state.isLoggedIn = true;
+                updateAllLoginStatus(true, state.loggedInUserName);
+            } else {
+                state.isLoggedIn = false;
+                updateAllLoginStatus(false);
+            }
+        }
+
+        // Update all login status indicators
+        function updateAllLoginStatus(isLoggedIn, userName = '') {
+            const globalStatus = document.getElementById('globalLoginStatus');
+            
+            if (globalStatus) {
+                if (isLoggedIn) {
+                    globalStatus.className = 'login-status logged-in';
+                    globalStatus.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 20px;">✅</span>
+                            <span><strong>Logged in as:</strong> ${userName}</span>
+                        </div>
+                        <button id="logoutBtn" onclick="logout()" style="width: auto; padding: 8px 20px; background: #6c757d; margin: 0;">
+                            🚪 Logout
+                        </button>
+                    `;
+                } else {
+                    globalStatus.className = 'login-status logged-out';
+                    globalStatus.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 20px;">🔒</span>
+                            <span><strong>Not logged in</strong> - Please <a href="/profile.html" style="color: inherit; text-decoration: underline;">login on Profile page</a> first</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Update farmer ID field
+            const farmerIdField = document.getElementById('createFarmerId');
+            if (farmerIdField) {
+                if (isLoggedIn && state.farmerId) {
+                    farmerIdField.value = state.farmerId;
+                } else {
+                    farmerIdField.value = '';
+                }
+            }
+            
+            // Re-validate buttons after login status change
+            enableGradeButton();
+            enableCreateButton();
+        }
+
+        // Logout function
+        function logout() {
+            // Clear state
+            state.farmerId = null;
+            state.loggedInUserName = null;
+            state.isLoggedIn = false;
+            
+            // Clear localStorage
+            localStorage.removeItem('bharatMandiUserId');
+            localStorage.removeItem('bharatMandiUserName');
+            localStorage.removeItem('bharatMandiUserType');
+            localStorage.removeItem('bharatMandiToken');
+            
+            // Update UI
+            updateAllLoginStatus(false);
+            
+            // Clear any loaded data
+            state.selectedListingId = null;
+            state.myListings = [];
+            document.getElementById('myListingsContainer').innerHTML = '';
+            document.getElementById('noSelectionMessage').style.display = 'block';
+            document.getElementById('viewMode').classList.remove('active');
+            
+            alert('Logged out successfully! Redirecting to profile page...');
+            setTimeout(() => {
+                window.location.href = '/profile.html';
+            }, 1000);
+        }
 
         // Auto-load farmer ID on page load
         async function loadFarmerId() {
-            try {
-                const response = await fetch(`${API_BASE}/users`);
-                const users = await response.json();
-                const farmer = users.find(u => u.userType === 'FARMER');
-                
-                if (farmer) {
-                    state.farmerId = farmer.id;
-                    document.getElementById('createFarmerId').value = farmer.id;
-                    enableCreateButton();
-                } else {
-                    showResult('createResult', '⚠️ No farmer profile found. Please create a farmer profile first.', true);
-                }
-            } catch (error) {
-                console.error('[Listing] Failed to load farmer:', error);
-                showResult('createResult', '❌ Failed to load farmer profile', true);
+            checkLoginStatus();
+            
+            if (state.isLoggedIn) {
+                enableCreateButton();
             }
+        }
+
+        // Enable grade button when image is selected
+        function enableGradeButton() {
+            const fileInput = document.getElementById('gradingImage');
+            const btn = document.getElementById('gradeProduceBtn');
+            btn.disabled = !(state.isLoggedIn && fileInput.files && fileInput.files.length > 0);
         }
 
         // Enable create button when required fields are filled
@@ -574,12 +911,34 @@
             const hasFarmer = state.farmerId !== null;
             
             const btn = document.getElementById('createListingBtn');
-            btn.disabled = !(hasFarmer && produceType && quantity && pricePerKg);
+            const shouldEnable = hasFarmer && produceType && quantity && pricePerKg && state.isLoggedIn;
+            btn.disabled = !shouldEnable;
         }
 
         // Add event listeners for form validation
         document.addEventListener('DOMContentLoaded', () => {
-            loadFarmerId();
+            // Check login status first
+            checkLoginStatus();
+            
+            // Auto-load listings if logged in
+            if (state.isLoggedIn) {
+                loadMyListings();
+            }
+            
+            // Initial button state validation
+            enableGradeButton();
+            enableCreateButton();
+            
+            // Check login status periodically (in case user logs in on another tab)
+            setInterval(() => {
+                const wasLoggedIn = state.isLoggedIn;
+                checkLoginStatus();
+                
+                // If just logged in, load listings
+                if (!wasLoggedIn && state.isLoggedIn) {
+                    loadMyListings();
+                }
+            }, 5000);
             
             ['createProduceType', 'createQuantity', 'createPricePerKg'].forEach(id => {
                 document.getElementById(id)?.addEventListener('input', enableCreateButton);
@@ -632,6 +991,7 @@
                 const quantity = parseInt(document.getElementById('createQuantity').value);
                 const pricePerKg = parseInt(document.getElementById('createPricePerKg').value);
                 const mediaFiles = document.getElementById('createMediaFiles').files;
+                const attachCert = document.getElementById('attachCertificate').checked;
 
                 if (!state.farmerId || !produceType || !quantity || !pricePerKg) {
                     showResult('createResult', '❌ Please fill all required fields', true);
@@ -647,6 +1007,16 @@
                 formData.append('pricePerKg', pricePerKg.toString());
                 formData.append('certificateId', 'cert-demo-' + Date.now());
 
+                // Add certificate as image if checkbox is checked
+                if (attachCert && state.currentCertificate) {
+                    try {
+                        const certBlob = await generateCertificateBlob(state.currentCertificate);
+                        formData.append('media', certBlob, `certificate-${state.currentCertificate.id}.png`);
+                    } catch (error) {
+                        showResult('createResult', '⚠️ Certificate attachment failed, continuing without it...', false);
+                    }
+                }
+
                 // Add media files if any
                 if (mediaFiles.length > 0) {
                     for (let i = 0; i < mediaFiles.length; i++) {
@@ -654,20 +1024,20 @@
                     }
                 }
 
-                const endpoint = mediaFiles.length > 0 
+                const endpoint = (mediaFiles.length > 0 || (attachCert && state.currentCertificate))
                     ? `${API_BASE}/marketplace/listings/with-media`
                     : `${API_BASE}/marketplace/listings`;
 
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    body: mediaFiles.length > 0 ? formData : JSON.stringify({
+                    body: (mediaFiles.length > 0 || (attachCert && state.currentCertificate)) ? formData : JSON.stringify({
                         farmerId: state.farmerId,
                         produceType,
                         quantity,
                         pricePerKg,
                         certificateId: 'cert-demo-' + Date.now()
                     }),
-                    headers: mediaFiles.length === 0 ? { 'Content-Type': 'application/json' } : undefined
+                    headers: (mediaFiles.length === 0 && !(attachCert && state.currentCertificate)) ? { 'Content-Type': 'application/json' } : undefined
                 });
 
                 const data = await response.json();
@@ -687,9 +1057,15 @@
                     if (data.media.failed > 0) {
                         message += `, ${data.media.failed} failed`;
                     }
+                    if (attachCert && state.currentCertificate) {
+                        message += `<br><strong>Certificate:</strong> Attached as image`;
+                    }
                 }
 
                 showResult('createResult', message, false);
+
+                // Store the new listing ID
+                const newListingId = data.listing?.id || data.id;
 
                 // Clear form
                 document.getElementById('createProduceType').value = '';
@@ -697,18 +1073,19 @@
                 document.getElementById('createPricePerKg').value = '';
                 document.getElementById('createMediaFiles').value = '';
                 document.getElementById('createMediaPreview').classList.add('hidden');
+                document.getElementById('attachCertificate').checked = false;
+                toggleCertificateAttachment();
                 enableCreateButton();
 
-                // Auto-refresh listings
-                setTimeout(() => loadMyListings(), 1000);
+                // Auto-refresh listings and select the newly created one
+                await loadMyListings(newListingId);
 
             } catch (error) {
-                console.error('[Listing] Create error:', error);
                 showResult('createResult', `❌ Error: ${error.message}`, true);
             }
         }
 
-        async function loadMyListings() {
+        async function loadMyListings(selectListingId = null) {
             try {
                 showResult('loadListingsResult', '🔄 Loading listings...', false);
 
@@ -721,19 +1098,46 @@
                 
                 // Filter listings by current farmer
                 state.myListings = listings.filter(l => l.farmerId === state.farmerId);
+                
+                // Sort by timestamp, newest first
+                state.myListings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
                 const container = document.getElementById('myListingsContainer');
                 container.innerHTML = '';
 
                 if (state.myListings.length === 0) {
                     showResult('loadListingsResult', '📝 No listings found. Create your first listing!', false);
+                    // Clear selection
+                    state.selectedListingId = null;
+                    document.getElementById('noSelectionMessage').style.display = 'block';
+                    document.getElementById('viewMode').classList.remove('active');
                     return;
                 }
 
-                state.myListings.forEach(listing => {
+                state.myListings.forEach(async (listing) => {
                     const card = document.createElement('div');
                     card.className = 'listing-card';
-                    card.onclick = () => selectListing(listing.id);
+                    card.setAttribute('data-listing-id', listing.id);
+                    card.onclick = () => selectListing(listing.id, true); // true = scroll when user clicks
+                    
+                    // Fetch media to get primary image
+                    let primaryImageHtml = '';
+                    try {
+                        const mediaResponse = await fetch(`${API_BASE}/marketplace/listings/${listing.id}/media`);
+                        if (mediaResponse.ok) {
+                            const mediaList = await mediaResponse.json();
+                            const primaryMedia = mediaList.find(m => m.isPrimary) || mediaList[0];
+                            if (primaryMedia && primaryMedia.mediaType === 'image') {
+                                primaryImageHtml = `
+                                    <div style="margin-top: 10px;">
+                                        <img src="${primaryMedia.url}" alt="Primary image" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; border: 2px solid #e0e0e0;">
+                                    </div>
+                                `;
+                            }
+                        }
+                    } catch (err) {
+                        // Silently fail if media fetch fails
+                    }
                     
                     card.innerHTML = `
                         <div class="listing-header">
@@ -747,26 +1151,40 @@
                             <p>Price: ₹${listing.pricePerKg}/kg</p>
                             <p>Total Value: ₹${listing.quantity * listing.pricePerKg}</p>
                         </div>
+                        ${primaryImageHtml}
                     `;
                     
                     container.appendChild(card);
                 });
 
                 showResult('loadListingsResult', `✅ Loaded ${state.myListings.length} listing(s)`, false);
+                
+                // Auto-select listing
+                if (selectListingId) {
+                    // Select the specified listing (e.g., newly created)
+                    setTimeout(() => selectListing(selectListingId, false), 100);
+                } else if (!state.selectedListingId && state.myListings.length > 0) {
+                    // Select first listing if nothing is selected
+                    setTimeout(() => selectListing(state.myListings[0].id, false), 100);
+                } else if (state.selectedListingId) {
+                    // Re-select the currently selected listing (refresh case)
+                    setTimeout(() => selectListing(state.selectedListingId, false), 100);
+                }
 
             } catch (error) {
-                console.error('[Listing] Load error:', error);
                 showResult('loadListingsResult', `❌ Error: ${error.message}`, true);
             }
         }
 
-        async function selectListing(listingId) {
+        async function selectListing(listingId, shouldScroll = true) {
             try {
                 // Update UI selection
                 document.querySelectorAll('.listing-card').forEach(card => {
                     card.classList.remove('selected');
+                    if (card.getAttribute('data-listing-id') === listingId) {
+                        card.classList.add('selected');
+                    }
                 });
-                event.currentTarget.classList.add('selected');
 
                 state.selectedListingId = listingId;
 
@@ -779,8 +1197,8 @@
                 const listing = await response.json();
                 state.originalListing = { ...listing };
 
-                // Show tile 3 and populate view mode
-                document.getElementById('tile3').style.display = 'block';
+                // Show tile 4 content and hide no selection message
+                document.getElementById('noSelectionMessage').style.display = 'none';
                 document.getElementById('viewMode').classList.add('active');
                 document.getElementById('editMode').classList.remove('active');
 
@@ -790,16 +1208,18 @@
                 document.getElementById('viewQuantity').textContent = listing.quantity;
                 document.getElementById('viewPricePerKg').textContent = listing.pricePerKg;
                 document.getElementById('viewStatus').textContent = listing.isActive ? 'Active' : 'Inactive';
+                document.getElementById('viewCertificate').textContent = listing.certificateId || 'None';
                 document.getElementById('viewCreatedAt').textContent = new Date(listing.createdAt).toLocaleString();
 
-                // Load media if available
+                // Load media
                 await loadListingMedia(listingId);
 
-                // Scroll to tile 3
-                document.getElementById('tile3').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Only scroll if explicitly requested (e.g., user clicked a listing)
+                if (shouldScroll) {
+                    document.getElementById('tile4').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
 
             } catch (error) {
-                console.error('[Listing] Select error:', error);
                 alert(`Error loading listing: ${error.message}`);
             }
         }
@@ -808,41 +1228,649 @@
             try {
                 const response = await fetch(`${API_BASE}/marketplace/listings/${listingId}/media`);
                 if (!response.ok) {
-                    document.getElementById('viewMediaSection').classList.add('hidden');
+                    document.getElementById('viewMediaGrid').innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No media uploaded yet</p>';
+                    state.mediaList = [];
                     return;
                 }
 
-                const media = await response.json();
+                const data = await response.json();
                 
-                if (!media || media.length === 0) {
-                    document.getElementById('viewMediaSection').classList.add('hidden');
+                if (!data.media || data.media.length === 0) {
+                    document.getElementById('viewMediaGrid').innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No media uploaded yet</p>';
+                    state.mediaList = [];
                     return;
                 }
 
-                const preview = document.getElementById('viewMediaPreview');
-                preview.innerHTML = '';
-
-                media.forEach(item => {
-                    if (item.mediaType === 'photo') {
-                        const img = document.createElement('img');
-                        img.src = item.url;
-                        img.className = 'media-thumb';
-                        img.title = item.fileName;
-                        preview.appendChild(img);
-                    } else {
-                        const icon = document.createElement('div');
-                        icon.style.cssText = 'width: 80px; height: 80px; background: #f0f0f0; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 32px;';
-                        icon.textContent = item.mediaType === 'video' ? '🎥' : '📄';
-                        icon.title = item.fileName;
-                        preview.appendChild(icon);
-                    }
-                });
-
-                document.getElementById('viewMediaSection').classList.remove('hidden');
+                state.mediaList = data.media;
+                renderMediaGrid();
 
             } catch (error) {
-                console.error('[Listing] Media load error:', error);
-                document.getElementById('viewMediaSection').classList.add('hidden');
+                document.getElementById('viewMediaGrid').innerHTML = '<p style="color: #dc3545; text-align: center; padding: 20px;">Error loading media</p>';
+            }
+        }
+
+        function renderMediaGrid() {
+            const mediaGrid = document.getElementById('viewMediaGrid');
+            
+            if (!state.mediaList || state.mediaList.length === 0) {
+                mediaGrid.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No media uploaded yet</p>';
+                return;
+            }
+
+            mediaGrid.innerHTML = state.mediaList.map((media, index) => {
+                let imageUrl = media.storageUrl;
+                if (imageUrl.startsWith('/')) {
+                    imageUrl = 'http://localhost:3000' + imageUrl;
+                } else if (!imageUrl.startsWith('http')) {
+                    imageUrl = 'http://localhost:3000/' + imageUrl;
+                }
+                
+                return `
+                <div class="media-item">
+                    ${media.isPrimary ? '<div class="primary-badge">PRIMARY</div>' : ''}
+                    ${media.mediaType === 'photo' ? 
+                        `<img src="${imageUrl}" alt="${media.fileName}" onclick="openMediaLightbox(${index})" style="cursor: pointer;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'150\\'%3E%3Crect fill=\\'%23ddd\\' width=\\'200\\' height=\\'150\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%23999\\'%3EImage Error%3C/text%3E%3C/svg%3E';">` :
+                        `<div style="width: 100%; height: 150px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 5px;">
+                            <span style="font-size: 48px;">${media.mediaType === 'video' ? '🎥' : '📄'}</span>
+                        </div>`
+                    }
+                    <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                        <strong>${media.fileName}</strong><br>
+                        Order: ${media.displayOrder}
+                    </div>
+                    <div class="media-actions" onclick="event.stopPropagation()">
+                        ${index > 0 ? `<button onclick="moveMedia('${media.id}', 'left')" title="Move Left">⬅️</button>` : ''}
+                        ${!media.isPrimary ? `<button onclick="setPrimaryMedia('${media.id}')" title="Make Primary">⭐</button>` : ''}
+                        <button onclick="deleteMediaItem('${media.id}')" title="Delete" style="color: #dc3545;">🗑️</button>
+                        ${index < state.mediaList.length - 1 ? `<button onclick="moveMedia('${media.id}', 'right')" title="Move Right">➡️</button>` : ''}
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function openMediaLightbox(startIndex) {
+            // Get all photo URLs from mediaList
+            const photoUrls = state.mediaList
+                .filter(media => media.mediaType === 'photo')
+                .map(media => {
+                    let imageUrl = media.storageUrl;
+                    if (imageUrl.startsWith('/')) {
+                        return 'http://localhost:3000' + imageUrl;
+                    } else if (!imageUrl.startsWith('http')) {
+                        return 'http://localhost:3000/' + imageUrl;
+                    }
+                    return imageUrl;
+                });
+            
+            // Find the index in the photos-only array
+            const photosBeforeIndex = state.mediaList.slice(0, startIndex).filter(m => m.mediaType === 'photo').length;
+            
+            if (photoUrls.length > 0) {
+                openLightbox(photoUrls, photosBeforeIndex);
+            }
+        }
+
+        async function uploadAdditionalMedia() {
+            if (!state.isLoggedIn) {
+                alert('Please login first');
+                return;
+            }
+
+            if (!state.selectedListingId) {
+                alert('Please select a listing first');
+                return;
+            }
+
+            const fileInput = document.getElementById('viewMediaFiles');
+            const files = fileInput.files;
+
+            if (!files || files.length === 0) {
+                alert('Please select files to upload');
+                return;
+            }
+
+            try {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const mediaType = file.type.startsWith('image/') ? 'photo' : 
+                                     file.type.startsWith('video/') ? 'video' : 'document';
+                    
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('mediaType', mediaType);
+
+                    await fetch(`${API_BASE}/marketplace/listings/${state.selectedListingId}/media`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                }
+
+                fileInput.value = '';
+                await loadListingMedia(state.selectedListingId);
+                alert('Media uploaded successfully!');
+            } catch (error) {
+                alert('Failed to upload media');
+            }
+        }
+
+        async function setPrimaryMedia(mediaId) {
+            if (!state.isLoggedIn || !state.selectedListingId) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/marketplace/listings/${state.selectedListingId}/media/${mediaId}/primary`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: state.farmerId })
+                });
+
+                if (!response.ok) throw new Error('Failed to set primary');
+
+                await loadListingMedia(state.selectedListingId);
+            } catch (error) {
+                alert('Failed to set primary media');
+            }
+        }
+
+        async function deleteMediaItem(mediaId) {
+            if (!state.isLoggedIn || !state.selectedListingId) return;
+
+            if (!confirm('Delete this media?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/marketplace/listings/${state.selectedListingId}/media/${mediaId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: state.farmerId })
+                });
+
+                if (!response.ok) throw new Error('Failed to delete media');
+
+                await loadListingMedia(state.selectedListingId);
+            } catch (error) {
+                alert('Failed to delete media');
+            }
+        }
+
+        async function moveMedia(mediaId, direction) {
+            if (!state.isLoggedIn || !state.selectedListingId) return;
+
+            try {
+                const currentIndex = state.mediaList.findIndex(m => m.id === mediaId);
+                if (currentIndex === -1) return;
+
+                const newOrder = [...state.mediaList];
+                if (direction === 'left' && currentIndex > 0) {
+                    [newOrder[currentIndex], newOrder[currentIndex - 1]] = [newOrder[currentIndex - 1], newOrder[currentIndex]];
+                } else if (direction === 'right' && currentIndex < newOrder.length - 1) {
+                    [newOrder[currentIndex], newOrder[currentIndex + 1]] = [newOrder[currentIndex + 1], newOrder[currentIndex]];
+                } else {
+                    return;
+                }
+
+                const mediaOrder = newOrder.map(m => m.id);
+
+                const response = await fetch(`${API_BASE}/marketplace/listings/${state.selectedListingId}/media/reorder`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mediaOrder, userId: state.farmerId })
+                });
+
+                if (!response.ok) throw new Error('Failed to reorder media');
+
+                await loadListingMedia(state.selectedListingId);
+            } catch (error) {
+                // Silent fail for media reordering
+            }
+        }
+
+        async function deleteListing() {
+            if (!state.isLoggedIn) {
+                alert('Please login first');
+                return;
+            }
+
+            if (!state.selectedListingId) {
+                alert('Please select a listing first');
+                return;
+            }
+
+            if (!confirm('Delete this listing?\n\nThis will permanently remove the listing and all associated media. This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                // Find the index of the currently selected listing before deletion
+                const currentIndex = state.myListings.findIndex(l => l.id === state.selectedListingId);
+                
+                const response = await fetch(`${API_BASE}/marketplace/listings/${state.selectedListingId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: state.farmerId })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || 'Failed to delete listing');
+                }
+
+                alert('Listing deleted successfully');
+                
+                // Clear selection
+                state.selectedListingId = null;
+                state.originalListing = null;
+                
+                // Hide view mode and show no selection message
+                document.getElementById('viewMode').classList.remove('active');
+                document.getElementById('noSelectionMessage').style.display = 'block';
+                
+                // Reload listings
+                await loadMyListings();
+                
+                // After reload, select the next available listing
+                if (state.myListings.length > 0) {
+                    // If we deleted the last item, select the new last item
+                    // Otherwise, select the item at the same index (which is now the next item)
+                    const nextIndex = Math.min(currentIndex, state.myListings.length - 1);
+                    const nextListingId = state.myListings[nextIndex].id;
+                    setTimeout(() => selectListing(nextListingId, false), 100);
+                }
+
+            } catch (error) {
+                alert(`Failed to delete listing: ${error.message}`);
+            }
+        }
+
+        async function gradeProduceProduce() {
+            if (!state.isLoggedIn) {
+                alert('Please login first');
+                return;
+            }
+
+            const fileInput = document.getElementById('gradingImage');
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showResult('gradingResult', '❌ Please select an image', true);
+                return;
+            }
+
+            try {
+                showResult('gradingResult', '🔄 Analyzing image with AI...', false);
+
+                // Get current location with enhanced error handling
+                const location = await new Promise((resolve) => {
+                    if (!navigator.geolocation) {
+                        resolve({ lat: null, lng: null, error: 'Geolocation not supported' });
+                        return;
+                    }
+                    
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => resolve({
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                            accuracy: position.coords.accuracy
+                        }),
+                        (error) => resolve({ 
+                            lat: null, 
+                            lng: null, 
+                            error: error.message 
+                        })
+                    );
+                });
+
+                const formData = new FormData();
+                formData.append('image', fileInput.files[0]);
+                formData.append('farmerId', state.farmerId);
+                formData.append('produceType', 'unknown'); // Always auto-detect
+                formData.append('lat', (location.lat || 0).toString());
+                formData.append('lng', (location.lng || 0).toString());
+                formData.append('autoDetect', 'true');
+                
+                // Add geotag if available
+                if (location.lat && location.lng) {
+                    formData.append('geotag', JSON.stringify({
+                        lat: location.lat,
+                        lng: location.lng,
+                        accuracy: location.accuracy
+                    }));
+                }
+
+                const response = await fetch(`${API_GRADING}/grade-with-image`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to grade produce');
+                }
+
+                // Store certificate for later use with geotag and confidence
+                state.currentCertificate = {
+                    ...data.certificate,
+                    confidence: data.gradingResult.confidence,
+                    geotag: location.lat && location.lng ? {
+                        lat: location.lat,
+                        lng: location.lng,
+                        accuracy: location.accuracy
+                    } : null
+                };
+
+                // Display results with geotag
+                const gradeClass = `grade-${data.gradingResult.grade}`;
+                const cropName = data.analysis.detectedCrop || 'Unknown';
+                const capitalizedCrop = cropName.charAt(0).toUpperCase() + cropName.slice(1).toLowerCase();
+                
+                document.getElementById('gradingDetails').innerHTML = `
+                    <div style="display: grid; gap: 10px;">
+                        <p><strong>Crop:</strong> ${capitalizedCrop}</p>
+                        <p><strong>Grade:</strong> <span class="grade-badge ${gradeClass}">${data.gradingResult.grade}</span></p>
+                        <p><strong>Confidence:</strong> ${(data.gradingResult.confidence * 100).toFixed(1)}%</p>
+                        <p><strong>Timestamp:</strong> ${new Date(data.certificate.timestamp).toLocaleString()}</p>
+                        <p><strong>Geotag:</strong> ${
+                            location.lat && location.lng
+                                ? `${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`
+                                : '<em>Not certified, user uploaded image</em>'
+                        }</p>
+                        <p><strong>Certificate ID:</strong> ${data.certificate.id}</p>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button onclick="viewCertificate()" style="padding: 6px 12px; font-size: 12px; width: auto; background: #667eea;">
+                            👁️ View
+                        </button>
+                        <button onclick="downloadCertificate()" style="padding: 6px 12px; font-size: 12px; width: auto; background: #6c757d;">
+                            📥 Download
+                        </button>
+                    </div>
+                `;
+                document.getElementById('gradingDisplay').style.display = 'block';
+
+                let resultMessage = '✅ Grading complete! Certificate generated.';
+                if (location.error) {
+                    resultMessage += `<br>⚠️ Geolocation unavailable: ${location.error}. Certificate marked as "user uploaded".`;
+                }
+                showResult('gradingResult', resultMessage, false);
+
+                // Auto-populate produce type in Create Listing
+                document.getElementById('createProduceType').value = capitalizedCrop;
+                
+                // Auto-check certificate attachment checkbox
+                const checkbox = document.getElementById('attachCertificate');
+                checkbox.checked = true;
+                
+                // Update certificate checkbox info
+                toggleCertificateAttachment();
+                
+                // Trigger validation for create button
+                enableCreateButton();
+
+            } catch (error) {
+                showResult('gradingResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        function toggleCertificateAttachment() {
+            const checkbox = document.getElementById('attachCertificate');
+            const info = document.getElementById('certificateInfo');
+            
+            if (!state.currentCertificate) {
+                checkbox.checked = false;
+                info.textContent = 'Grade your produce first to attach a certificate';
+                info.style.color = '#999';
+                return;
+            }
+            
+            if (checkbox.checked) {
+                info.textContent = `Certificate will be attached to your listing`;
+                info.style.color = '#28a745';
+            } else {
+                info.textContent = 'Certificate available but not attached';
+                info.style.color = '#666';
+            }
+        }
+
+        async function addCertificateToListing(certificateId) {
+            if (!state.selectedListingId) {
+                alert('Please select a listing first from "My Listings"');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/marketplace/listings/${state.selectedListingId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ...state.originalListing,
+                        certificateId: certificateId
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to add certificate to listing');
+                }
+
+                alert('Certificate added to listing successfully!');
+                
+                // Refresh listing view
+                await selectListing(state.selectedListingId);
+
+            } catch (error) {
+                alert(`Failed to add certificate: ${error.message}`);
+            }
+        }
+
+        function createCertificateCanvas(certificate) {
+            return new Promise((resolve, reject) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 800;
+                canvas.height = 600;
+                const ctx = canvas.getContext('2d');
+                
+                // Draw certificate background
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, 800, 600);
+                
+                // Draw border
+                ctx.strokeStyle = '#1a5f3f';
+                ctx.lineWidth = 10;
+                ctx.strokeRect(20, 20, 760, 560);
+                
+                // Load and draw Bharat Mandi logo
+                const logo = new Image();
+                logo.crossOrigin = 'anonymous';
+                logo.onload = () => {
+                    // Draw logo
+                    const logoHeight = 60;
+                    const logoWidth = (logo.width / logo.height) * logoHeight;
+                    ctx.drawImage(logo, 400 - logoWidth / 2, 40, logoWidth, logoHeight);
+                    
+                    // Continue drawing the rest of the certificate
+                    drawCertificateContent(ctx, certificate);
+                    resolve(canvas);
+                };
+                logo.onerror = () => {
+                    // If logo fails to load, continue without it
+                    drawCertificateContent(ctx, certificate);
+                    resolve(canvas);
+                };
+                logo.src = '/assets/bharat-mandi-logo.png';
+            });
+        }
+        
+        function drawCertificateContent(ctx, certificate) {
+            // Draw certificate title
+            ctx.fillStyle = '#667eea';
+            ctx.font = 'bold 28px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Grade Certificate', 400, 130);
+            
+            // Draw certificate details
+            ctx.fillStyle = '#333';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'left';
+            
+            // Capitalize crop name
+            const cropName = certificate.produceType || 'Unknown';
+            const capitalizedCrop = cropName.charAt(0).toUpperCase() + cropName.slice(1).toLowerCase();
+            
+            // Format confidence - handle NaN and ensure it's from the certificate data
+            let confidence = 0;
+            if (certificate.confidence !== undefined && certificate.confidence !== null) {
+                confidence = parseFloat(certificate.confidence);
+            }
+            const confidenceText = (isNaN(confidence) || confidence === 0) ? 'N/A' : `${(confidence * 100).toFixed(1)}%`;
+            
+            // Format date as full timestamp
+            const dateText = new Date(certificate.timestamp).toLocaleString();
+            
+            const details = [
+                `Crop: ${capitalizedCrop}`,
+                `Grade: ${certificate.grade}`,
+                `Confidence: ${confidenceText}`,
+                `Date: ${dateText}`,
+                `Geotag: ${certificate.geotag ? `${certificate.geotag.lat.toFixed(6)}, ${certificate.geotag.lng.toFixed(6)}` : 'Not certified, user uploaded image'}`
+            ];
+            
+            let y = 180;
+            details.forEach(detail => {
+                ctx.fillText(detail, 60, y);
+                y += 40;
+            });
+            
+            // Certificate ID and Farmer ID at the bottom (in gray, smaller font)
+            ctx.fillStyle = '#666';
+            ctx.font = '14px Arial';
+            ctx.fillText(`Certificate ID: ${certificate.id}`, 60, 510);
+            ctx.fillText(`Farmer ID: ${state.farmerId || 'N/A'}`, 60, 530);
+            
+            // Generate QR code data (certificate verification URL)
+            const qrData = `https://bharatmandi.com/verify/${certificate.id}`;
+            
+            // Draw QR code placeholder (simple grid pattern as QR code)
+            const qrSize = 120;
+            const qrX = 640;
+            const qrY = 380;
+            
+            // QR code background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(qrX, qrY, qrSize, qrSize);
+            
+            // QR code border
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(qrX, qrY, qrSize, qrSize);
+            
+            // Simple QR-like pattern (for demo - in production use a real QR library)
+            ctx.fillStyle = '#000000';
+            const cellSize = 6;
+            for (let i = 0; i < qrSize / cellSize; i++) {
+                for (let j = 0; j < qrSize / cellSize; j++) {
+                    // Create a pseudo-random pattern based on certificate ID
+                    const hash = (certificate.id.charCodeAt(i % certificate.id.length) + i + j) % 2;
+                    if (hash === 0) {
+                        ctx.fillRect(qrX + i * cellSize, qrY + j * cellSize, cellSize, cellSize);
+                    }
+                }
+            }
+            
+            // QR code label
+            ctx.fillStyle = '#666';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Scan to Verify', qrX + qrSize / 2, qrY + qrSize + 15);
+        }
+
+        async function downloadCertificate() {
+            if (!state.currentCertificate) {
+                alert('No certificate available');
+                return;
+            }
+            
+            try {
+                const canvas = await createCertificateCanvas(state.currentCertificate);
+                
+                // Convert to blob and download
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `certificate-${state.currentCertificate.id}.png`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+            } catch (error) {
+                alert('Failed to download certificate');
+            }
+        }
+
+        async function generateCertificateBlob(certificate) {
+            try {
+                const canvas = await createCertificateCanvas(certificate);
+                return new Promise((resolve, reject) => {
+                    canvas.toBlob(blob => {
+                        if (blob) {
+                            resolve(blob);
+                        } else {
+                            reject(new Error('Failed to generate certificate blob'));
+                        }
+                    });
+                });
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        async function loadCertificates() {
+            if (!state.isLoggedIn) {
+                showResult('certificatesResult', '❌ Please login first', true);
+                return;
+            }
+
+            try {
+                showResult('certificatesResult', '🔄 Loading certificates...', false);
+
+                // Fetch certificates from grading API
+                const response = await fetch(`${API_GRADING}/certificates?farmerId=${state.farmerId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch certificates');
+                }
+
+                const certificates = await response.json();
+                state.certificates = certificates;
+
+                const container = document.getElementById('certificatesContainer');
+                container.innerHTML = '';
+
+                if (certificates.length === 0) {
+                    showResult('certificatesResult', '📝 No certificates found. Grade some produce to generate certificates!', false);
+                    return;
+                }
+
+                certificates.forEach(cert => {
+                    const card = document.createElement('div');
+                    card.className = 'certificate-card';
+                    const gradeClass = `grade-${cert.grade}`;
+                    
+                    card.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <strong>${cert.produceType}</strong>
+                            <span class="grade-badge ${gradeClass}">${cert.grade}</span>
+                        </div>
+                        <div style="font-size: 13px; color: #666;">
+                            <p><strong>Certificate ID:</strong> ${cert.id}</p>
+                            <p><strong>Date:</strong> ${new Date(cert.timestamp).toLocaleString()}</p>
+                            <p><strong>Image Hash:</strong> ${cert.imageHash}</p>
+                        </div>
+                    `;
+                    
+                    container.appendChild(card);
+                });
+
+                showResult('certificatesResult', `✅ Loaded ${certificates.length} certificate(s)`, false);
+
+            } catch (error) {
+                showResult('certificatesResult', `❌ Error: ${error.message}`, true);
             }
         }
 
@@ -915,8 +1943,80 @@
                 }, 1500);
 
             } catch (error) {
-                console.error('[Listing] Update error:', error);
                 showResult('editResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        // Lightbox functionality
+        let lightboxImages = [];
+        let currentLightboxIndex = 0;
+
+        function openLightbox(images, startIndex = 0) {
+            lightboxImages = images;
+            currentLightboxIndex = startIndex;
+            showLightboxImage();
+            document.getElementById('lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeLightbox(event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+
+        function navigateLightbox(direction, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            currentLightboxIndex += direction;
+            if (currentLightboxIndex < 0) {
+                currentLightboxIndex = lightboxImages.length - 1;
+            } else if (currentLightboxIndex >= lightboxImages.length) {
+                currentLightboxIndex = 0;
+            }
+            showLightboxImage();
+        }
+
+        function showLightboxImage() {
+            const img = document.getElementById('lightboxImage');
+            const counter = document.getElementById('lightboxCounter');
+            
+            if (lightboxImages.length > 0) {
+                img.src = lightboxImages[currentLightboxIndex];
+                counter.textContent = `${currentLightboxIndex + 1} / ${lightboxImages.length}`;
+            }
+        }
+
+        // Keyboard navigation for lightbox
+        document.addEventListener('keydown', (e) => {
+            const lightbox = document.getElementById('lightbox');
+            if (lightbox.classList.contains('active')) {
+                if (e.key === 'Escape') {
+                    closeLightbox();
+                } else if (e.key === 'ArrowLeft') {
+                    navigateLightbox(-1);
+                } else if (e.key === 'ArrowRight') {
+                    navigateLightbox(1);
+                }
+            }
+        });
+
+        // View certificate in lightbox
+        async function viewCertificate() {
+            if (!state.currentCertificate) {
+                alert('No certificate available');
+                return;
+            }
+            
+            try {
+                const canvas = await createCertificateCanvas(state.currentCertificate);
+                const imageUrl = canvas.toDataURL('image/png');
+                openLightbox([imageUrl], 0);
+            } catch (error) {
+                alert('Failed to view certificate');
             }
         }
     </script>
