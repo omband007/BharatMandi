@@ -39,6 +39,8 @@ The design covers:
 
 ## High-Level Design (HLD)
 
+> **Related Documentation**: See [State Diagrams](../../shared/state-diagrams.md) for complete visual state machine diagrams and marketplace flow.
+
 ### System Architecture
 
 The enhanced listing status management feature integrates into the existing Bharat Mandi architecture as follows:

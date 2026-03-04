@@ -41,6 +41,9 @@ This directory contains all specification documents for the Bharat Mandi project
 ### Infrastructure
 - **[Database](./shared/database/)** - Dual database architecture (PostgreSQL + SQLite) ✅
 
+### Shared Documentation
+- **[State Diagrams](./shared/state-diagrams.md)** - Visual state machine diagrams for Listing, Transaction, and Escrow states
+
 ### Test Specifications
 - **[Controller Tests](./tests/controller-tests/)** - 7 controller test specs (80%+ coverage target)
 - **[Service Tests](./tests/service-tests/)** - 1 service test spec (80%+ coverage target)

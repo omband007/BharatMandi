@@ -1,5 +1,7 @@
 # State Synchronization: Listings, Transactions, and Escrow
 
+> **Related Documentation**: See [State Diagrams](../../shared/state-diagrams.md) for visual state machine diagrams and complete marketplace flow.
+
 ## Overview
 
 The Bharat Mandi marketplace has **three independent but interconnected state machines**:

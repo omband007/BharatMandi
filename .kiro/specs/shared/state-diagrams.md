@@ -1,5 +1,12 @@
 # Bharat Mandi - State Transition Diagrams
 
+> **Shared Documentation**: This document provides visual state machine diagrams for the entire Bharat Mandi marketplace, covering Listing, Transaction, and Escrow states.
+>
+> **Referenced by**:
+> - [Enhanced Listing Status Management](../enhanced-listing-status-management/requirements.md)
+> - [Enhanced Listing Status Management - Design](../enhanced-listing-status-management/design.md)
+> - [State Synchronization](../enhanced-listing-status-management/STATE-SYNCHRONIZATION.md)
+
 ## 1. Listing States
 
 ### Current Implementation (Simplified)

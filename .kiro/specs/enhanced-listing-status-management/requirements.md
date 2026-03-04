@@ -8,6 +8,8 @@ The feature will replace the `isActive` column with a `status` column in the lis
 
 **Note**: This project is in development phase with test data only. No backward compatibility or data migration is required.
 
+> **Related Documentation**: See [State Diagrams](../../shared/state-diagrams.md) for visual state machine diagrams showing how Listing, Transaction, and Escrow states interact.
+
 ## Glossary
 
 - **Listing**: A marketplace entry created by a farmer offering agricultural produce for sale
