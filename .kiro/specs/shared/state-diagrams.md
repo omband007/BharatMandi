@@ -36,7 +36,7 @@ stateDiagram-v2
 stateDiagram-v2
     [*] --> ACTIVE: Farmer creates listing
 
-    ACTIVE --> SOLD: Transaction completed\n(funds released)
+    ACTIVE --> SOLD: Path 1: Transaction completed (escrow)\nPath 2: Transaction completed (direct payment)\nPath 3: Farmer marks as sold (manual)
     ACTIVE --> EXPIRED: Expiry date passed\n(harvest date + category expiry period)
     ACTIVE --> CANCELLED: Farmer cancels\n(manual deletion)
     
@@ -50,13 +50,16 @@ stateDiagram-v2
         Available for purchase
         Visible in marketplace
         Expiry: harvest_date + category_expiry_period
+        Payment preference: PLATFORM_ONLY | DIRECT_ONLY | BOTH
     end note
     
     note right of SOLD
         isActive = false
         status = 'SOLD'
-        Transaction completed
-        Funds released to farmer
+        Sale channel: PLATFORM_ESCROW | PLATFORM_DIRECT | EXTERNAL
+        Path 1: Escrow transaction completed
+        Path 2: Direct payment transaction completed
+        Path 3: Farmer manually confirmed sale
     end note
     
     note right of EXPIRED
@@ -77,9 +80,9 @@ stateDiagram-v2
 
 ---
 
-## 2. Transaction States (Current Implementation)
+## 2. Transaction States (Current Implementation + Direct Payment)
 
-### Transaction Flow with Escrow
+### Transaction Flow with Escrow and Direct Payment
 ```mermaid
 stateDiagram-v2
     [*] --> PENDING: Buyer initiates purchase
@@ -89,6 +92,7 @@ stateDiagram-v2
     PENDING --> CANCELLED: Buyer cancels order
     
     ACCEPTED --> PAYMENT_LOCKED: Buyer locks payment in escrow
+    ACCEPTED --> COMPLETED_DIRECT: Farmer confirms direct payment
     ACCEPTED --> CANCELLED: Buyer cancels before payment
     
     PAYMENT_LOCKED --> DISPATCHED: Farmer dispatches goods
@@ -147,7 +151,13 @@ stateDiagram-v2
     note right of COMPLETED
         ✨ Transaction done
         Escrow: RELEASED
-        Listing: SOLD
+        Listing: SOLD (PLATFORM_ESCROW)
+    end note
+    
+    note right of COMPLETED_DIRECT
+        ✨ Direct payment confirmed
+        Escrow: Not used
+        Listing: SOLD (PLATFORM_DIRECT)
     end note
     
     note right of DISPUTED
@@ -287,7 +297,7 @@ stateDiagram-v2
 
 ## 5. Transaction Flow Steps (As Shown in UI)
 
-The POC UI demonstrates this 5-step flow:
+### Escrow Flow (5-step process)
 
 1. **Farmer Accepts Order** (PENDING → ACCEPTED)
    - Farmer reviews and accepts the purchase request
@@ -307,8 +317,28 @@ The POC UI demonstrates this 5-step flow:
 
 5. **Release Funds** (DELIVERED → COMPLETED)
    - System releases funds from escrow to farmer
-   - Listing marked as SOLD
+   - Listing marked as SOLD (PLATFORM_ESCROW)
    - Transaction complete
+
+### Direct Payment Flow (2-step process)
+
+1. **Farmer Accepts Order** (PENDING → ACCEPTED)
+   - Farmer reviews and accepts the purchase request
+   - No escrow account created (direct payment agreed)
+
+2. **Farmer Confirms Payment** (ACCEPTED → COMPLETED_DIRECT)
+   - Farmer confirms direct payment received from buyer
+   - Listing marked as SOLD (PLATFORM_DIRECT)
+   - Transaction complete
+
+### Manual Sale Confirmation (No transaction)
+
+1. **Farmer Marks as Sold**
+   - Farmer sold produce outside Bharat Mandi or through direct arrangement
+   - Farmer manually marks listing as SOLD
+   - Selects sale channel: PLATFORM_DIRECT or EXTERNAL
+   - Listing marked as SOLD (EXTERNAL)
+   - Helps platform track all sales for analytics
 
 ---
 
@@ -321,13 +351,19 @@ The POC UI demonstrates this 5-step flow:
 
 ### Recommended Enhancements
 1. Add `status` column to listings table (ACTIVE, SOLD, EXPIRED, CANCELLED)
-2. Keep `isActive` as computed field for backward compatibility
-3. Implement automatic expiration based on produce category perishability (harvest_date + category_expiry_period)
-4. Update listing status to SOLD when transaction reaches COMPLETED state
-5. Add webhook/event system to sync listing and transaction states
+2. Add `payment_method_preference` column (PLATFORM_ONLY, DIRECT_ONLY, BOTH)
+3. Add `sale_channel` column (PLATFORM_ESCROW, PLATFORM_DIRECT, EXTERNAL)
+4. Add `COMPLETED_DIRECT` to transaction status enum
+5. Keep `isActive` as computed field for backward compatibility
+6. Implement automatic expiration based on produce category perishability (harvest_date + category_expiry_period)
+7. Update listing status to SOLD when transaction reaches COMPLETED or COMPLETED_DIRECT state
+8. Allow farmers to manually mark listings as SOLD for external sales
+9. Add webhook/event system to sync listing and transaction states
 
 ### State Synchronization Rules
-- When transaction → COMPLETED: listing → SOLD
+- When transaction → COMPLETED: listing → SOLD (sale_channel = PLATFORM_ESCROW)
+- When transaction → COMPLETED_DIRECT: listing → SOLD (sale_channel = PLATFORM_DIRECT)
+- When farmer marks as sold: listing → SOLD (sale_channel = PLATFORM_DIRECT or EXTERNAL)
 - When transaction → CANCELLED (before PAYMENT_LOCKED): listing → ACTIVE
 - When transaction → DISPUTED → REFUNDED: listing → ACTIVE
 - When expiry date passes (harvest_date + category_expiry_period): listing → EXPIRED (automatic job)
