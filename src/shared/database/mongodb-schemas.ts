@@ -302,4 +302,3 @@ export const FarmingTipSchema = new Schema({
 
 // Indexes
 FarmingTipSchema.index({ crop: 1, topic: 1, language: 1 });
-FarmingTipSchema.index({ language: 1 });

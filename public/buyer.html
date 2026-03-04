@@ -548,7 +548,7 @@
             }
             
             container.innerHTML = state.listings.map(listing => `
-                <div class="listing-card" onclick="selectListing('${listing.id}')">
+                <div class="listing-card" data-listing-id="${listing.id}" onclick="selectListing('${listing.id}')">
                     <div class="listing-title">${listing.produceType}</div>
                     <div class="listing-details">
                         <p><strong>Available:</strong> ${listing.quantity} kg</p>
@@ -569,11 +569,13 @@
                 
                 state.selectedListing = await response.json();
                 
-                // Update UI
+                // Update UI - highlight selected card
                 document.querySelectorAll('.listing-card').forEach(card => {
                     card.classList.remove('selected');
+                    if (card.getAttribute('data-listing-id') === listingId) {
+                        card.classList.add('selected');
+                    }
                 });
-                event.target.closest('.listing-card')?.classList.add('selected');
                 
                 document.getElementById('noSelectionMessage').style.display = 'none';
                 document.getElementById('listingDetails').style.display = 'block';

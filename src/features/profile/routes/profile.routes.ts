@@ -154,22 +154,8 @@ router.get('/:userId', requireAuth, async (req: Request, res: Response) => {
       });
     }
 
-    console.log('[ProfileRoutes] Raw profile from DB:', {
-      userId: profile.userId,
-      mobileNumber: profile.mobileNumber,
-      name: profile.name,
-      userType: profile.userType
-    });
-
     // Apply privacy filters (for now, assume platform context)
     const filtered = profileManager.applyPrivacyFilters(profile, 'platform');
-
-    console.log('[ProfileRoutes] Filtered profile being sent:', {
-      userId: filtered.userId,
-      mobileNumber: filtered.mobileNumber,
-      name: filtered.name,
-      userType: filtered.userType
-    });
 
     res.status(200).json({
       success: true,

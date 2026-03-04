@@ -42,6 +42,7 @@ export class I18nService {
         order: ['querystring', 'cookie', 'localStorage', 'navigator'],
         caches: ['localStorage', 'cookie'],
       },
+      debug: false, // Suppress i18next maintenance message
     });
 
     this.initialized = true;

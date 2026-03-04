@@ -7,6 +7,9 @@
 import { getRedisClient } from '../../../shared/cache/redis-client';
 import type { UserProfile } from '../types/profile.types';
 
+// Logging control
+const VERBOSE_LOGGING = process.env.DB_VERBOSE_LOGGING === 'true';
+
 export class ProfileCacheService {
   private readonly PROFILE_TTL = 5 * 60; // 5 minutes
   private readonly COMPLETION_TTL = 5 * 60; // 5 minutes
@@ -42,7 +45,9 @@ export class ProfileCacheService {
       const key = this.getProfileKey(userId);
       await redis.setEx(key, this.PROFILE_TTL, JSON.stringify(profile));
     } catch (error) {
-      console.error('[ProfileCache] Failed to cache profile:', error);
+      if (VERBOSE_LOGGING) {
+        console.error('[ProfileCache] Failed to cache profile:', error);
+      }
       // Don't throw - caching is optional
     }
   }
@@ -57,7 +62,9 @@ export class ProfileCacheService {
       const cached = await redis.get(key);
       return cached ? JSON.parse(cached) : null;
     } catch (error) {
-      console.error('[ProfileCache] Failed to get cached profile:', error);
+      if (VERBOSE_LOGGING) {
+        console.error('[ProfileCache] Failed to get cached profile:', error);
+      }
       return null;
     }
   }
@@ -71,7 +78,9 @@ export class ProfileCacheService {
       await redis.del(this.getProfileKey(userId));
       await redis.del(this.getCompletionKey(userId));
     } catch (error) {
-      console.error('[ProfileCache] Failed to invalidate profile:', error);
+      if (VERBOSE_LOGGING) {
+        console.error('[ProfileCache] Failed to invalidate profile:', error);
+      }
     }
   }
 
@@ -84,7 +93,9 @@ export class ProfileCacheService {
       const key = this.getCompletionKey(userId);
       await redis.setEx(key, this.COMPLETION_TTL, percentage.toString());
     } catch (error) {
-      console.error('[ProfileCache] Failed to cache completion:', error);
+      if (VERBOSE_LOGGING) {
+        console.error('[ProfileCache] Failed to cache completion:', error);
+      }
     }
   }
 
@@ -98,7 +109,9 @@ export class ProfileCacheService {
       const cached = await redis.get(key);
       return cached ? parseFloat(cached) : null;
     } catch (error) {
-      console.error('[ProfileCache] Failed to get cached completion:', error);
+      if (VERBOSE_LOGGING) {
+        console.error('[ProfileCache] Failed to get cached completion:', error);
+      }
       return null;
     }
   }
@@ -112,7 +125,9 @@ export class ProfileCacheService {
       const key = this.getPointsKey(userId);
       await redis.setEx(key, this.POINTS_TTL, JSON.stringify(points));
     } catch (error) {
-      console.error('[ProfileCache] Failed to cache points:', error);
+      if (VERBOSE_LOGGING) {
+        console.error('[ProfileCache] Failed to cache points:', error);
+      }
     }
   }
 
@@ -126,7 +141,9 @@ export class ProfileCacheService {
       const cached = await redis.get(key);
       return cached ? JSON.parse(cached) : null;
     } catch (error) {
-      console.error('[ProfileCache] Failed to get cached points:', error);
+      if (VERBOSE_LOGGING) {
+        console.error('[ProfileCache] Failed to get cached points:', error);
+      }
       return null;
     }
   }
@@ -139,7 +156,9 @@ export class ProfileCacheService {
       const redis = getRedisClient();
       await redis.del(this.getPointsKey(userId));
     } catch (error) {
-      console.error('[ProfileCache] Failed to invalidate points:', error);
+      if (VERBOSE_LOGGING) {
+        console.error('[ProfileCache] Failed to invalidate points:', error);
+      }
     }
   }
 }

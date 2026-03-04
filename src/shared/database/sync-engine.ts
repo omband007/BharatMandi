@@ -198,8 +198,7 @@ export class SyncEngine {
           return;
         }
 
-        // Only log for important operations
-        if (entityType !== 'listing' && entityType !== 'user') {
+        if (VERBOSE_LOGGING) {
           console.log(`[SyncEngine] Propagating ${operationType} ${entityType}:${entityId} to SQLite`);
         }
         

@@ -30,7 +30,7 @@ stateDiagram-v2
     [*] --> ACTIVE: Farmer creates listing
 
     ACTIVE --> SOLD: Transaction completed\n(funds released)
-    ACTIVE --> EXPIRED: Harvest date passed\n(automatic)
+    ACTIVE --> EXPIRED: Expiry date passed\n(harvest date + category expiry period)
     ACTIVE --> CANCELLED: Farmer cancels\n(manual deletion)
     
     SOLD --> [*]
@@ -42,6 +42,7 @@ stateDiagram-v2
         status = 'ACTIVE'
         Available for purchase
         Visible in marketplace
+        Expiry: harvest_date + category_expiry_period
     end note
     
     note right of SOLD
@@ -54,8 +55,9 @@ stateDiagram-v2
     note right of EXPIRED
         isActive = false
         status = 'EXPIRED'
-        Past harvest date
-        No longer available
+        Expiry date passed
+        (harvest_date + category_expiry_period)
+        Based on produce perishability
     end note
     
     note right of CANCELLED
@@ -236,7 +238,7 @@ stateDiagram-v2
     TxDisputed --> TxCompleted: Resolved - release
     TxDisputed --> ListingActive: Resolved - refund
     
-    ListingActive --> ListingExpired: Harvest date passed
+    ListingActive --> ListingExpired: Expiry date passed\n(harvest date + category expiry period)
     ListingActive --> ListingCancelled: Farmer cancels
     
     ListingSold --> [*]
@@ -313,7 +315,7 @@ The POC UI demonstrates this 5-step flow:
 ### Recommended Enhancements
 1. Add `status` column to listings table (ACTIVE, SOLD, EXPIRED, CANCELLED)
 2. Keep `isActive` as computed field for backward compatibility
-3. Implement automatic expiration based on `expected_harvest_date`
+3. Implement automatic expiration based on produce category perishability (harvest_date + category_expiry_period)
 4. Update listing status to SOLD when transaction reaches COMPLETED state
 5. Add webhook/event system to sync listing and transaction states
 
@@ -321,5 +323,5 @@ The POC UI demonstrates this 5-step flow:
 - When transaction → COMPLETED: listing → SOLD
 - When transaction → CANCELLED (before PAYMENT_LOCKED): listing → ACTIVE
 - When transaction → DISPUTED → REFUNDED: listing → ACTIVE
-- When harvest date passes: listing → EXPIRED (automatic job)
+- When expiry date passes (harvest_date + category_expiry_period): listing → EXPIRED (automatic job)
 - When farmer deletes: listing → CANCELLED

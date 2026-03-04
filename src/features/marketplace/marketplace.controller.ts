@@ -258,7 +258,7 @@ router.delete('/listings/:id', async (req: Request, res: Response) => {
       const mediaService = getMediaService();
       const mediaList = await mediaService.getListingMedia(id);
       
-      for (const media of mediaList.media) {
+      for (const media of mediaList) {
         await mediaService.deleteMedia(id, media.id, userId || listing.farmerId);
       }
     } catch (mediaError) {
