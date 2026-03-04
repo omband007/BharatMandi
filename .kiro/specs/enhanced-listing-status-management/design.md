@@ -1501,6 +1501,10 @@ interface GetListingsResponse {
     produceCategoryId: string; // Requirement 14.4
     produceCategoryName: string; // Requirement 14.4
     expiryDate: string; // ISO 8601, Requirement 14.5
+    paymentMethodPreference: 'PLATFORM_ONLY' | 'DIRECT_ONLY' | 'BOTH'; // Requirement 18
+    saleChannel?: 'PLATFORM_ESCROW' | 'PLATFORM_DIRECT' | 'EXTERNAL'; // Requirement 19, present if SOLD
+    salePrice?: number; // Requirement 19, present if SOLD via EXTERNAL
+    saleNotes?: string; // Requirement 19, present if SOLD via EXTERNAL
   }>;
   total: number;
 }
@@ -1538,6 +1542,91 @@ interface CancelListingError {
   currentStatus: string;
   transactionId?: string;
   transactionStatus?: string;
+}
+```
+
+#### Mark Listing as Sold (New - Requirement 19)
+
+```typescript
+/**
+ * POST /api/marketplace/listings/:id/mark-sold
+ * Manually mark a listing as sold
+ * Requirements: 19.1, 19.2, 19.3, 19.4, 19.5, 19.6, 19.7, 19.8, 19.9, 19.10
+ */
+
+// Request Body
+interface MarkListingAsSoldRequest {
+  saleChannel: 'PLATFORM_DIRECT' | 'EXTERNAL';
+  transactionId?: string; // Required if saleChannel is PLATFORM_DIRECT
+  salePrice?: number; // Optional for EXTERNAL
+  saleNotes?: string; // Optional for EXTERNAL
+}
+
+// Response
+interface MarkListingAsSoldResponse {
+  listing: {
+    id: string;
+    status: 'SOLD';
+    soldAt: string; // ISO 8601
+    saleChannel: 'PLATFORM_DIRECT' | 'EXTERNAL';
+    transactionId?: string; // Present if PLATFORM_DIRECT
+    salePrice?: number; // Present if EXTERNAL
+    saleNotes?: string; // Present if EXTERNAL
+    // ... other listing fields
+  };
+}
+
+// Error Response (if listing has active transaction with PAYMENT_LOCKED+)
+interface MarkListingAsSoldError {
+  error: string;
+  message: string;
+  currentStatus: string;
+  activeTransactionId?: string;
+  activeTransactionStatus?: string;
+}
+```
+
+#### Complete Direct Payment Transaction (New - Requirement 20)
+
+```typescript
+/**
+ * PUT /api/transactions/:id/complete-direct
+ * Complete a transaction with direct payment (no escrow)
+ * Requirements: 20.1, 20.2, 20.3, 20.4, 20.5, 20.6, 20.7
+ */
+
+// Request Body
+interface CompleteDirectPaymentRequest {
+  notes?: string; // Optional confirmation notes
+}
+
+// Response
+interface CompleteDirectPaymentResponse {
+  transaction: {
+    id: string;
+    status: 'COMPLETED_DIRECT';
+    completedAt: string; // ISO 8601
+    listingId: string;
+    farmerId: string;
+    buyerId: string;
+    amount: number;
+    notes?: string;
+  };
+  listing: {
+    id: string;
+    status: 'SOLD';
+    soldAt: string;
+    saleChannel: 'PLATFORM_DIRECT';
+    transactionId: string;
+  };
+}
+
+// Error Response
+interface CompleteDirectPaymentError {
+  error: string;
+  message: string;
+  currentTransactionStatus: string;
+  listingPaymentPreference?: string;
 }
 ```
 
@@ -1718,3 +1807,50 @@ interface GetAnalyticsResponse {
   };
 }
 ```
+
+#### Get Sales Analytics by Channel (New - Requirement 21)
+
+```typescript
+/**
+ * GET /api/marketplace/analytics/sales-by-channel
+ * Get sales analytics grouped by sale channel
+ * Requirements: 21.1, 21.2, 21.3, 21.4, 21.5, 21.6
+ */
+
+// Query Parameters
+interface GetSalesByChannelQuery {
+  startDate?: string; // ISO 8601
+  endDate?: string; // ISO 8601
+  farmerId?: string;
+}
+
+// Response
+interface GetSalesByChannelResponse {
+  totalSales: number;
+  byChannel: {
+    PLATFORM_ESCROW: {
+      count: number;
+      percentage: number;
+      totalRevenue: number; // From transaction data
+    };
+    PLATFORM_DIRECT: {
+      count: number;
+      percentage: number;
+    };
+    EXTERNAL: {
+      count: number;
+      percentage: number;
+      reportedRevenue: number; // From sale_price field
+    };
+    UNKNOWN: {
+      count: number; // Legacy data with NULL sale_channel
+      percentage: number;
+    };
+  };
+  dateRange: {
+    start: string; // ISO 8601
+    end: string; // ISO 8601
+  };
+}
+```
+
