@@ -16,9 +16,10 @@
 
 ### design.md
 - ✅ Updated ERD diagram with new fields
-- ✅ Updated PostgreSQL schema with new enum types and columns
-- ✅ Updated SQLite schema with new columns and CHECK constraints
-- ✅ Updated migration scripts (up and down)
+- ✅ Updated PostgreSQL schema with DROP TABLE IF EXISTS + CREATE TABLE approach
+- ✅ Updated SQLite schema with DROP TABLE IF EXISTS + CREATE TABLE approach
+- ✅ Removed all migration scripts (using clean schema recreation instead)
+- ✅ Removed backward compatibility with isActive field
 - ✅ Updated Listing interface with new fields
 - ✅ Updated GetListingsResponse with new fields
 - ✅ Added POST /api/marketplace/listings/:id/mark-sold endpoint

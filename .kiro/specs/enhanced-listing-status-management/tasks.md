@@ -316,7 +316,7 @@ This implementation plan converts the enhanced listing status management design 
     - Add status query parameter for filtering (single or comma-separated)
     - Update response to include: status, listing_type, produce_category_id, produce_category_name, expiry_date
     - Include status-specific fields: sold_at, transaction_id, expired_at, cancelled_at, cancelled_by
-    - Default filter to status=ACTIVE for backward compatibility
+    - Default filter to status=ACTIVE if no status parameter provided
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7_
   
   - [ ] 14.2 Create POST /api/marketplace/listings/:id/cancel endpoint

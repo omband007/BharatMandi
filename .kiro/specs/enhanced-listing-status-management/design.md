@@ -13,28 +13,28 @@ The design covers:
 - Status enumeration and validation logic
 - Automatic expiration service based on harvest dates
 - Transaction-listing status synchronization
-- Backward compatibility layer for existing code
-- Offline sync compatibility
 - API response format changes
 - Audit trail for status changes
 - Bulk operations support
 
+**Development Phase Note**: This project is in development with test data only. We will use clean schema recreation (DROP TABLE IF EXISTS + CREATE TABLE) instead of migrations. No backward compatibility or data preservation required.
+
 ### Goals
 
 1. Enable accurate tracking of listing lifecycle states
-2. Maintain backward compatibility with existing `isActive` field
-3. Automate listing expiration based on harvest dates
-4. Synchronize listing status with transaction completion
-5. Support offline operations with proper conflict resolution
-6. Provide comprehensive audit trail for compliance
-7. Enable analytics and reporting on listing outcomes
+2. Automate listing expiration based on harvest dates
+3. Synchronize listing status with transaction completion
+4. Provide comprehensive audit trail for compliance
+5. Enable analytics and reporting on listing outcomes
 
 ### Non-Goals
 
-1. Changing the transaction state machine
-2. Modifying escrow flow logic
-3. Altering the notification system architecture
-4. Implementing new UI components (frontend implementation)
+1. Backward compatibility with existing `isActive` field
+2. Data migration from existing listings
+3. Changing the transaction state machine
+4. Modifying escrow flow logic
+5. Altering the notification system architecture
+6. Implementing new UI components (frontend implementation)
 
 
 ## High-Level Design (HLD)
@@ -390,70 +390,17 @@ sequenceDiagram
 
 ### Detailed Database Schema
 
+**Development Phase Approach**: Use DROP TABLE IF EXISTS + CREATE TABLE for clean schema recreation. No ALTER TABLE migrations or data preservation needed.
+
 #### PostgreSQL Schema
-
-##### Listings Table Modifications
-
-```sql
--- Add status column with enum type
-CREATE TYPE listing_status AS ENUM ('ACTIVE', 'SOLD', 'EXPIRED', 'CANCELLED');
-CREATE TYPE listing_type AS ENUM ('PRE_HARVEST', 'POST_HARVEST');
-CREATE TYPE payment_method_preference AS ENUM ('PLATFORM_ONLY', 'DIRECT_ONLY', 'BOTH');
-CREATE TYPE sale_channel AS ENUM ('PLATFORM_ESCROW', 'PLATFORM_DIRECT', 'EXTERNAL');
-
-ALTER TABLE listings 
-ADD COLUMN status listing_status NOT NULL DEFAULT 'ACTIVE',
-ADD COLUMN sold_at TIMESTAMP,
-ADD COLUMN transaction_id UUID REFERENCES transactions(id),
-ADD COLUMN expired_at TIMESTAMP,
-ADD COLUMN cancelled_at TIMESTAMP,
-ADD COLUMN cancelled_by UUID REFERENCES users(id),
-ADD COLUMN listing_type listing_type NOT NULL DEFAULT 'POST_HARVEST',
-ADD COLUMN produce_category_id UUID REFERENCES produce_categories(id),
-ADD COLUMN expiry_date TIMESTAMP NOT NULL,
-ADD COLUMN payment_method_preference payment_method_preference NOT NULL DEFAULT 'BOTH',
-ADD COLUMN sale_channel sale_channel,
-ADD COLUMN sale_price DECIMAL(10, 2),
-ADD COLUMN sale_notes TEXT;
-
--- Create index for status-based queries (Requirement 8.5)
-CREATE INDEX idx_listings_status ON listings(status);
-
--- Create index for expiration queries
-CREATE INDEX idx_listings_expiry_date_status ON listings(expiry_date, status) 
-WHERE status = 'ACTIVE';
-
--- Create index for category queries
-CREATE INDEX idx_listings_category ON listings(produce_category_id);
-
--- Create computed column for backward compatibility (Requirement 3.1, 3.2)
--- Note: PostgreSQL doesn't support computed columns directly, so we use a view or trigger
--- For simplicity, we'll handle this in the application layer
-
--- Add constraint to ensure sold_at is set when status is SOLD
-ALTER TABLE listings 
-ADD CONSTRAINT chk_sold_at_when_sold 
-CHECK ((status = 'SOLD' AND sold_at IS NOT NULL) OR status != 'SOLD');
-
--- Add constraint to ensure expired_at is set when status is EXPIRED
-ALTER TABLE listings 
-ADD CONSTRAINT chk_expired_at_when_expired 
-CHECK ((status = 'EXPIRED' AND expired_at IS NOT NULL) OR status != 'EXPIRED');
-
--- Add constraint to ensure cancelled_at is set when status is CANCELLED
-ALTER TABLE listings 
-ADD CONSTRAINT chk_cancelled_at_when_cancelled 
-CHECK ((status = 'CANCELLED' AND cancelled_at IS NOT NULL) OR status != 'CANCELLED');
-
--- Add constraint to ensure produce_category_id is set
-ALTER TABLE listings 
-ADD CONSTRAINT chk_produce_category_required 
-CHECK (produce_category_id IS NOT NULL);
-```
 
 ##### Produce Categories Table (Requirement 6)
 
 ```sql
+-- Drop existing table if present
+DROP TABLE IF EXISTS produce_categories CASCADE;
+
+-- Create produce categories table
 CREATE TABLE produce_categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL UNIQUE,
@@ -477,6 +424,72 @@ COMMENT ON TABLE produce_categories IS 'Produce categories with expiry periods f
 COMMENT ON COLUMN produce_categories.expiry_period_hours IS 'Hours after harvest when produce expires (1-8760 hours = 1 hour to 1 year)';
 ```
 
+##### Listings Table Recreation
+
+```sql
+-- Drop existing tables
+DROP TABLE IF EXISTS listing_status_history CASCADE;
+DROP TABLE IF EXISTS listings CASCADE;
+
+-- Drop existing enum types if present
+DROP TYPE IF EXISTS listing_status CASCADE;
+DROP TYPE IF EXISTS listing_type CASCADE;
+DROP TYPE IF EXISTS payment_method_preference CASCADE;
+DROP TYPE IF EXISTS sale_channel CASCADE;
+
+-- Create enum types
+CREATE TYPE listing_status AS ENUM ('ACTIVE', 'SOLD', 'EXPIRED', 'CANCELLED');
+CREATE TYPE listing_type AS ENUM ('PRE_HARVEST', 'POST_HARVEST');
+CREATE TYPE payment_method_preference AS ENUM ('PLATFORM_ONLY', 'DIRECT_ONLY', 'BOTH');
+CREATE TYPE sale_channel AS ENUM ('PLATFORM_ESCROW', 'PLATFORM_DIRECT', 'EXTERNAL');
+
+-- Create listings table with new schema
+CREATE TABLE listings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    farmer_id UUID NOT NULL REFERENCES users(id),
+    produce_type VARCHAR(100) NOT NULL,
+    quantity DECIMAL(10, 2) NOT NULL,
+    price_per_kg DECIMAL(10, 2) NOT NULL,
+    certificate_id UUID REFERENCES certificates(id),
+    expected_harvest_date TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Status tracking fields
+    status listing_status NOT NULL DEFAULT 'ACTIVE',
+    sold_at TIMESTAMP,
+    transaction_id UUID REFERENCES transactions(id),
+    expired_at TIMESTAMP,
+    cancelled_at TIMESTAMP,
+    cancelled_by UUID REFERENCES users(id),
+    
+    -- Perishability-based expiration fields
+    listing_type listing_type NOT NULL DEFAULT 'POST_HARVEST',
+    produce_category_id UUID NOT NULL REFERENCES produce_categories(id),
+    expiry_date TIMESTAMP NOT NULL,
+    
+    -- Manual sale confirmation fields
+    payment_method_preference payment_method_preference NOT NULL DEFAULT 'BOTH',
+    sale_channel sale_channel,
+    sale_price DECIMAL(10, 2),
+    sale_notes TEXT,
+    
+    -- Constraints
+    CONSTRAINT chk_sold_at_when_sold 
+        CHECK ((status = 'SOLD' AND sold_at IS NOT NULL) OR status != 'SOLD'),
+    CONSTRAINT chk_expired_at_when_expired 
+        CHECK ((status = 'EXPIRED' AND expired_at IS NOT NULL) OR status != 'EXPIRED'),
+    CONSTRAINT chk_cancelled_at_when_cancelled 
+        CHECK ((status = 'CANCELLED' AND cancelled_at IS NOT NULL) OR status != 'CANCELLED')
+);
+
+-- Create indexes
+CREATE INDEX idx_listings_status ON listings(status);
+CREATE INDEX idx_listings_expiry_date_status ON listings(expiry_date, status) WHERE status = 'ACTIVE';
+CREATE INDEX idx_listings_category ON listings(produce_category_id);
+CREATE INDEX idx_listings_farmer ON listings(farmer_id);
+```
+
 ##### Listing Status History Table (Requirement 11)
 
 ```sql
@@ -487,52 +500,27 @@ CREATE TABLE listing_status_history (
     new_status listing_status NOT NULL,
     changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     triggered_by VARCHAR(255) NOT NULL, -- user_id or 'SYSTEM'
-    trigger_type VARCHAR(50) NOT NULL, -- 'USER', 'SYSTEM', 'TRANSACTION'
+    trigger_type VARCHAR(50) NOT NULL CHECK (trigger_type IN ('USER', 'SYSTEM', 'TRANSACTION')),
     metadata JSONB, -- Additional context (e.g., transaction_id, reason)
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create index for querying history by listing
+-- Create indexes
 CREATE INDEX idx_status_history_listing ON listing_status_history(listing_id, changed_at DESC);
-
--- Create index for audit queries
 CREATE INDEX idx_status_history_changed_at ON listing_status_history(changed_at DESC);
 
--- Add retention policy comment (Requirement 11.4)
 COMMENT ON TABLE listing_status_history IS 'Audit trail for listing status changes. Retain for at least 2 years.';
 ```
 
 #### SQLite Schema
 
 ```sql
--- SQLite doesn't support enum types, so we use TEXT with CHECK constraint
-ALTER TABLE listings 
-ADD COLUMN status TEXT NOT NULL DEFAULT 'ACTIVE' 
-CHECK (status IN ('ACTIVE', 'SOLD', 'EXPIRED', 'CANCELLED'));
+-- Drop existing tables
+DROP TABLE IF EXISTS listing_status_history;
+DROP TABLE IF EXISTS listings;
+DROP TABLE IF EXISTS produce_categories;
 
-ALTER TABLE listings ADD COLUMN sold_at TEXT; -- ISO 8601 timestamp
-ALTER TABLE listings ADD COLUMN transaction_id TEXT;
-ALTER TABLE listings ADD COLUMN expired_at TEXT; -- ISO 8601 timestamp
-ALTER TABLE listings ADD COLUMN cancelled_at TEXT; -- ISO 8601 timestamp
-ALTER TABLE listings ADD COLUMN cancelled_by TEXT;
-ALTER TABLE listings ADD COLUMN listing_type TEXT NOT NULL DEFAULT 'POST_HARVEST'
-CHECK (listing_type IN ('PRE_HARVEST', 'POST_HARVEST'));
-ALTER TABLE listings ADD COLUMN produce_category_id TEXT NOT NULL;
-ALTER TABLE listings ADD COLUMN expiry_date TEXT NOT NULL; -- ISO 8601 timestamp
-ALTER TABLE listings ADD COLUMN payment_method_preference TEXT NOT NULL DEFAULT 'BOTH'
-CHECK (payment_method_preference IN ('PLATFORM_ONLY', 'DIRECT_ONLY', 'BOTH'));
-ALTER TABLE listings ADD COLUMN sale_channel TEXT
-CHECK (sale_channel IN ('PLATFORM_ESCROW', 'PLATFORM_DIRECT', 'EXTERNAL'));
-ALTER TABLE listings ADD COLUMN sale_price REAL;
-ALTER TABLE listings ADD COLUMN sale_notes TEXT;
-
--- Create indexes
-CREATE INDEX idx_listings_status ON listings(status);
-CREATE INDEX idx_listings_expiry_date_status ON listings(expiry_date, status) 
-WHERE status = 'ACTIVE';
-CREATE INDEX idx_listings_category ON listings(produce_category_id);
-
--- Produce categories table
+-- Create produce categories table
 CREATE TABLE produce_categories (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
@@ -551,7 +539,52 @@ INSERT INTO produce_categories (id, name, expiry_period_hours, description, crea
 (lower(hex(randomblob(16))), 'Root Vegetables', 168, 'Potato, onion, garlic, carrot - long-lasting root vegetables', datetime('now'), datetime('now')),
 (lower(hex(randomblob(16))), 'Grains', 672, 'Wheat, rice, corn, millet - dry grains with extended shelf life', datetime('now'), datetime('now'));
 
--- Status history table
+-- Create listings table with new schema
+CREATE TABLE listings (
+    id TEXT PRIMARY KEY,
+    farmer_id TEXT NOT NULL,
+    produce_type TEXT NOT NULL,
+    quantity REAL NOT NULL,
+    price_per_kg REAL NOT NULL,
+    certificate_id TEXT,
+    expected_harvest_date TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    
+    -- Status tracking fields
+    status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'SOLD', 'EXPIRED', 'CANCELLED')),
+    sold_at TEXT,
+    transaction_id TEXT,
+    expired_at TEXT,
+    cancelled_at TEXT,
+    cancelled_by TEXT,
+    
+    -- Perishability-based expiration fields
+    listing_type TEXT NOT NULL DEFAULT 'POST_HARVEST' CHECK (listing_type IN ('PRE_HARVEST', 'POST_HARVEST')),
+    produce_category_id TEXT NOT NULL,
+    expiry_date TEXT NOT NULL,
+    
+    -- Manual sale confirmation fields
+    payment_method_preference TEXT NOT NULL DEFAULT 'BOTH' CHECK (payment_method_preference IN ('PLATFORM_ONLY', 'DIRECT_ONLY', 'BOTH')),
+    sale_channel TEXT CHECK (sale_channel IN ('PLATFORM_ESCROW', 'PLATFORM_DIRECT', 'EXTERNAL')),
+    sale_price REAL,
+    sale_notes TEXT,
+    
+    -- Foreign keys
+    FOREIGN KEY (farmer_id) REFERENCES users(id),
+    FOREIGN KEY (certificate_id) REFERENCES certificates(id),
+    FOREIGN KEY (transaction_id) REFERENCES transactions(id),
+    FOREIGN KEY (cancelled_by) REFERENCES users(id),
+    FOREIGN KEY (produce_category_id) REFERENCES produce_categories(id)
+);
+
+-- Create indexes
+CREATE INDEX idx_listings_status ON listings(status);
+CREATE INDEX idx_listings_expiry_date_status ON listings(expiry_date, status) WHERE status = 'ACTIVE';
+CREATE INDEX idx_listings_category ON listings(produce_category_id);
+CREATE INDEX idx_listings_farmer ON listings(farmer_id);
+
+-- Create status history table
 CREATE TABLE listing_status_history (
     id TEXT PRIMARY KEY,
     listing_id TEXT NOT NULL,
@@ -570,410 +603,8 @@ CREATE INDEX idx_status_history_changed_at ON listing_status_history(changed_at 
 ```
 
 
-### Migration Scripts
 
-#### PostgreSQL Migration (Up)
-
-```sql
--- Migration: 001_add_listing_status.up.sql
--- Description: Add status column and related fields to listings table
--- Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 6, 16, 17, 18
-
-BEGIN;
-
--- Create enum types for listing status and type
-CREATE TYPE listing_status AS ENUM ('ACTIVE', 'SOLD', 'EXPIRED', 'CANCELLED');
-CREATE TYPE listing_type AS ENUM ('PRE_HARVEST', 'POST_HARVEST');
-CREATE TYPE payment_method_preference AS ENUM ('PLATFORM_ONLY', 'DIRECT_ONLY', 'BOTH');
-CREATE TYPE sale_channel AS ENUM ('PLATFORM_ESCROW', 'PLATFORM_DIRECT', 'EXTERNAL');
-
--- Create produce categories table first (Requirement 6)
-CREATE TABLE produce_categories (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(100) NOT NULL UNIQUE,
-    expiry_period_hours INTEGER NOT NULL CHECK (expiry_period_hours > 0 AND expiry_period_hours <= 8760),
-    description TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_produce_categories_name ON produce_categories(name);
-
--- Insert default categories (Requirement 6.5)
-INSERT INTO produce_categories (name, expiry_period_hours, description) VALUES
-('Leafy Greens', 24, 'Palak, methi, dhania, lettuce - highly perishable greens'),
-('Fruits', 48, 'Tomato, apple, mango, banana - moderately perishable fruits'),
-('Root Vegetables', 168, 'Potato, onion, garlic, carrot - long-lasting root vegetables'),
-('Grains', 672, 'Wheat, rice, corn, millet - dry grains with extended shelf life');
-
-COMMENT ON TABLE produce_categories IS 'Produce categories with expiry periods for automatic listing expiration';
-COMMENT ON COLUMN produce_categories.expiry_period_hours IS 'Hours after harvest when produce expires (1-8760 hours = 1 hour to 1 year)';
-
--- Add new columns to listings table
-ALTER TABLE listings 
-ADD COLUMN status listing_status,
-ADD COLUMN sold_at TIMESTAMP,
-ADD COLUMN transaction_id UUID,
-ADD COLUMN expired_at TIMESTAMP,
-ADD COLUMN cancelled_at TIMESTAMP,
-ADD COLUMN cancelled_by UUID,
-ADD COLUMN listing_type listing_type,
-ADD COLUMN produce_category_id UUID,
-ADD COLUMN expiry_date TIMESTAMP,
-ADD COLUMN payment_method_preference payment_method_preference,
-ADD COLUMN sale_channel sale_channel,
-ADD COLUMN sale_price DECIMAL(10, 2),
-ADD COLUMN sale_notes TEXT;
-
--- Migrate existing data (Requirement 2.3, 2.4, 16, 17)
--- Set listing_type to POST_HARVEST for all existing listings
-UPDATE listings 
-SET listing_type = 'POST_HARVEST';
-
--- Set payment_method_preference to BOTH for all existing listings (most permissive)
-UPDATE listings 
-SET payment_method_preference = 'BOTH';
-
--- Map produce types to categories and set produce_category_id
--- Default to 'Fruits' category if no specific mapping
-UPDATE listings 
-SET produce_category_id = (
-    SELECT id FROM produce_categories 
-    WHERE name = CASE 
-        WHEN produce_type IN ('palak', 'methi', 'dhania', 'lettuce', 'spinach', 'coriander') THEN 'Leafy Greens'
-        WHEN produce_type IN ('potato', 'onion', 'garlic', 'carrot', 'radish', 'beetroot') THEN 'Root Vegetables'
-        WHEN produce_type IN ('wheat', 'rice', 'corn', 'millet', 'barley') THEN 'Grains'
-        ELSE 'Fruits'
-    END
-    LIMIT 1
-);
-
--- Calculate expiry_date for existing listings (Requirement 17.1, 17.5)
--- expiry_date = expected_harvest_date + category.expiry_period_hours
-UPDATE listings 
-SET expiry_date = expected_harvest_date + (
-    SELECT INTERVAL '1 hour' * expiry_period_hours 
-    FROM produce_categories 
-    WHERE id = listings.produce_category_id
-)
-WHERE expected_harvest_date IS NOT NULL;
-
--- For listings without harvest date, set expiry to created_at + 7 days (default)
-UPDATE listings 
-SET expiry_date = created_at + INTERVAL '7 days'
-WHERE expected_harvest_date IS NULL;
-
--- Set status to ACTIVE for active listings
-UPDATE listings 
-SET status = 'ACTIVE' 
-WHERE is_active = true;
-
--- Set status to CANCELLED for inactive listings
-UPDATE listings 
-SET status = 'CANCELLED',
-    cancelled_at = updated_at
-WHERE is_active = false;
-
--- Make required columns NOT NULL after data migration
-ALTER TABLE listings 
-ALTER COLUMN status SET NOT NULL,
-ALTER COLUMN status SET DEFAULT 'ACTIVE',
-ALTER COLUMN listing_type SET NOT NULL,
-ALTER COLUMN listing_type SET DEFAULT 'POST_HARVEST',
-ALTER COLUMN produce_category_id SET NOT NULL,
-ALTER COLUMN expiry_date SET NOT NULL,
-ALTER COLUMN payment_method_preference SET NOT NULL,
-ALTER COLUMN payment_method_preference SET DEFAULT 'BOTH';
-
--- Add foreign key constraints
-ALTER TABLE listings 
-ADD CONSTRAINT fk_listings_transaction 
-FOREIGN KEY (transaction_id) REFERENCES transactions(id);
-
-ALTER TABLE listings 
-ADD CONSTRAINT fk_listings_cancelled_by 
-FOREIGN KEY (cancelled_by) REFERENCES users(id);
-
-ALTER TABLE listings 
-ADD CONSTRAINT fk_listings_produce_category 
-FOREIGN KEY (produce_category_id) REFERENCES produce_categories(id);
-
--- Add check constraints
-ALTER TABLE listings 
-ADD CONSTRAINT chk_sold_at_when_sold 
-CHECK ((status = 'SOLD' AND sold_at IS NOT NULL AND transaction_id IS NOT NULL) OR status != 'SOLD');
-
-ALTER TABLE listings 
-ADD CONSTRAINT chk_expired_at_when_expired 
-CHECK ((status = 'EXPIRED' AND expired_at IS NOT NULL) OR status != 'EXPIRED');
-
-ALTER TABLE listings 
-ADD CONSTRAINT chk_cancelled_at_when_cancelled 
-CHECK ((status = 'CANCELLED' AND cancelled_at IS NOT NULL) OR status != 'CANCELLED');
-
--- Create indexes (Requirement 8.5)
-CREATE INDEX idx_listings_status ON listings(status);
-CREATE INDEX idx_listings_expiry_date_status ON listings(expiry_date, status) 
-WHERE status = 'ACTIVE';
-CREATE INDEX idx_listings_transaction ON listings(transaction_id) WHERE transaction_id IS NOT NULL;
-CREATE INDEX idx_listings_category ON listings(produce_category_id);
-
--- Create status history table (Requirement 11)
-CREATE TABLE listing_status_history (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    listing_id UUID NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
-    previous_status listing_status,
-    new_status listing_status NOT NULL,
-    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    triggered_by VARCHAR(255) NOT NULL,
-    trigger_type VARCHAR(50) NOT NULL CHECK (trigger_type IN ('USER', 'SYSTEM', 'TRANSACTION')),
-    metadata JSONB,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_status_history_listing ON listing_status_history(listing_id, changed_at DESC);
-CREATE INDEX idx_status_history_changed_at ON listing_status_history(changed_at DESC);
-
-COMMENT ON TABLE listing_status_history IS 'Audit trail for listing status changes. Retain for at least 2 years.';
-
--- Create initial history records for migrated data
-INSERT INTO listing_status_history (listing_id, previous_status, new_status, changed_at, triggered_by, trigger_type, metadata)
-SELECT 
-    id,
-    NULL,
-    status,
-    created_at,
-    'SYSTEM',
-    'SYSTEM',
-    jsonb_build_object('migration', true, 'original_is_active', is_active)
-FROM listings;
-
-COMMIT;
-```
-
-#### PostgreSQL Migration (Down)
-
-```sql
--- Migration: 001_add_listing_status.down.sql
--- Description: Rollback listing status changes
--- Requirements: 2.6
-
-BEGIN;
-
--- Drop status history table
-DROP TABLE IF EXISTS listing_status_history;
-
--- Drop indexes
-DROP INDEX IF EXISTS idx_listings_category;
-DROP INDEX IF EXISTS idx_listings_transaction;
-DROP INDEX IF EXISTS idx_listings_expiry_date_status;
-DROP INDEX IF EXISTS idx_listings_status;
-
--- Drop constraints
-ALTER TABLE listings DROP CONSTRAINT IF EXISTS chk_cancelled_at_when_cancelled;
-ALTER TABLE listings DROP CONSTRAINT IF EXISTS chk_expired_at_when_expired;
-ALTER TABLE listings DROP CONSTRAINT IF EXISTS chk_sold_at_when_sold;
-ALTER TABLE listings DROP CONSTRAINT IF EXISTS fk_listings_produce_category;
-ALTER TABLE listings DROP CONSTRAINT IF EXISTS fk_listings_cancelled_by;
-ALTER TABLE listings DROP CONSTRAINT IF EXISTS fk_listings_transaction;
-
--- Drop columns
-ALTER TABLE listings 
-DROP COLUMN IF EXISTS sale_notes,
-DROP COLUMN IF EXISTS sale_price,
-DROP COLUMN IF EXISTS sale_channel,
-DROP COLUMN IF EXISTS payment_method_preference,
-DROP COLUMN IF EXISTS expiry_date,
-DROP COLUMN IF EXISTS produce_category_id,
-DROP COLUMN IF EXISTS listing_type,
-DROP COLUMN IF EXISTS cancelled_by,
-DROP COLUMN IF EXISTS cancelled_at,
-DROP COLUMN IF EXISTS expired_at,
-DROP COLUMN IF EXISTS transaction_id,
-DROP COLUMN IF EXISTS sold_at,
-DROP COLUMN IF EXISTS status;
-
--- Drop produce categories table
-DROP TABLE IF EXISTS produce_categories;
-
--- Drop enum types
-DROP TYPE IF EXISTS sale_channel;
-DROP TYPE IF EXISTS payment_method_preference;
-DROP TYPE IF EXISTS listing_type;
-DROP TYPE IF EXISTS listing_status;
-
-COMMIT;
-```
-
-
-#### SQLite Migration (Up)
-
-```sql
--- Migration: 001_add_listing_status_sqlite.up.sql
--- Description: Add status column and related fields to listings table (SQLite)
--- Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 6, 16, 17, 18
-
-BEGIN TRANSACTION;
-
--- Create produce categories table first (Requirement 6)
-CREATE TABLE produce_categories (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE,
-    expiry_period_hours INTEGER NOT NULL CHECK (expiry_period_hours > 0 AND expiry_period_hours <= 8760),
-    description TEXT,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
-);
-
-CREATE INDEX idx_produce_categories_name ON produce_categories(name);
-
--- Insert default categories (Requirement 6.5)
-INSERT INTO produce_categories (id, name, expiry_period_hours, description, created_at, updated_at) VALUES
-(lower(hex(randomblob(16))), 'Leafy Greens', 24, 'Palak, methi, dhania, lettuce - highly perishable greens', datetime('now'), datetime('now')),
-(lower(hex(randomblob(16))), 'Fruits', 48, 'Tomato, apple, mango, banana - moderately perishable fruits', datetime('now'), datetime('now')),
-(lower(hex(randomblob(16))), 'Root Vegetables', 168, 'Potato, onion, garlic, carrot - long-lasting root vegetables', datetime('now'), datetime('now')),
-(lower(hex(randomblob(16))), 'Grains', 672, 'Wheat, rice, corn, millet - dry grains with extended shelf life', datetime('now'), datetime('now'));
-
--- SQLite doesn't support ALTER TABLE ADD COLUMN with constraints in one statement
--- Add new columns
-ALTER TABLE listings ADD COLUMN status TEXT DEFAULT 'ACTIVE';
-ALTER TABLE listings ADD COLUMN sold_at TEXT;
-ALTER TABLE listings ADD COLUMN transaction_id TEXT;
-ALTER TABLE listings ADD COLUMN expired_at TEXT;
-ALTER TABLE listings ADD COLUMN cancelled_at TEXT;
-ALTER TABLE listings ADD COLUMN cancelled_by TEXT;
-ALTER TABLE listings ADD COLUMN listing_type TEXT DEFAULT 'POST_HARVEST';
-ALTER TABLE listings ADD COLUMN produce_category_id TEXT;
-ALTER TABLE listings ADD COLUMN expiry_date TEXT;
-
--- Migrate existing data (Requirement 2.3, 2.4, 16, 17)
--- Map produce types to categories and set produce_category_id
-UPDATE listings 
-SET produce_category_id = (
-    SELECT id FROM produce_categories 
-    WHERE name = CASE 
-        WHEN produce_type IN ('palak', 'methi', 'dhania', 'lettuce', 'spinach', 'coriander') THEN 'Leafy Greens'
-        WHEN produce_type IN ('potato', 'onion', 'garlic', 'carrot', 'radish', 'beetroot') THEN 'Root Vegetables'
-        WHEN produce_type IN ('wheat', 'rice', 'corn', 'millet', 'barley') THEN 'Grains'
-        ELSE 'Fruits'
-    END
-    LIMIT 1
-);
-
--- Calculate expiry_date for existing listings (Requirement 17.1, 17.5)
--- expiry_date = expected_harvest_date + category.expiry_period_hours
-UPDATE listings 
-SET expiry_date = datetime(expected_harvest_date, '+' || (
-    SELECT expiry_period_hours FROM produce_categories 
-    WHERE id = listings.produce_category_id
-) || ' hours')
-WHERE expected_harvest_date IS NOT NULL;
-
--- For listings without harvest date, set expiry to created_at + 7 days (default)
-UPDATE listings 
-SET expiry_date = datetime(created_at, '+7 days')
-WHERE expected_harvest_date IS NULL;
-
--- Set status to ACTIVE for active listings
-UPDATE listings 
-SET status = 'ACTIVE' 
-WHERE is_active = 1;
-
--- Set status to CANCELLED for inactive listings
-UPDATE listings 
-SET status = 'CANCELLED',
-    cancelled_at = datetime('now')
-WHERE is_active = 0;
-
--- Create indexes
-CREATE INDEX idx_listings_status ON listings(status);
-CREATE INDEX idx_listings_expiry_date_status ON listings(expiry_date, status) 
-WHERE status = 'ACTIVE';
-CREATE INDEX idx_listings_transaction ON listings(transaction_id) WHERE transaction_id IS NOT NULL;
-CREATE INDEX idx_listings_category ON listings(produce_category_id);
-
--- Create status history table
-CREATE TABLE listing_status_history (
-    id TEXT PRIMARY KEY,
-    listing_id TEXT NOT NULL,
-    previous_status TEXT,
-    new_status TEXT NOT NULL,
-    changed_at TEXT NOT NULL,
-    triggered_by TEXT NOT NULL,
-    trigger_type TEXT NOT NULL,
-    metadata TEXT,
-    created_at TEXT NOT NULL,
-    FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE CASCADE,
-    CHECK (new_status IN ('ACTIVE', 'SOLD', 'EXPIRED', 'CANCELLED')),
-    CHECK (trigger_type IN ('USER', 'SYSTEM', 'TRANSACTION'))
-);
-
-CREATE INDEX idx_status_history_listing ON listing_status_history(listing_id, changed_at DESC);
-CREATE INDEX idx_status_history_changed_at ON listing_status_history(changed_at DESC);
-
--- Create initial history records for migrated data
-INSERT INTO listing_status_history (id, listing_id, previous_status, new_status, changed_at, triggered_by, trigger_type, metadata, created_at)
-SELECT 
-    lower(hex(randomblob(16))),
-    id,
-    NULL,
-    status,
-    created_at,
-    'SYSTEM',
-    'SYSTEM',
-    json_object('migration', 1, 'original_is_active', is_active),
-    created_at
-FROM listings;
-
-COMMIT;
-```
-
-#### SQLite Migration (Down)
-
-```sql
--- Migration: 001_add_listing_status_sqlite.down.sql
--- Description: Rollback listing status changes (SQLite)
--- Requirements: 2.6
-
-BEGIN TRANSACTION;
-
--- Drop status history table
-DROP TABLE IF EXISTS listing_status_history;
-
--- Drop produce categories table
-DROP TABLE IF EXISTS produce_categories;
-
--- Drop indexes
-DROP INDEX IF EXISTS idx_listings_category;
-DROP INDEX IF EXISTS idx_listings_transaction;
-DROP INDEX IF EXISTS idx_listings_expiry_date_status;
-DROP INDEX IF EXISTS idx_listings_status;
-
--- SQLite doesn't support DROP COLUMN directly in older versions
--- We need to recreate the table without the new columns
-CREATE TABLE listings_backup AS 
-SELECT 
-    id,
-    farmer_id,
-    produce_type,
-    quantity,
-    price_per_kg,
-    certificate_id,
-    expected_harvest_date,
-    created_at,
-    is_active
-FROM listings;
-
-DROP TABLE listings;
-
-ALTER TABLE listings_backup RENAME TO listings;
-
--- Recreate original indexes
-CREATE INDEX idx_listings_farmer ON listings(farmer_id);
-CREATE INDEX idx_listings_active ON listings(is_active);
-
-COMMIT;
-```
+**Note**: No migration scripts needed. In development phase, we use DROP TABLE IF EXISTS + CREATE TABLE for clean schema recreation.
 
 
 ## Components and Interfaces
@@ -1426,10 +1057,7 @@ export interface Listing {
   expectedHarvestDate?: Date;
   createdAt: Date;
   
-  // Backward compatibility (computed)
-  isActive: boolean;
-  
-  // New status fields
+  // Status fields
   status: ListingStatus;
   soldAt?: Date;
   transactionId?: string;
@@ -1490,7 +1118,6 @@ interface GetListingsResponse {
     certificateId: string;
     expectedHarvestDate?: string; // ISO 8601
     createdAt: string; // ISO 8601
-    isActive: boolean; // Computed for backward compatibility
     status: 'ACTIVE' | 'SOLD' | 'EXPIRED' | 'CANCELLED';
     soldAt?: string; // ISO 8601, present if status is SOLD
     transactionId?: string; // Present if status is SOLD
