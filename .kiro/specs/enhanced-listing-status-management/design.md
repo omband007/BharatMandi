@@ -246,6 +246,10 @@ erDiagram
         enum listing_type "NEW: PRE_HARVEST|POST_HARVEST"
         uuid produce_category_id "NEW: FK"
         timestamp expiry_date "NEW"
+        enum payment_method_preference "NEW: PLATFORM_ONLY|DIRECT_ONLY|BOTH"
+        enum sale_channel "NEW: PLATFORM_ESCROW|PLATFORM_DIRECT|EXTERNAL"
+        decimal sale_price "NEW: for EXTERNAL sales"
+        text sale_notes "NEW: for EXTERNAL sales"
     }
     
     PRODUCE_CATEGORIES {
@@ -394,6 +398,8 @@ sequenceDiagram
 -- Add status column with enum type
 CREATE TYPE listing_status AS ENUM ('ACTIVE', 'SOLD', 'EXPIRED', 'CANCELLED');
 CREATE TYPE listing_type AS ENUM ('PRE_HARVEST', 'POST_HARVEST');
+CREATE TYPE payment_method_preference AS ENUM ('PLATFORM_ONLY', 'DIRECT_ONLY', 'BOTH');
+CREATE TYPE sale_channel AS ENUM ('PLATFORM_ESCROW', 'PLATFORM_DIRECT', 'EXTERNAL');
 
 ALTER TABLE listings 
 ADD COLUMN status listing_status NOT NULL DEFAULT 'ACTIVE',
@@ -404,7 +410,11 @@ ADD COLUMN cancelled_at TIMESTAMP,
 ADD COLUMN cancelled_by UUID REFERENCES users(id),
 ADD COLUMN listing_type listing_type NOT NULL DEFAULT 'POST_HARVEST',
 ADD COLUMN produce_category_id UUID REFERENCES produce_categories(id),
-ADD COLUMN expiry_date TIMESTAMP NOT NULL;
+ADD COLUMN expiry_date TIMESTAMP NOT NULL,
+ADD COLUMN payment_method_preference payment_method_preference NOT NULL DEFAULT 'BOTH',
+ADD COLUMN sale_channel sale_channel,
+ADD COLUMN sale_price DECIMAL(10, 2),
+ADD COLUMN sale_notes TEXT;
 
 -- Create index for status-based queries (Requirement 8.5)
 CREATE INDEX idx_listings_status ON listings(status);
@@ -509,6 +519,12 @@ ALTER TABLE listings ADD COLUMN listing_type TEXT NOT NULL DEFAULT 'POST_HARVEST
 CHECK (listing_type IN ('PRE_HARVEST', 'POST_HARVEST'));
 ALTER TABLE listings ADD COLUMN produce_category_id TEXT NOT NULL;
 ALTER TABLE listings ADD COLUMN expiry_date TEXT NOT NULL; -- ISO 8601 timestamp
+ALTER TABLE listings ADD COLUMN payment_method_preference TEXT NOT NULL DEFAULT 'BOTH'
+CHECK (payment_method_preference IN ('PLATFORM_ONLY', 'DIRECT_ONLY', 'BOTH'));
+ALTER TABLE listings ADD COLUMN sale_channel TEXT
+CHECK (sale_channel IN ('PLATFORM_ESCROW', 'PLATFORM_DIRECT', 'EXTERNAL'));
+ALTER TABLE listings ADD COLUMN sale_price REAL;
+ALTER TABLE listings ADD COLUMN sale_notes TEXT;
 
 -- Create indexes
 CREATE INDEX idx_listings_status ON listings(status);
@@ -568,6 +584,8 @@ BEGIN;
 -- Create enum types for listing status and type
 CREATE TYPE listing_status AS ENUM ('ACTIVE', 'SOLD', 'EXPIRED', 'CANCELLED');
 CREATE TYPE listing_type AS ENUM ('PRE_HARVEST', 'POST_HARVEST');
+CREATE TYPE payment_method_preference AS ENUM ('PLATFORM_ONLY', 'DIRECT_ONLY', 'BOTH');
+CREATE TYPE sale_channel AS ENUM ('PLATFORM_ESCROW', 'PLATFORM_DIRECT', 'EXTERNAL');
 
 -- Create produce categories table first (Requirement 6)
 CREATE TABLE produce_categories (
@@ -601,12 +619,20 @@ ADD COLUMN cancelled_at TIMESTAMP,
 ADD COLUMN cancelled_by UUID,
 ADD COLUMN listing_type listing_type,
 ADD COLUMN produce_category_id UUID,
-ADD COLUMN expiry_date TIMESTAMP;
+ADD COLUMN expiry_date TIMESTAMP,
+ADD COLUMN payment_method_preference payment_method_preference,
+ADD COLUMN sale_channel sale_channel,
+ADD COLUMN sale_price DECIMAL(10, 2),
+ADD COLUMN sale_notes TEXT;
 
 -- Migrate existing data (Requirement 2.3, 2.4, 16, 17)
 -- Set listing_type to POST_HARVEST for all existing listings
 UPDATE listings 
 SET listing_type = 'POST_HARVEST';
+
+-- Set payment_method_preference to BOTH for all existing listings (most permissive)
+UPDATE listings 
+SET payment_method_preference = 'BOTH';
 
 -- Map produce types to categories and set produce_category_id
 -- Default to 'Fruits' category if no specific mapping
@@ -655,7 +681,9 @@ ALTER COLUMN status SET DEFAULT 'ACTIVE',
 ALTER COLUMN listing_type SET NOT NULL,
 ALTER COLUMN listing_type SET DEFAULT 'POST_HARVEST',
 ALTER COLUMN produce_category_id SET NOT NULL,
-ALTER COLUMN expiry_date SET NOT NULL;
+ALTER COLUMN expiry_date SET NOT NULL,
+ALTER COLUMN payment_method_preference SET NOT NULL,
+ALTER COLUMN payment_method_preference SET DEFAULT 'BOTH';
 
 -- Add foreign key constraints
 ALTER TABLE listings 
@@ -751,6 +779,10 @@ ALTER TABLE listings DROP CONSTRAINT IF EXISTS fk_listings_transaction;
 
 -- Drop columns
 ALTER TABLE listings 
+DROP COLUMN IF EXISTS sale_notes,
+DROP COLUMN IF EXISTS sale_price,
+DROP COLUMN IF EXISTS sale_channel,
+DROP COLUMN IF EXISTS payment_method_preference,
 DROP COLUMN IF EXISTS expiry_date,
 DROP COLUMN IF EXISTS produce_category_id,
 DROP COLUMN IF EXISTS listing_type,
@@ -765,6 +797,8 @@ DROP COLUMN IF EXISTS status;
 DROP TABLE IF EXISTS produce_categories;
 
 -- Drop enum types
+DROP TYPE IF EXISTS sale_channel;
+DROP TYPE IF EXISTS payment_method_preference;
 DROP TYPE IF EXISTS listing_type;
 DROP TYPE IF EXISTS listing_status;
 
@@ -1408,6 +1442,12 @@ export interface Listing {
   produceCategoryId: string;
   produceCategoryName?: string; // Populated in API responses
   expiryDate: Date;
+  
+  // New manual sale confirmation fields (Requirements 18, 19)
+  paymentMethodPreference: 'PLATFORM_ONLY' | 'DIRECT_ONLY' | 'BOTH';
+  saleChannel?: 'PLATFORM_ESCROW' | 'PLATFORM_DIRECT' | 'EXTERNAL';
+  salePrice?: number; // For EXTERNAL sales
+  saleNotes?: string; // For EXTERNAL sales
 }
 
 export interface TranslatedListing extends Listing {

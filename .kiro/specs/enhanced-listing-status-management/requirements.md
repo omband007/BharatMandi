@@ -26,6 +26,9 @@ The feature will replace the `isActive` column with a `status` column in the lis
 - **Category_Expiry_Period**: The duration in hours that produce remains fresh after harvest, configured per Produce_Category
 - **Expiry_Date**: The calculated date when a listing expires, computed as Harvest_Date plus Category_Expiry_Period
 - **Category_Manager**: The system component that manages produce categories and their expiry periods
+- **Payment_Method_Preference**: The farmer's preference for how payments should be handled (PLATFORM_ONLY, DIRECT_ONLY, BOTH)
+- **Sale_Channel**: The channel through which a listing was sold (PLATFORM_ESCROW, PLATFORM_DIRECT, EXTERNAL)
+- **Manual_Sale_Confirmation**: The process by which a farmer manually marks a listing as SOLD when sold outside the platform escrow system
 
 ## Requirements
 
@@ -70,11 +73,13 @@ The feature will replace the `isActive` column with a `status` column in the lis
 
 #### Acceptance Criteria
 
-1. WHEN a Transaction_State transitions to COMPLETED, THE Status_Synchronizer SHALL transition the associated listing status from ACTIVE to SOLD
-2. THE Status_Synchronizer SHALL update the listing status within 5 seconds of transaction completion
-3. THE Status_Synchronizer SHALL record the transaction ID in the listing record
-4. THE Status_Synchronizer SHALL record the sold timestamp in the listing record
-5. IF the listing status is not ACTIVE when the transaction completes, THEN THE Status_Synchronizer SHALL log a warning and not change the status
+1. WHEN a Transaction_State transitions to COMPLETED or COMPLETED_DIRECT, THE Status_Synchronizer SHALL transition the associated listing status from ACTIVE to SOLD
+2. WHERE Transaction_State is COMPLETED, THE Status_Synchronizer SHALL set sale_channel to 'PLATFORM_ESCROW'
+3. WHERE Transaction_State is COMPLETED_DIRECT, THE Status_Synchronizer SHALL set sale_channel to 'PLATFORM_DIRECT'
+4. THE Status_Synchronizer SHALL update the listing status within 5 seconds of transaction completion
+5. THE Status_Synchronizer SHALL record the transaction ID in the listing record
+6. THE Status_Synchronizer SHALL record the sold timestamp in the listing record
+7. IF the listing status is not ACTIVE when the transaction completes, THEN THE Status_Synchronizer SHALL log a warning and not change the status
 
 ### Requirement 6: Produce Category Management
 
@@ -171,9 +176,11 @@ The feature will replace the `isActive` column with a `status` column in the lis
 2. THE Listing_Status_Manager SHALL include the listing_type field with value PRE_HARVEST or POST_HARVEST
 3. THE Listing_Status_Manager SHALL include the produce_category_id and produce_category_name fields
 4. THE Listing_Status_Manager SHALL include the expiry_date field showing when the listing will expire
-5. WHERE the status is SOLD, THE Listing_Status_Manager SHALL include the sold_at timestamp and transaction_id
-6. WHERE the status is EXPIRED, THE Listing_Status_Manager SHALL include the expired_at timestamp
-7. WHERE the status is CANCELLED, THE Listing_Status_Manager SHALL include the cancelled_at timestamp and cancelled_by user ID
+5. THE Listing_Status_Manager SHALL include the payment_method_preference field with value PLATFORM_ONLY, DIRECT_ONLY, or BOTH
+6. WHERE the status is SOLD, THE Listing_Status_Manager SHALL include the sold_at timestamp, transaction_id (if applicable), and sale_channel
+7. WHERE the status is SOLD and sale_channel is EXTERNAL, THE Listing_Status_Manager SHALL include sale_price and sale_notes if provided
+8. WHERE the status is EXPIRED, THE Listing_Status_Manager SHALL include the expired_at timestamp
+9. WHERE the status is CANCELLED, THE Listing_Status_Manager SHALL include the cancelled_at timestamp and cancelled_by user ID
 
 ### Requirement 14: Bulk Status Operations
 
@@ -226,3 +233,63 @@ The feature will replace the `isActive` column with a `status` column in the lis
 4. THE Listing_Status_Manager SHALL preserve the originally calculated Expiry_Date for existing listings when their category's expiry period changes
 5. THE Listing_Status_Manager SHALL validate that the Produce_Category exists before creating a listing
 6. IF a farmer attempts to create a listing with an invalid Produce_Category, THEN THE Listing_Status_Manager SHALL reject the request with an error message
+
+### Requirement 18: Payment Method Preference
+
+**User Story:** As a farmer, I want to specify my payment preference when creating a listing, so that buyers know how I accept payments.
+
+#### Acceptance Criteria
+
+1. WHEN a farmer creates a listing, THE Listing_Status_Manager SHALL require selection of a Payment_Method_Preference
+2. THE Listing_Status_Manager SHALL support three values: PLATFORM_ONLY, DIRECT_ONLY, BOTH
+3. THE Listing_Status_Manager SHALL validate that Payment_Method_Preference is one of the three allowed values
+4. THE Listing_Status_Manager SHALL store the Payment_Method_Preference in the database
+5. THE Listing_Status_Manager SHALL display the Payment_Method_Preference in the listing details
+6. THE Listing_Status_Manager SHALL set the default value to BOTH if not specified
+7. WHERE Payment_Method_Preference is PLATFORM_ONLY, THE system SHALL only allow escrow-based transactions
+8. WHERE Payment_Method_Preference is DIRECT_ONLY, THE system SHALL only allow direct payment transactions
+
+### Requirement 19: Manual Sale Confirmation
+
+**User Story:** As a farmer, I want to manually mark my listing as sold when I sell produce outside the platform or through direct payment, so that the listing is removed from the marketplace and I can track all my sales.
+
+#### Acceptance Criteria
+
+1. WHEN a farmer requests to mark a listing as SOLD, THE Listing_Status_Manager SHALL require selection of a Sale_Channel
+2. THE Listing_Status_Manager SHALL support three sale channels: PLATFORM_ESCROW, PLATFORM_DIRECT, EXTERNAL
+3. WHERE Sale_Channel is PLATFORM_DIRECT, THE Listing_Status_Manager SHALL require an associated transaction_id
+4. WHERE Sale_Channel is EXTERNAL, THE Listing_Status_Manager SHALL allow optional sale_price and sale_notes
+5. THE Listing_Status_Manager SHALL transition the listing status from ACTIVE to SOLD
+6. THE Listing_Status_Manager SHALL record the sold_at timestamp
+7. THE Listing_Status_Manager SHALL record the Sale_Channel in the listing record
+8. THE Listing_Status_Manager SHALL create an audit trail entry with trigger_type='USER' and metadata containing sale details
+9. IF the listing has an active transaction with Transaction_State of PAYMENT_LOCKED or later, THEN THE Listing_Status_Manager SHALL reject the manual sale confirmation with an error message
+10. THE Listing_Status_Manager SHALL validate that the listing status is ACTIVE before allowing manual sale confirmation
+
+### Requirement 20: Direct Payment Transaction Flow
+
+**User Story:** As a farmer, I want to complete a transaction with direct payment (outside escrow), so that I can use Bharat Mandi for discovery while handling payment directly with the buyer.
+
+#### Acceptance Criteria
+
+1. WHEN a farmer accepts a transaction for a listing with Payment_Method_Preference of DIRECT_ONLY or BOTH, THE Transaction_Service SHALL allow marking the transaction as COMPLETED_DIRECT
+2. THE Transaction_Service SHALL skip the PAYMENT_LOCKED, DISPATCHED, IN_TRANSIT, DELIVERED states for direct payment transactions
+3. THE Transaction_Service SHALL transition directly from ACCEPTED to COMPLETED_DIRECT
+4. WHEN a transaction reaches COMPLETED_DIRECT state, THE Status_Synchronizer SHALL transition the listing to SOLD with Sale_Channel='PLATFORM_DIRECT'
+5. THE Transaction_Service SHALL record the transaction_id in the listing record
+6. THE Transaction_Service SHALL record the completed_at timestamp
+7. THE Transaction_Service SHALL create an audit trail entry for the direct payment completion
+
+### Requirement 21: Sales Analytics by Channel
+
+**User Story:** As a marketplace analyst, I want to track sales by channel, so that I can understand platform adoption and identify opportunities for growth.
+
+#### Acceptance Criteria
+
+1. THE Listing_Status_Manager SHALL provide a count of SOLD listings grouped by Sale_Channel
+2. THE Listing_Status_Manager SHALL calculate the percentage of sales through each channel
+3. THE Listing_Status_Manager SHALL provide the total revenue for PLATFORM_ESCROW sales (from transaction data)
+4. THE Listing_Status_Manager SHALL provide the total reported revenue for EXTERNAL sales (from sale_price field)
+5. THE Listing_Status_Manager SHALL calculate these metrics for a specified date range
+6. THE Listing_Status_Manager SHALL handle NULL Sale_Channel values (legacy data) separately in analytics
+
