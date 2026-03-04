@@ -19,7 +19,11 @@ These state machines operate independently but synchronize at specific points to
 ### 1. Listing States (What We're Implementing)
 
 ```
-ACTIVE → SOLD (when transaction completes)
+ACTIVE → SOLD (3 paths):
+  1. Transaction COMPLETED (platform escrow) - automatic
+  2. Transaction COMPLETED_DIRECT (platform direct payment) - automatic
+  3. Farmer marks "Sold" manually (platform direct or external) - manual
+
 ACTIVE → EXPIRED (when expiry date passes)
 ACTIVE → CANCELLED (when farmer cancels)
 CANCELLED → ACTIVE (when transaction is rejected/refunded)
@@ -28,32 +32,35 @@ CANCELLED → ACTIVE (when transaction is rejected/refunded)
 **Purpose**: Track whether produce is available for purchase
 
 **Triggers**:
-- **ACTIVE → SOLD**: Transaction reaches COMPLETED state
+- **ACTIVE → SOLD (Path 1)**: Transaction reaches COMPLETED state (escrow released)
+- **ACTIVE → SOLD (Path 2)**: Transaction reaches COMPLETED_DIRECT state (direct payment confirmed)
+- **ACTIVE → SOLD (Path 3)**: Farmer manually marks as sold (external sale or direct payment without transaction)
 - **ACTIVE → EXPIRED**: Expiry date (harvest_date + category_expiry_period) passes
 - **ACTIVE → CANCELLED**: Farmer manually cancels
 - **CANCELLED → ACTIVE**: Transaction is REJECTED or REFUNDED
 
 ---
 
-### 2. Transaction States (Already Implemented)
+### 2. Transaction States (Already Implemented + New COMPLETED_DIRECT)
 
 ```
 PENDING → ACCEPTED → PAYMENT_LOCKED → DISPATCHED → IN_TRANSIT → DELIVERED → COMPLETED
          ↓           ↓                  ↓                        ↓
       REJECTED   CANCELLED          CANCELLED                DISPUTED
-                                                                ↓
-                                                         COMPLETED or CANCELLED
+                     ↓                                           ↓
+              COMPLETED_DIRECT                          COMPLETED or CANCELLED
 ```
 
 **Purpose**: Track the progress of a buyer-farmer transaction
 
 **Key States**:
 - **PENDING**: Buyer initiated, waiting for farmer
-- **ACCEPTED**: Farmer accepted, escrow created
-- **PAYMENT_LOCKED**: Buyer paid, funds in escrow
-- **DISPATCHED/IN_TRANSIT**: Goods shipped
-- **DELIVERED**: Buyer confirmed receipt
-- **COMPLETED**: Funds released to farmer
+- **ACCEPTED**: Farmer accepted, escrow created (or direct payment agreed)
+- **PAYMENT_LOCKED**: Buyer paid, funds in escrow (escrow flow only)
+- **DISPATCHED/IN_TRANSIT**: Goods shipped (escrow flow only)
+- **DELIVERED**: Buyer confirmed receipt (escrow flow only)
+- **COMPLETED**: Funds released to farmer (escrow flow)
+- **COMPLETED_DIRECT**: Direct payment confirmed by farmer (NEW - direct payment flow)
 - **REJECTED**: Farmer rejected the order
 - **CANCELLED**: Either party cancelled
 - **DISPUTED**: Issue raised during delivery
@@ -109,6 +116,89 @@ onTransactionCompleted(transaction) {
       soldAt: now()
     })
   }
+}
+```
+
+---
+
+### Rule 1A: Transaction COMPLETED_DIRECT → Listing SOLD
+
+**When**: Transaction reaches COMPLETED_DIRECT state (direct payment confirmed by farmer)
+
+**What Happens**:
+```
+Transaction: ACCEPTED → COMPLETED_DIRECT
+Listing: ACTIVE → SOLD (sale_channel = PLATFORM_DIRECT)
+```
+
+**Implementation** (Requirement 5, 20):
+- StatusSynchronizer listens for transaction COMPLETED_DIRECT event
+- Checks listing is ACTIVE
+- Transitions listing to SOLD
+- Sets sale_channel to 'PLATFORM_DIRECT'
+- Records sold_at timestamp and transaction_id
+
+**Code Flow**:
+```typescript
+onTransactionCompletedDirect(transaction) {
+  listing = getListing(transaction.listingId)
+  if (listing.status === 'ACTIVE') {
+    transitionStatus(listing.id, 'SOLD', {
+      transactionId: transaction.id,
+      saleChannel: 'PLATFORM_DIRECT',
+      soldAt: now()
+    })
+  }
+}
+```
+
+---
+
+### Rule 1B: Manual Sale Confirmation → Listing SOLD
+
+**When**: Farmer manually marks listing as sold (external sale or direct payment without transaction)
+
+**What Happens**:
+```
+Scenario A: Sold via Bharat Mandi (direct payment)
+Listing: ACTIVE → SOLD (sale_channel = PLATFORM_DIRECT, transaction_id set)
+
+Scenario B: Sold outside Bharat Mandi
+Listing: ACTIVE → SOLD (sale_channel = EXTERNAL, sale_price and sale_notes optional)
+```
+
+**Implementation** (Requirement 19):
+- Farmer calls markAsSold() API endpoint
+- Validates listing is ACTIVE
+- Validates no active transaction with PAYMENT_LOCKED or later
+- Transitions listing to SOLD
+- Records sale_channel, sold_at, and optional details
+
+**Code Flow**:
+```typescript
+markAsSold(listingId, saleChannel, details) {
+  listing = getListing(listingId)
+  
+  // Validate status
+  if (listing.status !== 'ACTIVE') {
+    throw Error('Listing must be ACTIVE')
+  }
+  
+  // Check for active transaction
+  if (hasActiveTransaction(listingId, 'PAYMENT_LOCKED+')) {
+    throw Error('Cannot mark as sold - active transaction exists')
+  }
+  
+  // Transition to SOLD
+  transitionStatus(listingId, 'SOLD', {
+    saleChannel: saleChannel,
+    transactionId: details.transactionId, // if PLATFORM_DIRECT
+    salePrice: details.salePrice, // if EXTERNAL
+    saleNotes: details.saleNotes, // if EXTERNAL
+    soldAt: now(),
+    triggeredBy: farmerId,
+    triggerType: 'USER'
+  })
 }
 ```
 
@@ -318,30 +408,119 @@ Result: Buyer refunded, listing available for other buyers
 
 ---
 
+### Scenario 5: Direct Payment Transaction (No Escrow)
+
+```
+Day 1, 10:00 AM - Farmer creates listing
+├─ Listing: [*] → ACTIVE
+├─ Payment Preference: BOTH (accepts escrow or direct)
+└─ Expiry Date: Day 3, 10:00 AM
+
+Day 1, 2:00 PM - Buyer initiates purchase
+├─ Transaction: [*] → PENDING
+└─ Listing: ACTIVE (reserved for this buyer)
+
+Day 1, 3:00 PM - Farmer accepts (direct payment agreed)
+├─ Transaction: PENDING → ACCEPTED
+├─ Escrow: NOT CREATED (direct payment)
+└─ Listing: ACTIVE (reserved)
+
+Day 1, 5:00 PM - Farmer confirms direct payment received
+├─ Transaction: ACCEPTED → COMPLETED_DIRECT ✅
+└─ Listing: ACTIVE → SOLD (sale_channel = PLATFORM_DIRECT) ✅
+
+Result: Transaction completed with direct payment, no escrow involved
+```
+
+---
+
+### Scenario 6: Manual Sale Confirmation (External Sale)
+
+```
+Day 1, 10:00 AM - Farmer creates listing on Bharat Mandi
+├─ Listing: [*] → ACTIVE
+├─ Payment Preference: BOTH
+└─ Expiry Date: Day 3, 10:00 AM
+
+Day 1, 2:00 PM - Farmer also lists on another platform
+
+Day 1, 4:00 PM - Buyer purchases on other platform (outside Bharat Mandi)
+├─ Sale happens outside the platform
+└─ Listing on Bharat Mandi: Still ACTIVE
+
+Day 1, 5:00 PM - Farmer manually marks as sold on Bharat Mandi
+├─ Farmer selects "Sold outside Bharat Mandi"
+├─ Enters sale price: ₹5000
+├─ Enters notes: "Sold on XYZ platform"
+└─ Listing: ACTIVE → SOLD (sale_channel = EXTERNAL) ✅
+
+Result: Listing removed from marketplace, platform tracks external sale for analytics
+```
+
+---
+
+### Scenario 7: Manual Sale Confirmation Blocked (Active Transaction)
+
+```
+Day 1, 10:00 AM - Farmer creates listing
+├─ Listing: [*] → ACTIVE
+└─ Expiry Date: Day 3, 10:00 AM
+
+Day 1, 2:00 PM - Buyer initiates purchase on Bharat Mandi
+├─ Transaction: [*] → PENDING
+└─ Listing: ACTIVE (reserved)
+
+Day 1, 3:00 PM - Farmer accepts
+├─ Transaction: PENDING → ACCEPTED
+├─ Escrow: [*] → CREATED
+└─ Listing: ACTIVE (reserved)
+
+Day 1, 4:00 PM - Buyer locks payment
+├─ Transaction: ACCEPTED → PAYMENT_LOCKED
+├─ Escrow: CREATED → FUNDED → LOCKED
+└─ Listing: ACTIVE (reserved, funds locked)
+
+Day 1, 5:00 PM - Farmer tries to mark as sold externally
+├─ Farmer: "I sold this elsewhere, let me mark it"
+├─ System checks: Active transaction with PAYMENT_LOCKED status
+└─ System: ❌ REJECTED - "Cannot mark as sold. Active transaction with locked payment exists."
+
+Result: Manual sale confirmation blocked to protect buyer with locked funds
+```
+
+
+---
+
 ## Synchronization Points Summary
 
-| Event | Listing State Change | Transaction State | Escrow State |
-|-------|---------------------|-------------------|--------------|
-| Farmer creates listing | [*] → ACTIVE | - | - |
-| Buyer initiates purchase | ACTIVE (reserved) | [*] → PENDING | - |
-| Farmer accepts | ACTIVE (reserved) | PENDING → ACCEPTED | [*] → CREATED |
-| Buyer locks payment | ACTIVE (reserved) | ACCEPTED → PAYMENT_LOCKED | CREATED → FUNDED → LOCKED |
-| Farmer dispatches | ACTIVE (reserved) | PAYMENT_LOCKED → DISPATCHED | LOCKED |
-| Buyer confirms delivery | ACTIVE (reserved) | IN_TRANSIT → DELIVERED | LOCKED |
-| **Funds released** | **ACTIVE → SOLD** ✅ | **DELIVERED → COMPLETED** | **LOCKED → RELEASED** |
-| **Transaction cancelled** | **ACTIVE (available)** ✅ | **→ CANCELLED** | **→ REFUNDED** |
-| **Transaction rejected** | **ACTIVE (available)** ✅ | **PENDING → REJECTED** | - |
-| **Expiry date passed** | **ACTIVE → EXPIRED** ✅ | - | - |
-| **Farmer cancels** | **ACTIVE → CANCELLED** ✅ | Must not exist | - |
+| Event | Listing State Change | Transaction State | Escrow State | Sale Channel |
+|-------|---------------------|-------------------|--------------|--------------|
+| Farmer creates listing | [*] → ACTIVE | - | - | - |
+| Buyer initiates purchase | ACTIVE (reserved) | [*] → PENDING | - | - |
+| Farmer accepts (escrow) | ACTIVE (reserved) | PENDING → ACCEPTED | [*] → CREATED | - |
+| Farmer accepts (direct) | ACTIVE (reserved) | PENDING → ACCEPTED | - | - |
+| Buyer locks payment | ACTIVE (reserved) | ACCEPTED → PAYMENT_LOCKED | CREATED → FUNDED → LOCKED | - |
+| Farmer dispatches | ACTIVE (reserved) | PAYMENT_LOCKED → DISPATCHED | LOCKED | - |
+| Buyer confirms delivery | ACTIVE (reserved) | IN_TRANSIT → DELIVERED | LOCKED | - |
+| **Funds released (escrow)** | **ACTIVE → SOLD** ✅ | **DELIVERED → COMPLETED** | **LOCKED → RELEASED** | **PLATFORM_ESCROW** |
+| **Direct payment confirmed** | **ACTIVE → SOLD** ✅ | **ACCEPTED → COMPLETED_DIRECT** | - | **PLATFORM_DIRECT** |
+| **Farmer marks sold (external)** | **ACTIVE → SOLD** ✅ | - | - | **EXTERNAL** |
+| **Transaction cancelled** | **ACTIVE (available)** ✅ | **→ CANCELLED** | **→ REFUNDED** | - |
+| **Transaction rejected** | **ACTIVE (available)** ✅ | **PENDING → REJECTED** | - | - |
+| **Expiry date passed** | **ACTIVE → EXPIRED** ✅ | - | - | - |
+| **Farmer cancels** | **ACTIVE → CANCELLED** ✅ | Must not exist | - | - |
 
 ---
 
 ## Key Insights
 
-### 1. **Listing State is Dependent on Transaction State**
-- Listing transitions to SOLD only when transaction COMPLETES
+### 1. **Listing State is Dependent on Transaction State (or Manual Confirmation)**
+- Listing transitions to SOLD when:
+  * Transaction COMPLETES (escrow flow) → sale_channel = PLATFORM_ESCROW
+  * Transaction COMPLETED_DIRECT (direct payment) → sale_channel = PLATFORM_DIRECT
+  * Farmer manually confirms (external sale) → sale_channel = EXTERNAL
 - Listing returns to ACTIVE when transaction CANCELLED/REJECTED/REFUNDED
-- This is **event-driven synchronization**
+- This is **event-driven synchronization** (automatic) or **user-driven** (manual)
 
 ### 2. **Listing Expiration is Independent**
 - Listing can expire even if there's an active transaction
