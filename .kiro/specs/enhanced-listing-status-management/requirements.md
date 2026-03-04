@@ -2,9 +2,11 @@
 
 ## Introduction
 
-This document specifies requirements for enhanced listing status management in the Bharat Mandi marketplace. Currently, the system uses a simple boolean `isActive` flag that cannot distinguish between different inactive states (SOLD, CANCELLED, EXPIRED). This enhancement introduces explicit status tracking with four states (ACTIVE, SOLD, EXPIRED, CANCELLED) to accurately track listing lifecycle, improve analytics, and provide better user experience.
+This document specifies requirements for enhanced listing status management in the Bharat Mandi marketplace. Currently, the system uses a simple boolean `isActive` flag that cannot distinguish between different inactive states (SOLD, CANCELLED, EXPIRED). This enhancement replaces the `isActive` field with explicit status tracking using four states (ACTIVE, SOLD, EXPIRED, CANCELLED) to accurately track listing lifecycle, improve analytics, and provide better user experience.
 
-The feature will add a `status` column to the listings table, maintain backward compatibility with the existing `isActive` field, implement automatic expiration based on harvest dates, and synchronize listing status with transaction completion events.
+The feature will replace the `isActive` column with a `status` column in the listings table, implement automatic expiration based on harvest dates and produce categories, and synchronize listing status with transaction completion events.
+
+**Note**: This project is in development phase with test data only. No backward compatibility or data migration is required.
 
 ## Glossary
 
@@ -13,8 +15,7 @@ The feature will add a `status` column to the listings table, maintain backward 
 - **Transaction_Processor**: The system component that handles buyer-farmer transactions
 - **Expiration_Service**: The automated service that monitors and expires listings based on harvest date plus produce category expiry period
 - **Status_Synchronizer**: The component that synchronizes listing status with transaction state changes
-- **Database_Migration_Tool**: The tool that applies schema changes to PostgreSQL and SQLite databases
-- **Backward_Compatibility_Layer**: The computed field mechanism that maintains `isActive` based on `status`
+- **Database_Schema**: The PostgreSQL and SQLite database structure for listings and related tables
 - **Harvest_Date**: The `expected_harvest_date` field indicating when produce was or will be harvested (can be past or future)
 - **Transaction_State**: The current state of a transaction (PENDING, ACCEPTED, PAYMENT_LOCKED, DISPATCHED, IN_TRANSIT, DELIVERED, COMPLETED, CANCELLED, DISPUTED, REJECTED)
 - **Escrow_State**: The current state of escrow funds (CREATED, FUNDED, LOCKED, RELEASED, REFUNDED, DISPUTED)
@@ -37,30 +38,16 @@ The feature will add a `status` column to the listings table, maintain backward 
 3. THE Listing_Status_Manager SHALL store the status value in the database status column
 4. THE Listing_Status_Manager SHALL reject any status value not in the enumeration
 
-### Requirement 2: Database Schema Migration
+### Requirement 2: Database Schema Changes
 
-**User Story:** As a database administrator, I want to add a status column to the listings table, so that explicit status tracking is persisted in both PostgreSQL and SQLite databases.
-
-#### Acceptance Criteria
-
-1. THE Database_Migration_Tool SHALL add a status column to the listings table with type enum(ACTIVE, SOLD, EXPIRED, CANCELLED)
-2. THE Database_Migration_Tool SHALL set the default value for the status column to ACTIVE
-3. THE Database_Migration_Tool SHALL migrate existing records where isActive is true to status ACTIVE
-4. THE Database_Migration_Tool SHALL migrate existing records where isActive is false to status CANCELLED
-5. THE Database_Migration_Tool SHALL apply the migration to both PostgreSQL and SQLite databases
-6. THE Database_Migration_Tool SHALL create a rollback script that removes the status column
-
-### Requirement 3: Backward Compatibility
-
-**User Story:** As a developer, I want the existing `isActive` field to remain functional, so that existing code continues to work without modification.
+**User Story:** As a database administrator, I want to replace the isActive column with a status column in the listings table, so that explicit status tracking is persisted in both PostgreSQL and SQLite databases.
 
 #### Acceptance Criteria
 
-1. THE Backward_Compatibility_Layer SHALL compute isActive as true WHEN status is ACTIVE
-2. THE Backward_Compatibility_Layer SHALL compute isActive as false WHEN status is SOLD, EXPIRED, or CANCELLED
-3. WHEN code reads the isActive field, THE Backward_Compatibility_Layer SHALL return the computed value based on status
-4. WHEN code writes to the isActive field with true, THE Listing_Status_Manager SHALL set status to ACTIVE
-5. WHEN code writes to the isActive field with false, THE Listing_Status_Manager SHALL set status to CANCELLED
+1. THE Database_Schema SHALL replace the isActive boolean column with a status column of type enum(ACTIVE, SOLD, EXPIRED, CANCELLED)
+2. THE Database_Schema SHALL set the default value for the status column to ACTIVE
+3. THE Database_Schema SHALL apply the schema changes to both PostgreSQL and SQLite databases
+4. THE Database_Schema SHALL use DROP TABLE IF EXISTS and CREATE TABLE for clean schema recreation
 
 ### Requirement 4: Automatic Listing Expiration
 
@@ -172,34 +159,21 @@ The feature will add a `status` column to the listings table, maintain backward 
 4. THE Listing_Status_Manager SHALL retain audit records for at least 2 years
 5. THE Listing_Status_Manager SHALL provide a query interface to retrieve status history for a specific listing
 
-### Requirement 13: Offline Sync Compatibility
-
-**User Story:** As a farmer in a low-connectivity area, I want listing status changes to sync correctly when I reconnect, so that my offline actions are reflected in the marketplace.
-
-#### Acceptance Criteria
-
-1. WHEN a farmer changes listing status while offline, THE Listing_Status_Manager SHALL queue the change in the local SQLite database
-2. WHEN connectivity is restored, THE Listing_Status_Manager SHALL sync queued status changes to the PostgreSQL database
-3. IF a conflict occurs during sync (server status differs from local status), THEN THE Listing_Status_Manager SHALL apply server status as the source of truth
-4. THE Listing_Status_Manager SHALL notify the farmer of any conflicts that were resolved during sync
-5. THE Listing_Status_Manager SHALL complete the sync within 30 seconds of connectivity restoration
-
-### Requirement 14: API Response Format
+### Requirement 13: API Response Format
 
 **User Story:** As a frontend developer, I want listing API responses to include the status field, so that I can display appropriate UI based on listing state.
 
 #### Acceptance Criteria
 
 1. WHEN the API returns a listing object, THE Listing_Status_Manager SHALL include the status field with value ACTIVE, SOLD, EXPIRED, or CANCELLED
-2. THE Listing_Status_Manager SHALL include the isActive computed field for backward compatibility
-3. THE Listing_Status_Manager SHALL include the listing_type field with value PRE_HARVEST or POST_HARVEST
-4. THE Listing_Status_Manager SHALL include the produce_category_id and produce_category_name fields
-5. THE Listing_Status_Manager SHALL include the expiry_date field showing when the listing will expire
-6. WHERE the status is SOLD, THE Listing_Status_Manager SHALL include the sold_at timestamp and transaction_id
-7. WHERE the status is EXPIRED, THE Listing_Status_Manager SHALL include the expired_at timestamp
-8. WHERE the status is CANCELLED, THE Listing_Status_Manager SHALL include the cancelled_at timestamp and cancelled_by user ID
+2. THE Listing_Status_Manager SHALL include the listing_type field with value PRE_HARVEST or POST_HARVEST
+3. THE Listing_Status_Manager SHALL include the produce_category_id and produce_category_name fields
+4. THE Listing_Status_Manager SHALL include the expiry_date field showing when the listing will expire
+5. WHERE the status is SOLD, THE Listing_Status_Manager SHALL include the sold_at timestamp and transaction_id
+6. WHERE the status is EXPIRED, THE Listing_Status_Manager SHALL include the expired_at timestamp
+7. WHERE the status is CANCELLED, THE Listing_Status_Manager SHALL include the cancelled_at timestamp and cancelled_by user ID
 
-### Requirement 15: Bulk Status Operations
+### Requirement 14: Bulk Status Operations
 
 **User Story:** As a marketplace administrator, I want to perform bulk status updates, so that I can efficiently manage multiple listings during maintenance or emergency situations.
 
@@ -211,7 +185,7 @@ The feature will add a `status` column to the listings table, maintain backward 
 4. THE Listing_Status_Manager SHALL complete bulk operations within 100ms per listing
 5. IF any listing in the bulk operation fails validation, THEN THE Listing_Status_Manager SHALL continue processing remaining listings and report all failures
 
-### Requirement 16: Listing Type Classification
+### Requirement 15: Listing Type Classification
 
 **User Story:** As a farmer, I want to indicate whether my listing is for pre-harvest or post-harvest produce, so that the system correctly interprets my harvest date.
 
@@ -225,7 +199,7 @@ The feature will add a `status` column to the listings table, maintain backward 
 6. WHERE Listing_Type is PRE_HARVEST, THE Listing_Status_Manager SHALL allow Harvest_Date to be in the future or near-present
 7. WHERE Listing_Type is POST_HARVEST, THE Listing_Status_Manager SHALL allow Harvest_Date to be in the past or present
 
-### Requirement 17: Expiry Date Calculation and Display
+### Requirement 16: Expiry Date Calculation and Display
 
 **User Story:** As a farmer, I want to see when my listing will expire based on the produce category, so that I understand how long my listing will remain active, but I cannot change the expiry period.
 
@@ -238,7 +212,7 @@ The feature will add a `status` column to the listings table, maintain backward 
 5. THE Listing_Status_Manager SHALL store the calculated Expiry_Date in the database
 6. WHEN displaying a listing, THE Listing_Status_Manager SHALL show the Expiry_Date to the farmer
 
-### Requirement 18: Category-Based Expiration
+### Requirement 17: Category-Based Expiration
 
 **User Story:** As a marketplace operator, I want listings to expire based on produce perishability characteristics, so that the expiration time reflects how long the produce stays fresh.
 
