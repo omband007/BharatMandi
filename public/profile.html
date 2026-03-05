@@ -752,11 +752,14 @@
                 const data = await response.json();
 
                 if (!response.ok || !data.success) {
-                    throw new Error(data.error || 'Request failed');
+                    const errorMsg = data.error || 'Request failed';
+                    console.error(`[API Error] ${method} ${endpoint}:`, errorMsg, data);
+                    throw new Error(errorMsg);
                 }
 
                 return data;
             } catch (error) {
+                // Re-throw with more context
                 throw error;
             }
         }
@@ -1240,29 +1243,43 @@
 
             try {
                 showResult('profileResult', '🔄 Saving changes...', false);
+                
+                const updates = [];
 
                 // Update mandatory fields
-                await apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
-                    fieldName: 'name',
-                    value: name
-                });
+                console.log('[Profile] Updating name...');
+                updates.push(
+                    apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
+                        fieldName: 'name',
+                        value: name
+                    }).catch(err => ({ error: 'name', message: err.message }))
+                );
 
-                await apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
-                    fieldName: 'userType',
-                    value: userType
-                });
+                console.log('[Profile] Updating userType...');
+                updates.push(
+                    apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
+                        fieldName: 'userType',
+                        value: userType
+                    }).catch(err => ({ error: 'userType', message: err.message }))
+                );
 
-                await apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
-                    fieldName: 'location',
-                    value: { type: 'manual', text: location }
-                });
+                console.log('[Profile] Updating location...');
+                updates.push(
+                    apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
+                        fieldName: 'location',
+                        value: { type: 'manual', text: location }
+                    }).catch(err => ({ error: 'location', message: err.message }))
+                );
 
                 // Update optional fields if provided
                 if (language) {
-                    await apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
-                        fieldName: 'languagePreference',
-                        value: language
-                    });
+                    console.log('[Profile] Updating languagePreference...');
+                    updates.push(
+                        apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
+                            fieldName: 'languagePreference',
+                            value: language
+                        }).catch(err => ({ error: 'languagePreference', message: err.message }))
+                    );
                 }
 
                 if (cropsText) {
@@ -1271,23 +1288,41 @@
                         name: c.trim(),
                         addedAt: new Date().toISOString()
                     }));
-                    await apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
-                        fieldName: 'cropsGrown',
-                        value: cropsArray
-                    });
+                    console.log('[Profile] Updating cropsGrown...');
+                    updates.push(
+                        apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
+                            fieldName: 'cropsGrown',
+                            value: cropsArray
+                        }).catch(err => ({ error: 'cropsGrown', message: err.message }))
+                    );
                 }
 
                 if (farmSizeValue) {
-                    await apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
-                        fieldName: 'farmSize',
-                        value: {
-                            value: parseFloat(farmSizeValue),
-                            unit: farmSizeUnit
-                        }
-                    });
+                    console.log('[Profile] Updating farmSize...');
+                    updates.push(
+                        apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
+                            fieldName: 'farmSize',
+                            value: {
+                                value: parseFloat(farmSizeValue),
+                                unit: farmSizeUnit
+                            }
+                        }).catch(err => ({ error: 'farmSize', message: err.message }))
+                    );
                 }
 
-                showResult('profileResult', '✅ Profile updated successfully!', false);
+                // Wait for all updates to complete
+                const results = await Promise.all(updates);
+                
+                // Check for errors
+                const errors = results.filter(r => r && r.error);
+                if (errors.length > 0) {
+                    const errorMessages = errors.map(e => `${e.error}: ${e.message}`).join('<br>');
+                    showResult('profileResult', `⚠️ Some fields failed to update:<br>${errorMessages}`, true);
+                    console.error('[Profile] Update errors:', errors);
+                } else {
+                    showResult('profileResult', '✅ Profile updated successfully!', false);
+                    console.log('[Profile] All fields updated successfully');
+                }
                 
                 // Refresh profile display
                 await fetchAndDisplayProfile();
@@ -1295,6 +1330,7 @@
                 // Hide edit form
                 document.getElementById('profileEdit').style.display = 'none';
             } catch (error) {
+                console.error('[Profile] Save profile error:', error);
                 showResult('profileResult', `❌ Error: ${error.message}`, true);
             }
         }
