@@ -1110,13 +1110,21 @@
                 document.getElementById('displayUserType').textContent = currentProfile.userType || '-';
                 
                 // Format location
+                console.log('[Profile] Formatting location for display');
+                console.log('[Profile] currentProfile.location:', currentProfile.location);
                 let locationText = '-';
                 if (currentProfile.location) {
                     if (currentProfile.location.addressLine1) {
                         locationText = currentProfile.location.addressLine1;
+                        console.log('[Profile] Display using addressLine1:', locationText);
                     } else if (currentProfile.location.latitude && currentProfile.location.longitude) {
                         locationText = `${currentProfile.location.latitude}, ${currentProfile.location.longitude}`;
+                        console.log('[Profile] Display using lat/lng:', locationText);
+                    } else {
+                        console.warn('[Profile] Location object exists but no addressLine1 or coordinates');
                     }
+                } else {
+                    console.warn('[Profile] No location data in profile');
                 }
                 document.getElementById('displayLocation').textContent = locationText;
                 
@@ -1150,7 +1158,13 @@
         }
 
         function enableEditMode() {
-            if (!currentProfile) return;
+            console.log('[Profile] enableEditMode() called');
+            console.log('[Profile] currentProfile:', currentProfile);
+            
+            if (!currentProfile) {
+                console.error('[Profile] currentProfile is null/undefined');
+                return;
+            }
 
             // Populate edit fields with current values
             document.getElementById('editMobile').value = currentProfile.mobileNumber || '';
@@ -1164,14 +1178,22 @@
             }
             
             // Location
+            console.log('[Profile] currentProfile.location:', currentProfile.location);
             let locationText = '';
             if (currentProfile.location) {
                 if (currentProfile.location.addressLine1) {
                     locationText = currentProfile.location.addressLine1;
+                    console.log('[Profile] Using addressLine1:', locationText);
                 } else if (currentProfile.location.latitude && currentProfile.location.longitude) {
                     locationText = `${currentProfile.location.latitude}, ${currentProfile.location.longitude}`;
+                    console.log('[Profile] Using lat/lng:', locationText);
+                } else {
+                    console.warn('[Profile] Location object exists but no addressLine1 or coordinates found');
                 }
+            } else {
+                console.warn('[Profile] currentProfile.location is null/undefined');
             }
+            console.log('[Profile] Setting editLocation value to:', locationText);
             document.getElementById('editLocation').value = locationText;
             
             // Optional fields

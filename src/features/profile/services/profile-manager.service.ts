@@ -67,6 +67,35 @@ export class ProfileManagerService {
       throw new Error(validation.error);
     }
 
+    // Transform location data if needed
+    if (fieldName === 'location' && value) {
+      // If location is in the format { type: 'manual', text: 'location string' }
+      // Transform it to the full Location object format
+      if (value.type === 'manual' && value.text) {
+        const existingLocation = profile.location as any;
+        value = {
+          latitude: existingLocation?.latitude || 0,
+          longitude: existingLocation?.longitude || 0,
+          addressLine1: value.text,
+          country: existingLocation?.country || profile.countryCode || 'IN',
+          locationType: 'manual',
+          isVerified: false,
+          lastUpdated: new Date()
+        };
+      } else if (value.type === 'gps' && value.latitude && value.longitude) {
+        const existingLocation = profile.location as any;
+        value = {
+          latitude: value.latitude,
+          longitude: value.longitude,
+          country: existingLocation?.country || profile.countryCode || 'IN',
+          locationType: 'gps',
+          isVerified: false,
+          lastUpdated: new Date()
+        };
+      }
+      // Otherwise, assume it's already in the correct format
+    }
+
     // Update the field
     (profile as any)[fieldName] = value;
 
