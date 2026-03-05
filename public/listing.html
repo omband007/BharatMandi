@@ -1142,15 +1142,12 @@
                         const mediaResponse = await fetch(`${API_BASE}/marketplace/listings/${listing.id}/media`);
                         if (mediaResponse.ok) {
                             const mediaData = await mediaResponse.json();
-                            // Handle both old format (array) and new format (object with media property)
-                            const mediaList = Array.isArray(mediaData) ? mediaData : (mediaData.media || []);
+                            const mediaList = mediaData.media || [];
                             const primaryMedia = mediaList.find(m => m.isPrimary) || mediaList[0];
                             if (primaryMedia && primaryMedia.mediaType === 'photo') {
-                                // Handle both url and storageUrl fields
-                                const imageUrl = primaryMedia.url || primaryMedia.storageUrl;
                                 primaryImageHtml = `
                                     <div style="margin-top: 10px;">
-                                        <img src="${imageUrl}" alt="Primary image" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; border: 2px solid #e0e0e0;">
+                                        <img src="${primaryMedia.url}" alt="Primary image" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; border: 2px solid #e0e0e0;">
                                     </div>
                                 `;
                             }
@@ -1258,16 +1255,13 @@
 
                 const data = await response.json();
                 
-                // Handle both old format (array) and new format (object with media property)
-                const mediaArray = Array.isArray(data) ? data : (data.media || []);
-                
-                if (!mediaArray || mediaArray.length === 0) {
+                if (!data.media || data.media.length === 0) {
                     document.getElementById('viewMediaGrid').innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No media uploaded yet</p>';
                     state.mediaList = [];
                     return;
                 }
 
-                state.mediaList = mediaArray;
+                state.mediaList = data.media;
                 renderMediaGrid();
 
             } catch (error) {
@@ -1284,8 +1278,7 @@
             }
 
             mediaGrid.innerHTML = state.mediaList.map((media, index) => {
-                // Handle both storageUrl and url fields
-                let imageUrl = media.url || media.storageUrl;
+                let imageUrl = media.url;
                 if (imageUrl.startsWith('/')) {
                     imageUrl = 'http://localhost:3000' + imageUrl;
                 } else if (!imageUrl.startsWith('http')) {
@@ -1320,8 +1313,7 @@
             const photoUrls = state.mediaList
                 .filter(media => media.mediaType === 'photo')
                 .map(media => {
-                    // Handle both url and storageUrl fields
-                    let imageUrl = media.url || media.storageUrl;
+                    let imageUrl = media.url;
                     if (imageUrl.startsWith('/')) {
                         return 'http://localhost:3000' + imageUrl;
                     } else if (!imageUrl.startsWith('http')) {
