@@ -160,9 +160,14 @@ export const SUPPORTED_LANGUAGES = [
   'en',  // English
   'hi',  // Hindi
   'pa',  // Punjabi
-  'ta',  // Tamil
+  'bn',  // Bengali
   'te',  // Telugu
-  'mr'   // Marathi
+  'mr',  // Marathi
+  'ta',  // Tamil
+  'gu',  // Gujarati
+  'kn',  // Kannada
+  'ml',  // Malayalam
+  'or'   // Odia
 ] as const;
 
 // ============================================================================
