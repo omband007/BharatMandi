@@ -11,6 +11,7 @@
 import request from 'supertest';
 import express from 'express';
 import { marketplaceController } from '../marketplace.controller';
+import { ListingStatus } from '../marketplace.types';
 
 // Mock the marketplace service module
 jest.mock('../marketplace.service');
@@ -120,13 +121,17 @@ describe('Marketplace Controller - Integration Tests', () => {
 
         // Assert
         expect(mockMarketplaceService.createListing).toHaveBeenCalledTimes(1);
-        expect(mockMarketplaceService.createListing).toHaveBeenCalledWith(
-          requestData.farmerId,
-          requestData.produceType,
-          requestData.quantity,
-          requestData.pricePerKg,
-          requestData.certificateId
-        );
+        expect(mockMarketplaceService.createListing).toHaveBeenCalledWith({
+          farmerId: requestData.farmerId,
+          produceType: requestData.produceType,
+          quantity: requestData.quantity,
+          pricePerKg: requestData.pricePerKg,
+          certificateId: requestData.certificateId,
+          expectedHarvestDate: undefined,
+          produceCategoryId: undefined,
+          listingType: undefined,
+          paymentMethodPreference: undefined
+        });
       });
 
       it('should return listing with all expected fields', async () => {
@@ -140,7 +145,7 @@ describe('Marketplace Controller - Integration Tests', () => {
           pricePerKg: requestData.pricePerKg,
           certificateId: requestData.certificateId,
           createdAt: new Date('2024-01-15T10:30:00.000Z'),
-          isActive: true
+          status: ListingStatus.ACTIVE
         });
 
         mockMarketplaceService.createListing.mockResolvedValue(expectedListing);
@@ -158,7 +163,7 @@ describe('Marketplace Controller - Integration Tests', () => {
         expect(response.body).toHaveProperty('pricePerKg', expectedListing.pricePerKg);
         expect(response.body).toHaveProperty('certificateId', expectedListing.certificateId);
         expect(response.body).toHaveProperty('createdAt');
-        expect(response.body).toHaveProperty('isActive', expectedListing.isActive);
+        expect(response.body).toHaveProperty('status', expectedListing.status);
       });
     });
 
@@ -386,7 +391,7 @@ describe('Marketplace Controller - Integration Tests', () => {
           pricePerKg: 50,
           certificateId: 'cert-123',
           createdAt: new Date('2024-01-15T10:30:00.000Z'),
-          isActive: true
+          status: ListingStatus.ACTIVE
         });
 
         mockMarketplaceService.getListing.mockResolvedValue(expectedListing);
@@ -403,7 +408,7 @@ describe('Marketplace Controller - Integration Tests', () => {
         expect(response.body).toHaveProperty('pricePerKg', expectedListing.pricePerKg);
         expect(response.body).toHaveProperty('certificateId', expectedListing.certificateId);
         expect(response.body).toHaveProperty('createdAt');
-        expect(response.body).toHaveProperty('isActive', expectedListing.isActive);
+        expect(response.body).toHaveProperty('status', expectedListing.status);
       });
 
       it('should call marketplaceService.getListing with correct listing ID', async () => {
@@ -2133,3 +2138,4 @@ describe('Marketplace Controller - Integration Tests', () => {
     });
   });
 });
+

@@ -333,8 +333,9 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
     const result = await pool.query(
       `INSERT INTO listings (
         id, farmer_id, produce_type, quantity, price_per_kg, 
-        certificate_id, expected_harvest_date, is_active, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        certificate_id, expected_harvest_date, status, created_at, updated_at,
+        listing_type, produce_category_id, expiry_date, payment_method_preference
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *`,
       [
         listing.id,
@@ -344,8 +345,13 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
         listing.pricePerKg,
         listing.certificateId,
         listing.expectedHarvestDate || null,
-        listing.isActive,
-        listing.createdAt
+        listing.status,
+        listing.createdAt,
+        listing.updatedAt,
+        listing.listingType,
+        listing.produceCategoryId,
+        listing.expiryDate,
+        listing.paymentMethodPreference
       ]
     );
     return this.mapRowToListing(result.rows[0]);
@@ -361,7 +367,7 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
 
   async getActiveListings(): Promise<Listing[]> {
     const result = await pool.query(
-      'SELECT * FROM listings WHERE is_active = true ORDER BY created_at DESC'
+      "SELECT * FROM listings WHERE status = 'ACTIVE' ORDER BY created_at DESC"
     );
     return result.rows.map(row => this.mapRowToListing(row));
   }
@@ -379,9 +385,9 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
       fields.push(`price_per_kg = $${paramIndex++}`);
       values.push(updates.pricePerKg);
     }
-    if (updates.isActive !== undefined) {
-      fields.push(`is_active = $${paramIndex++}`);
-      values.push(updates.isActive);
+    if (updates.status !== undefined) {
+      fields.push(`status = $${paramIndex++}`);
+      values.push(updates.status);
     }
     if (updates.expectedHarvestDate !== undefined) {
       fields.push(`expected_harvest_date = $${paramIndex++}`);
@@ -407,8 +413,22 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
       pricePerKg: parseFloat(row.price_per_kg),
       certificateId: row.certificate_id,
       expectedHarvestDate: row.expected_harvest_date ? new Date(row.expected_harvest_date) : undefined,
-      isActive: row.is_active,
-      createdAt: new Date(row.created_at)
+      status: row.status,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+      listingType: row.listing_type,
+      produceCategoryId: row.produce_category_id,
+      expiryDate: new Date(row.expiry_date),
+      paymentMethodPreference: row.payment_method_preference,
+      // Optional fields
+      soldAt: row.sold_at ? new Date(row.sold_at) : undefined,
+      transactionId: row.transaction_id,
+      expiredAt: row.expired_at ? new Date(row.expired_at) : undefined,
+      cancelledAt: row.cancelled_at ? new Date(row.cancelled_at) : undefined,
+      cancelledBy: row.cancelled_by,
+      saleChannel: row.sale_channel,
+      salePrice: row.sale_price ? parseFloat(row.sale_price) : undefined,
+      saleNotes: row.sale_notes
     };
   }
 
