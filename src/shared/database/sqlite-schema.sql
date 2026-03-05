@@ -16,12 +16,39 @@ CREATE TABLE IF NOT EXISTS listings (
   price_per_kg REAL NOT NULL,
   certificate_id TEXT NOT NULL,
   expected_harvest_date TEXT,
-  is_active INTEGER DEFAULT 1,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  
+  -- Status tracking fields
+  status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'SOLD', 'EXPIRED', 'CANCELLED')),
+  sold_at TEXT,
+  transaction_id TEXT,
+  expired_at TEXT,
+  cancelled_at TEXT,
+  cancelled_by TEXT,
+  
+  -- Perishability-based expiration fields
+  listing_type TEXT NOT NULL DEFAULT 'POST_HARVEST' CHECK (listing_type IN ('PRE_HARVEST', 'POST_HARVEST')),
+  produce_category_id TEXT NOT NULL,
+  expiry_date TEXT NOT NULL,
+  
+  -- Manual sale confirmation fields
+  payment_method_preference TEXT NOT NULL DEFAULT 'BOTH' CHECK (payment_method_preference IN ('PLATFORM_ONLY', 'DIRECT_ONLY', 'BOTH')),
+  sale_channel TEXT CHECK (sale_channel IN ('PLATFORM_ESCROW', 'PLATFORM_DIRECT', 'EXTERNAL')),
+  sale_price REAL,
+  sale_notes TEXT,
+  
+  -- Foreign keys
+  FOREIGN KEY (farmer_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (produce_category_id) REFERENCES produce_categories(id),
+  FOREIGN KEY (transaction_id) REFERENCES transactions(id),
+  FOREIGN KEY (cancelled_by) REFERENCES users(id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_listings_farmer ON listings(farmer_id);
-CREATE INDEX IF NOT EXISTS idx_listings_active ON listings(is_active);
+CREATE INDEX IF NOT EXISTS idx_listings_status ON listings(status);
+CREATE INDEX IF NOT EXISTS idx_listings_expiry_date_status ON listings(expiry_date, status) WHERE status = 'ACTIVE';
+CREATE INDEX IF NOT EXISTS idx_listings_category ON listings(produce_category_id);
 CREATE INDEX IF NOT EXISTS idx_listings_created_at ON listings(created_at);
 
 -- ============================================================================
@@ -309,3 +336,51 @@ CREATE INDEX IF NOT EXISTS idx_local_media_status ON local_media_files(upload_st
 -- Add listing_media to sync status
 INSERT OR IGNORE INTO sync_status (entity_type, last_sync_status) VALUES
   ('listing_media', 'SUCCESS');
+
+-- ============================================================================
+-- PRODUCE CATEGORIES TABLE (Perishability-based expiration)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS produce_categories (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    expiry_period_hours INTEGER NOT NULL CHECK (expiry_period_hours > 0 AND expiry_period_hours <= 8760),
+    description TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create index for name lookups
+CREATE INDEX IF NOT EXISTS idx_produce_categories_name ON produce_categories(name);
+
+-- Add produce_categories to sync status
+INSERT OR IGNORE INTO sync_status (entity_type, last_sync_status) VALUES
+  ('produce_categories', 'SUCCESS');
+
+-- ============================================================================
+-- LISTING STATUS HISTORY TABLE (Audit trail)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS listing_status_history (
+    id TEXT PRIMARY KEY,
+    listing_id TEXT NOT NULL,
+    previous_status TEXT CHECK (previous_status IN ('ACTIVE', 'SOLD', 'EXPIRED', 'CANCELLED') OR previous_status IS NULL),
+    new_status TEXT NOT NULL CHECK (new_status IN ('ACTIVE', 'SOLD', 'EXPIRED', 'CANCELLED')),
+    changed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    triggered_by TEXT NOT NULL, -- user_id or 'SYSTEM'
+    trigger_type TEXT NOT NULL CHECK (trigger_type IN ('USER', 'SYSTEM', 'TRANSACTION')),
+    metadata TEXT, -- Additional context as JSON string
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE CASCADE
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_status_history_listing ON listing_status_history(listing_id, changed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_status_history_changed_at ON listing_status_history(changed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_status_history_trigger_type ON listing_status_history(trigger_type);
+
+-- Add listing_status_history to sync status
+INSERT OR IGNORE INTO sync_status (entity_type, last_sync_status) VALUES
+  ('listing_status_history', 'SUCCESS');
+
+

@@ -1,6 +1,7 @@
 import { marketplaceService } from '../marketplace.service';
 import { translationService } from '../../i18n/translation.service';
 import type { Listing } from '../marketplace.types';
+import { ListingStatus, ListingType, PaymentMethodPreference } from '../marketplace.types';
 
 // Mock the translation service
 jest.mock('../../i18n/translation.service', () => ({
@@ -9,9 +10,30 @@ jest.mock('../../i18n/translation.service', () => ({
   },
 }));
 
+// Helper function to convert Listing to database row format
+const listingToRow = (listing: Listing) => ({
+  id: listing.id,
+  farmer_id: listing.farmerId,
+  produce_type: listing.produceType,
+  quantity: listing.quantity,
+  price_per_kg: listing.pricePerKg,
+  certificate_id: listing.certificateId,
+  expected_harvest_date: listing.expectedHarvestDate?.toISOString(),
+  created_at: listing.createdAt.toISOString(),
+  updated_at: listing.updatedAt.toISOString(),
+  status: listing.status,
+  listing_type: listing.listingType,
+  produce_category_id: listing.produceCategoryId,
+  expiry_date: listing.expiryDate.toISOString(),
+  payment_method_preference: listing.paymentMethodPreference,
+});
+
 // Mock the database manager
 const mockDbManager = {
   getListing: jest.fn(),
+  get: jest.fn(),
+  all: jest.fn(),
+  run: jest.fn(),
 };
 
 (global as any).sharedDbManager = mockDbManager;
@@ -32,10 +54,15 @@ describe('Listing Translation', () => {
         pricePerKg: 30,
         certificateId: 'cert-1',
         createdAt: new Date('2024-01-01'),
-        isActive: true,
+        updatedAt: new Date('2024-01-01'),
+        status: ListingStatus.ACTIVE,
+        listingType: ListingType.POST_HARVEST,
+        produceCategoryId: 'cat-1',
+        expiryDate: new Date(Date.now() + 86400000),
+        paymentMethodPreference: PaymentMethodPreference.BOTH,
       };
 
-      mockDbManager.getListing.mockResolvedValue(mockListing);
+      mockDbManager.get.mockResolvedValue(listingToRow(mockListing));
       
       (translationService.translateText as jest.Mock).mockResolvedValue({
         translatedText: 'टमाटर',
@@ -68,10 +95,15 @@ describe('Listing Translation', () => {
         pricePerKg: 30,
         certificateId: 'cert-1',
         createdAt: new Date('2024-01-01'),
-        isActive: true,
+        updatedAt: new Date('2024-01-01'),
+        status: ListingStatus.ACTIVE,
+        listingType: ListingType.POST_HARVEST,
+        produceCategoryId: 'cat-1',
+        expiryDate: new Date(Date.now() + 86400000),
+        paymentMethodPreference: PaymentMethodPreference.BOTH,
       };
 
-      mockDbManager.getListing.mockResolvedValue(mockListing);
+      mockDbManager.get.mockResolvedValue(listingToRow(mockListing));
       
       (translationService.translateText as jest.Mock).mockResolvedValue({
         translatedText: 'Tomatoes',
@@ -93,7 +125,7 @@ describe('Listing Translation', () => {
 
     it('should return undefined when listing not found', async () => {
       // Arrange
-      mockDbManager.getListing.mockResolvedValue(undefined);
+      mockDbManager.get.mockResolvedValue(undefined);
 
       // Act
       const result = await marketplaceService.getTranslatedListing('nonexistent', 'hi');
@@ -114,10 +146,15 @@ describe('Listing Translation', () => {
         certificateId: 'cert-1',
         expectedHarvestDate: new Date('2024-06-01'),
         createdAt: new Date('2024-01-01'),
-        isActive: true,
+        updatedAt: new Date('2024-01-01'),
+        status: ListingStatus.ACTIVE,
+        listingType: ListingType.PRE_HARVEST,
+        produceCategoryId: 'cat-1',
+        expiryDate: new Date(Date.now() + 86400000),
+        paymentMethodPreference: PaymentMethodPreference.BOTH,
       };
 
-      mockDbManager.getListing.mockResolvedValue(mockListing);
+      mockDbManager.get.mockResolvedValue(listingToRow(mockListing));
       
       (translationService.translateText as jest.Mock).mockResolvedValue({
         translatedText: 'गेहूं',
@@ -138,7 +175,9 @@ describe('Listing Translation', () => {
       expect(result?.pricePerKg).toBe(25);
       expect(result?.certificateId).toBe('cert-1');
       expect(result?.expectedHarvestDate).toEqual(new Date('2024-06-01'));
-      expect(result?.isActive).toBe(true);
+      expect(result?.status).toBe('ACTIVE');
     });
   });
 });
+
+

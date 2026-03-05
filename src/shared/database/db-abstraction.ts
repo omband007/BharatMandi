@@ -1024,4 +1024,123 @@ export class DatabaseManager {
     }
   }
 
+  // ============================================================================
+  // Low-Level SQL Operations
+  // ============================================================================
+
+  /**
+   * Execute a SQL statement (INSERT, UPDATE, DELETE)
+   * Writes to PostgreSQL first, then propagates to SQLite asynchronously
+   * 
+   * @param sql - SQL statement to execute
+   * @param params - Parameters for the SQL statement
+   */
+  async run(sql: string, params?: any[]): Promise<void> {
+    if (this.connectionMonitor.isConnected()) {
+      try {
+        // Execute on PostgreSQL first
+        const pgAdapter = this.pgAdapter as any;
+        if (pgAdapter.run) {
+          await pgAdapter.run(sql, params);
+        } else {
+          // Fallback to pool query
+          await pgAdapter.pool.query(sql, params);
+        }
+
+        // Propagate to SQLite asynchronously
+        const sqliteAdapter = this.sqliteAdapter as any;
+        if (sqliteAdapter.run) {
+          sqliteAdapter.run(sql, params).catch((err: any) => {
+            if (VERBOSE_LOGGING) {
+              console.error('[DatabaseManager] Failed to propagate run() to SQLite:', err);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('[DatabaseManager] PostgreSQL run() failed:', error);
+        throw error;
+      }
+    } else {
+      // PostgreSQL unavailable, execute on SQLite only
+      const sqliteAdapter = this.sqliteAdapter as any;
+      if (sqliteAdapter.run) {
+        await sqliteAdapter.run(sql, params);
+      }
+    }
+  }
+
+  /**
+   * Execute a SQL query and return a single row
+   * Reads from PostgreSQL first, falls back to SQLite if unavailable
+   * 
+   * @param sql - SQL query to execute
+   * @param params - Parameters for the SQL query
+   * @returns Single row result or undefined
+   */
+  async get(sql: string, params?: any[]): Promise<any> {
+    if (this.connectionMonitor.isConnected()) {
+      try {
+        const pgAdapter = this.pgAdapter as any;
+        if (pgAdapter.get) {
+          return await pgAdapter.get(sql, params);
+        } else {
+          // Fallback to pool query
+          const result = await pgAdapter.pool.query(sql, params);
+          return result.rows[0];
+        }
+      } catch (error) {
+        console.warn('[DatabaseManager] PostgreSQL get() failed, falling back to SQLite:', error);
+        const sqliteAdapter = this.sqliteAdapter as any;
+        if (sqliteAdapter.get) {
+          return await sqliteAdapter.get(sql, params);
+        }
+        return undefined;
+      }
+    } else {
+      console.warn('[DatabaseManager] PostgreSQL unavailable, serving from SQLite.');
+      const sqliteAdapter = this.sqliteAdapter as any;
+      if (sqliteAdapter.get) {
+        return await sqliteAdapter.get(sql, params);
+      }
+      return undefined;
+    }
+  }
+
+  /**
+   * Execute a SQL query and return all rows
+   * Reads from PostgreSQL first, falls back to SQLite if unavailable
+   * 
+   * @param sql - SQL query to execute
+   * @param params - Parameters for the SQL query
+   * @returns Array of rows
+   */
+  async all(sql: string, params?: any[]): Promise<any[]> {
+    if (this.connectionMonitor.isConnected()) {
+      try {
+        const pgAdapter = this.pgAdapter as any;
+        if (pgAdapter.all) {
+          return await pgAdapter.all(sql, params);
+        } else {
+          // Fallback to pool query
+          const result = await pgAdapter.pool.query(sql, params);
+          return result.rows;
+        }
+      } catch (error) {
+        console.warn('[DatabaseManager] PostgreSQL all() failed, falling back to SQLite:', error);
+        const sqliteAdapter = this.sqliteAdapter as any;
+        if (sqliteAdapter.all) {
+          return await sqliteAdapter.all(sql, params);
+        }
+        return [];
+      }
+    } else {
+      console.warn('[DatabaseManager] PostgreSQL unavailable, serving from SQLite.');
+      const sqliteAdapter = this.sqliteAdapter as any;
+      if (sqliteAdapter.all) {
+        return await sqliteAdapter.all(sql, params);
+      }
+      return [];
+    }
+  }
+
 }

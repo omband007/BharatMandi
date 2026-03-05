@@ -12,20 +12,20 @@ This implementation plan converts the enhanced listing status management design 
 
 ## Tasks
 
-- [ ] 1. Set up produce categories infrastructure
-  - [ ] 1.1 Create produce categories database schema
+- [x] 1. Set up produce categories infrastructure
+  - [x] 1.1 Create produce categories database schema
     - Create `produce_categories` table with fields: id, name, expiry_period_hours, description, created_at, updated_at
     - Add CHECK constraint for expiry_period_hours (1-8760 hours)
     - Create index on name column
     - Implement for both PostgreSQL and SQLite
     - _Requirements: 6.1, 6.2, 6.6_
   
-  - [ ] 1.2 Seed default produce categories
+  - [x] 1.2 Seed default produce categories
     - Insert four default categories: Leafy Greens (24h), Fruits (48h), Root Vegetables (168h), Grains (672h)
     - Include descriptions for each category
     - _Requirements: 6.5_
   
-  - [ ] 1.3 Implement CategoryManager service
+  - [x] 1.3 Implement CategoryManager service
     - Create `src/features/marketplace/category-manager.ts`
     - Implement createCategory(), updateCategory(), deleteCategory(), getCategories(), getCategoryById()
     - Add validation for expiry period range (1-8760 hours)
@@ -38,8 +38,8 @@ This implementation plan converts the enhanced listing status management design 
     - Test prevention of deleting categories with listings
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.6_
 
-- [ ] 2. Update listings database schema
-  - [ ] 2.1 Create new listings schema with status column
+- [x] 2. Update listings database schema
+  - [x] 2.1 Create new listings schema with status column
     - Drop existing listings table (DROP TABLE IF EXISTS listings)
     - Create listings table with new schema including: status enum, listing_type enum, produce_category_id FK, expiry_date, sold_at, transaction_id, expired_at, cancelled_at, cancelled_by, payment_method_preference enum, sale_channel enum, sale_price, sale_notes
     - Add CHECK constraints for status-specific timestamps
@@ -47,14 +47,14 @@ This implementation plan converts the enhanced listing status management design 
     - Implement for both PostgreSQL (with ENUM types) and SQLite (with TEXT + CHECK)
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 15.1, 15.2, 15.3, 15.4, 15.7, 18.1, 18.2, 18.3, 18.4, 19.6, 19.7_
   
-  - [ ] 2.2 Create listing_status_history table
+  - [x] 2.2 Create listing_status_history table
     - Create table with fields: id, listing_id FK, previous_status, new_status, changed_at, triggered_by, trigger_type, metadata (JSONB/TEXT)
     - Add indexes for listing_id and changed_at
     - Add CHECK constraint for trigger_type (USER, SYSTEM, TRANSACTION)
     - _Requirements: 12.1, 12.2, 12.3, 12.4_
 
-- [ ] 3. Implement core status management
-  - [ ] 3.1 Create ListingStatusManager service
+- [x] 3. Implement core status management
+  - [x] 3.1 Create ListingStatusManager service
     - Create `src/features/marketplace/listing-status-manager.ts`
     - Implement transitionStatus() with validation and audit trail recording
     - Implement validateTransition() with state machine rules
@@ -84,8 +84,8 @@ This implementation plan converts the enhanced listing status management design 
 - [ ] 4. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Implement automatic expiration service
-  - [ ] 5.1 Create ExpirationService
+- [x] 5. Implement automatic expiration service
+  - [x] 5.1 Create ExpirationService
     - Create `src/features/marketplace/expiration.service.ts`
     - Implement checkExpiredListings() to query ACTIVE listings where expiry_date < NOW()
     - Implement expireListing() to transition status to EXPIRED and record expired_at
@@ -105,8 +105,8 @@ This implementation plan converts the enhanced listing status management design 
     - Test scheduler setup and teardown
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 6. Implement transaction-listing status synchronization
-  - [ ] 6.1 Create StatusSynchronizer service
+- [x] 6. Implement transaction-listing status synchronization
+  - [x] 6.1 Create StatusSynchronizer service
     - Create `src/features/marketplace/status-synchronizer.ts`
     - Implement onTransactionCompleted() to transition listing to SOLD
     - Implement onTransactionCancelled() to return listing to ACTIVE (if expiry_date not passed) or EXPIRED
@@ -138,8 +138,8 @@ This implementation plan converts the enhanced listing status management design 
 - [ ] 7. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Update MarketplaceService for listing creation
-  - [ ] 8.1 Modify createListing() to require produce_category_id, listing_type, and payment_method_preference
+- [x] 8. Update MarketplaceService for listing creation
+  - [x] 8.1 Modify createListing() to require produce_category_id, listing_type, and payment_method_preference
     - Add validation for produce_category_id existence
     - Add validation for listing_type (PRE_HARVEST or POST_HARVEST)
     - Add validation for payment_method_preference (PLATFORM_ONLY, DIRECT_ONLY, BOTH)
@@ -161,8 +161,8 @@ This implementation plan converts the enhanced listing status management design 
     - Test expiry date calculation for PRE_HARVEST and POST_HARVEST
     - _Requirements: 1.2, 15.1, 15.2, 17.1, 17.5_
 
-- [ ] 9. Implement manual listing cancellation
-  - [ ] 9.1 Add cancelListing() method to MarketplaceService
+- [x] 9. Implement manual listing cancellation
+  - [x] 9.1 Add cancelListing() method to MarketplaceService
     - Validate listing is ACTIVE before cancellation
     - Check for active transactions (PAYMENT_LOCKED or later states)
     - Reject cancellation if active transaction exists
@@ -182,8 +182,8 @@ This implementation plan converts the enhanced listing status management design 
     - Test rejection of cancellation for non-ACTIVE listings
     - _Requirements: 8.1, 8.2, 8.4_
 
-- [ ] 9A. Implement manual sale confirmation
-  - [ ] 9A.1 Add markAsSold() method to ListingStatusManager
+- [x] 9A. Implement manual sale confirmation
+  - [x] 9A.1 Add markAsSold() method to ListingStatusManager
     - Accept listingId, saleChannel, and optional details (transactionId, salePrice, saleNotes)
     - Validate listing is ACTIVE before marking as sold
     - Validate saleChannel is PLATFORM_DIRECT or EXTERNAL
@@ -216,8 +216,8 @@ This implementation plan converts the enhanced listing status management design 
     - Test validation of required fields per channel
     - _Requirements: 19.1, 19.2, 19.3, 19.4, 19.9, 19.10_
 
-- [ ] 9B. Implement direct payment transaction flow
-  - [ ] 9B.1 Add COMPLETED_DIRECT state to TransactionService
+- [x] 9B. Implement direct payment transaction flow
+  - [x] 9B.1 Add COMPLETED_DIRECT state to TransactionService
     - Update transaction status enum to include COMPLETED_DIRECT
     - Add completeDirectPayment() method to TransactionService
     - Validate transaction is in ACCEPTED state
@@ -227,7 +227,7 @@ This implementation plan converts the enhanced listing status management design 
     - Skip PAYMENT_LOCKED, DISPATCHED, IN_TRANSIT, DELIVERED states
     - _Requirements: 20.1, 20.2, 20.3, 20.6, 20.7_
   
-  - [ ] 9B.2 Update StatusSynchronizer for COMPLETED_DIRECT
+  - [x] 9B.2 Update StatusSynchronizer for COMPLETED_DIRECT
     - Add onTransactionCompletedDirect() method
     - Listen for transaction COMPLETED_DIRECT event
     - Validate listing is ACTIVE
@@ -249,7 +249,7 @@ This implementation plan converts the enhanced listing status management design 
     - Test StatusSynchronizer updates listing correctly
     - _Requirements: 20.1, 20.2, 20.3, 20.4, 20.5_
 
-- [ ] 10. Implement bulk status operations
+- [-] 10. Implement bulk status operations
   - [ ] 10.1 Add bulkUpdateStatus() to ListingStatusManager
     - Accept array of listing IDs and target status
     - Validate each transition independently

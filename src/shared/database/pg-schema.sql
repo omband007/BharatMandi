@@ -59,6 +59,12 @@ ON CONFLICT (entity_type) DO NOTHING;
 -- Marketplace Tables
 -- ============================================================================
 
+-- Enum types for listings
+CREATE TYPE listing_status AS ENUM ('ACTIVE', 'SOLD', 'EXPIRED', 'CANCELLED');
+CREATE TYPE listing_type AS ENUM ('PRE_HARVEST', 'POST_HARVEST');
+CREATE TYPE payment_method_preference AS ENUM ('PLATFORM_ONLY', 'DIRECT_ONLY', 'BOTH');
+CREATE TYPE sale_channel AS ENUM ('PLATFORM_ESCROW', 'PLATFORM_DIRECT', 'EXTERNAL');
+
 -- Listings table
 CREATE TABLE IF NOT EXISTS listings (
   id VARCHAR(36) PRIMARY KEY,
@@ -68,15 +74,57 @@ CREATE TABLE IF NOT EXISTS listings (
   price_per_kg DECIMAL(10,2) NOT NULL,
   certificate_id VARCHAR(36) NOT NULL,
   expected_harvest_date TIMESTAMP,
-  is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (farmer_id) REFERENCES users(id) ON DELETE CASCADE
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  
+  -- Status tracking fields
+  status listing_status NOT NULL DEFAULT 'ACTIVE',
+  sold_at TIMESTAMP,
+  transaction_id VARCHAR(36),
+  expired_at TIMESTAMP,
+  cancelled_at TIMESTAMP,
+  cancelled_by VARCHAR(36),
+  
+  -- Perishability-based expiration fields
+  listing_type listing_type NOT NULL DEFAULT 'POST_HARVEST',
+  produce_category_id VARCHAR(36) NOT NULL,
+  expiry_date TIMESTAMP NOT NULL,
+  
+  -- Manual sale confirmation fields
+  payment_method_preference payment_method_preference NOT NULL DEFAULT 'BOTH',
+  sale_channel sale_channel,
+  sale_price DECIMAL(10,2),
+  sale_notes TEXT,
+  
+  -- Foreign keys
+  FOREIGN KEY (farmer_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (produce_category_id) REFERENCES produce_categories(id),
+  FOREIGN KEY (transaction_id) REFERENCES transactions(id),
+  FOREIGN KEY (cancelled_by) REFERENCES users(id),
+  
+  -- Constraints
+  CONSTRAINT chk_sold_at_when_sold 
+      CHECK ((status = 'SOLD' AND sold_at IS NOT NULL) OR status != 'SOLD'),
+  CONSTRAINT chk_expired_at_when_expired 
+      CHECK ((status = 'EXPIRED' AND expired_at IS NOT NULL) OR status != 'EXPIRED'),
+  CONSTRAINT chk_cancelled_at_when_cancelled 
+      CHECK ((status = 'CANCELLED' AND cancelled_at IS NOT NULL) OR status != 'CANCELLED')
 );
 
 -- Indexes for listings
 CREATE INDEX IF NOT EXISTS idx_listings_farmer ON listings(farmer_id);
-CREATE INDEX IF NOT EXISTS idx_listings_active ON listings(is_active);
+CREATE INDEX IF NOT EXISTS idx_listings_status ON listings(status);
+CREATE INDEX IF NOT EXISTS idx_listings_expiry_date_status ON listings(expiry_date, status) WHERE status = 'ACTIVE';
+CREATE INDEX IF NOT EXISTS idx_listings_category ON listings(produce_category_id);
 CREATE INDEX IF NOT EXISTS idx_listings_created_at ON listings(created_at);
+
+-- Comments for documentation
+COMMENT ON TABLE listings IS 'Marketplace listings with status tracking and perishability-based expiration';
+COMMENT ON COLUMN listings.status IS 'Current listing status: ACTIVE, SOLD, EXPIRED, or CANCELLED';
+COMMENT ON COLUMN listings.listing_type IS 'PRE_HARVEST (before harvest) or POST_HARVEST (after harvest)';
+COMMENT ON COLUMN listings.expiry_date IS 'Calculated as harvest_date + category.expiry_period_hours';
+COMMENT ON COLUMN listings.payment_method_preference IS 'Farmer preference: PLATFORM_ONLY, DIRECT_ONLY, or BOTH';
+COMMENT ON COLUMN listings.sale_channel IS 'How listing was sold: PLATFORM_ESCROW, PLATFORM_DIRECT, or EXTERNAL';
 
 -- Transactions table
 CREATE TABLE IF NOT EXISTS transactions (
@@ -181,3 +229,65 @@ EXECUTE FUNCTION update_listing_timestamp();
 INSERT INTO sync_status (entity_type, last_sync_status)
 VALUES ('listing_media', 'SUCCESS')
 ON CONFLICT (entity_type) DO NOTHING;
+
+-- ============================================================================
+-- Produce Categories Table
+-- ============================================================================
+
+-- Produce categories for perishability-based expiration
+CREATE TABLE IF NOT EXISTS produce_categories (
+    id VARCHAR(36) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    expiry_period_hours INTEGER NOT NULL CHECK (expiry_period_hours > 0 AND expiry_period_hours <= 8760),
+    description TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create index for name lookups
+CREATE INDEX IF NOT EXISTS idx_produce_categories_name ON produce_categories(name);
+
+-- Add comments for documentation
+COMMENT ON TABLE produce_categories IS 'Produce categories with expiry periods for automatic listing expiration';
+COMMENT ON COLUMN produce_categories.expiry_period_hours IS 'Hours after harvest when produce expires (1-8760 hours = 1 hour to 1 year)';
+
+-- Initialize sync status for produce_categories
+INSERT INTO sync_status (entity_type, last_sync_status)
+VALUES ('produce_categories', 'SUCCESS')
+ON CONFLICT (entity_type) DO NOTHING;
+
+-- ============================================================================
+-- Listing Status History Table
+-- ============================================================================
+
+-- Audit trail for listing status changes
+CREATE TABLE IF NOT EXISTS listing_status_history (
+    id VARCHAR(36) PRIMARY KEY,
+    listing_id VARCHAR(36) NOT NULL,
+    previous_status listing_status,
+    new_status listing_status NOT NULL,
+    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    triggered_by VARCHAR(255) NOT NULL, -- user_id or 'SYSTEM'
+    trigger_type VARCHAR(50) NOT NULL CHECK (trigger_type IN ('USER', 'SYSTEM', 'TRANSACTION')),
+    metadata JSONB, -- Additional context (e.g., transaction_id, reason)
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE CASCADE
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_status_history_listing ON listing_status_history(listing_id, changed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_status_history_changed_at ON listing_status_history(changed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_status_history_trigger_type ON listing_status_history(trigger_type);
+
+-- Add comments for documentation
+COMMENT ON TABLE listing_status_history IS 'Audit trail for listing status changes. Retain for at least 2 years.';
+COMMENT ON COLUMN listing_status_history.triggered_by IS 'User ID who triggered the change, or SYSTEM for automated changes';
+COMMENT ON COLUMN listing_status_history.trigger_type IS 'USER (manual), SYSTEM (automated), or TRANSACTION (transaction-driven)';
+COMMENT ON COLUMN listing_status_history.metadata IS 'Additional context as JSON (e.g., transaction_id, cancellation_reason)';
+
+-- Initialize sync status for listing_status_history
+INSERT INTO sync_status (entity_type, last_sync_status)
+VALUES ('listing_status_history', 'SUCCESS')
+ON CONFLICT (entity_type) DO NOTHING;
+
+

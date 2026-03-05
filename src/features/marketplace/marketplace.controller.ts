@@ -56,15 +56,19 @@ function getMediaService(): MediaService {
  */
 router.post('/listings', async (req: Request, res: Response) => {
   try {
-    const { farmerId, produceType, quantity, pricePerKg, certificateId } = req.body;
+    const { farmerId, produceType, quantity, pricePerKg, certificateId, expectedHarvestDate, produceCategoryId, listingType, paymentMethodPreference } = req.body;
 
-    const listing = await marketplaceService.createListing(
+    const listing = await marketplaceService.createListing({
       farmerId,
       produceType,
       quantity,
       pricePerKg,
-      certificateId
-    );
+      certificateId,
+      expectedHarvestDate: expectedHarvestDate ? new Date(expectedHarvestDate) : undefined,
+      produceCategoryId,
+      listingType,
+      paymentMethodPreference
+    });
 
     res.status(201).json(listing);
   } catch (error) {
@@ -81,17 +85,21 @@ router.post('/listings', async (req: Request, res: Response) => {
  */
 router.post('/listings/with-media', upload.array('media', 10), async (req: Request, res: Response) => {
   try {
-    const { farmerId, produceType, quantity, pricePerKg, certificateId } = req.body;
+    const { farmerId, produceType, quantity, pricePerKg, certificateId, expectedHarvestDate, produceCategoryId, listingType, paymentMethodPreference } = req.body;
     const files = req.files as Express.Multer.File[];
 
     // 1. Create the listing first
-    const listing = await marketplaceService.createListing(
+    const listing = await marketplaceService.createListing({
       farmerId,
       produceType,
       quantity,
       pricePerKg,
-      certificateId
-    );
+      certificateId,
+      expectedHarvestDate: expectedHarvestDate ? new Date(expectedHarvestDate) : undefined,
+      produceCategoryId,
+      listingType,
+      paymentMethodPreference
+    });
 
     // 2. Upload media files if provided
     const mediaResults = [];
@@ -206,18 +214,16 @@ router.get('/listings/:id', async (req: Request, res: Response) => {
 router.put('/listings/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { produceType, quantity, pricePerKg, isActive } = req.body;
+    const { quantity, pricePerKg } = req.body;
 
     // Validate required fields
-    if (produceType === undefined && quantity === undefined && pricePerKg === undefined && isActive === undefined) {
+    if (quantity === undefined && pricePerKg === undefined) {
       return res.status(400).json({ error: 'At least one field must be provided for update' });
     }
 
     const updates: any = {};
-    if (produceType !== undefined) updates.produceType = produceType;
     if (quantity !== undefined) updates.quantity = quantity;
     if (pricePerKg !== undefined) updates.pricePerKg = pricePerKg;
-    if (isActive !== undefined) updates.isActive = isActive;
 
     const updatedListing = await marketplaceService.updateListing(id, updates);
     
@@ -234,7 +240,7 @@ router.put('/listings/:id', async (req: Request, res: Response) => {
 
 /**
  * DELETE /api/marketplace/listings/:id
- * Delete a listing and all associated media
+ * Cancel a listing (sets status to CANCELLED)
  */
 router.delete('/listings/:id', async (req: Request, res: Response) => {
   try {
@@ -250,33 +256,16 @@ router.delete('/listings/:id', async (req: Request, res: Response) => {
 
     // Verify ownership (optional - add if you want authorization)
     if (userId && listing.farmerId !== userId) {
-      return res.status(403).json({ error: 'Unauthorized to delete this listing' });
+      return res.status(403).json({ error: 'Unauthorized to cancel this listing' });
     }
 
-    // Delete all associated media first
-    try {
-      const mediaService = getMediaService();
-      const mediaList = await mediaService.getListingMedia(id);
-      
-      for (const media of mediaList) {
-        await mediaService.deleteMedia(id, media.id, userId || listing.farmerId);
-      }
-    } catch (mediaError) {
-      console.error('[Marketplace] Error deleting media:', mediaError);
-      // Continue with listing deletion even if media deletion fails
-    }
-
-    // Delete the listing by setting isActive to false
-    const deletedListing = await marketplaceService.updateListing(id, { isActive: false });
+    // Cancel the listing using the new status management
+    const cancelledListing = await marketplaceService.cancelListing(id, userId || listing.farmerId);
     
-    if (!deletedListing) {
-      return res.status(404).json({ error: 'Failed to delete listing' });
-    }
-
-    res.json({ success: true, message: 'Listing deleted successfully' });
+    res.json({ success: true, message: 'Listing cancelled successfully', listing: cancelledListing });
   } catch (error) {
-    console.error('[Marketplace] Error deleting listing:', error);
-    res.status(500).json({ error: 'Failed to delete listing' });
+    console.error('[Marketplace] Error cancelling listing:', error);
+    res.status(500).json({ error: 'Failed to cancel listing' });
   }
 });
 

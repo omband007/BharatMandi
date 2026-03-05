@@ -3,6 +3,7 @@ import express from 'express';
 import { marketplaceController } from '../marketplace.controller';
 import { marketplaceService } from '../marketplace.service';
 import type { Listing, TranslatedListing } from '../marketplace.types';
+import { ListingStatus, ListingType, PaymentMethodPreference } from '../marketplace.types';
 
 // Mock the marketplace service
 jest.mock('../marketplace.service', () => ({
@@ -34,7 +35,12 @@ describe('Marketplace Controller - Batch Translation Integration', () => {
           pricePerKg: 30,
           certificateId: 'cert1',
           createdAt: new Date(),
-          isActive: true,
+          updatedAt: new Date(),
+          status: ListingStatus.ACTIVE,
+          listingType: ListingType.POST_HARVEST,
+          produceCategoryId: 'cat-1',
+          expiryDate: new Date(Date.now() + 86400000),
+          paymentMethodPreference: PaymentMethodPreference.BOTH,
         },
       ];
 
@@ -53,7 +59,7 @@ describe('Marketplace Controller - Batch Translation Integration', () => {
         quantity: 100,
         pricePerKg: 30,
         certificateId: 'cert1',
-        isActive: true,
+        status: ListingStatus.ACTIVE,
       });
       expect(marketplaceService.getActiveListings).toHaveBeenCalledTimes(1);
       expect(marketplaceService.getTranslatedListings).not.toHaveBeenCalled();
@@ -75,7 +81,12 @@ describe('Marketplace Controller - Batch Translation Integration', () => {
           pricePerKg: 30,
           certificateId: 'cert1',
           createdAt: new Date(),
-          isActive: true,
+          updatedAt: new Date(),
+          status: ListingStatus.ACTIVE,
+          listingType: ListingType.POST_HARVEST,
+          produceCategoryId: 'cat-1',
+          expiryDate: new Date(Date.now() + 86400000),
+          paymentMethodPreference: PaymentMethodPreference.BOTH,
         },
         {
           id: '2',
@@ -90,7 +101,12 @@ describe('Marketplace Controller - Batch Translation Integration', () => {
           pricePerKg: 20,
           certificateId: 'cert2',
           createdAt: new Date(),
-          isActive: true,
+          updatedAt: new Date(),
+          status: ListingStatus.ACTIVE,
+          listingType: ListingType.POST_HARVEST,
+          produceCategoryId: 'cat-1',
+          expiryDate: new Date(Date.now() + 86400000),
+          paymentMethodPreference: PaymentMethodPreference.BOTH,
         },
       ];
 
@@ -140,7 +156,12 @@ describe('Marketplace Controller - Batch Translation Integration', () => {
           pricePerKg: 30,
           certificateId: 'cert1',
           createdAt: new Date(),
-          isActive: true,
+          updatedAt: new Date(),
+          status: ListingStatus.ACTIVE,
+          listingType: ListingType.POST_HARVEST,
+          produceCategoryId: 'cat-1',
+          expiryDate: new Date(Date.now() + 86400000),
+          paymentMethodPreference: PaymentMethodPreference.BOTH,
         },
       ];
 

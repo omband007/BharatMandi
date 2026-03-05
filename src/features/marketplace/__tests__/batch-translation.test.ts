@@ -1,6 +1,7 @@
 import { MarketplaceService } from '../marketplace.service';
 import { translationService } from '../../i18n/translation.service';
 import type { Listing } from '../marketplace.types';
+import { ListingStatus, ListingType, PaymentMethodPreference } from '../marketplace.types';
 import type { DatabaseManager } from '../../../shared/database/db-abstraction';
 
 // Mock the translation service
@@ -18,6 +19,9 @@ const mockDbManager = {
   getListing: jest.fn(),
   createListing: jest.fn(),
   updateListing: jest.fn(),
+  get: jest.fn(),
+  all: jest.fn(),
+  run: jest.fn(),
 } as unknown as DatabaseManager;
 
 (global as any).sharedDbManager = mockDbManager;
@@ -32,41 +36,57 @@ describe('MarketplaceService - Batch Translation', () => {
 
   describe('getTranslatedListings', () => {
     it('should batch translate all listings in one call', async () => {
-      // Arrange
-      const mockListings: Listing[] = [
+      // Arrange - Mock database rows (not Listing objects)
+      const mockRows = [
         {
           id: '1',
-          farmerId: 'farmer1',
-          produceType: 'Tomatoes',
+          farmer_id: 'farmer1',
+          produce_type: 'Tomatoes',
           quantity: 100,
-          pricePerKg: 30,
-          certificateId: 'cert1',
-          createdAt: new Date(),
-          isActive: true,
+          price_per_kg: 30,
+          certificate_id: 'cert1',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          status: ListingStatus.ACTIVE,
+          listing_type: ListingType.POST_HARVEST,
+          produce_category_id: 'cat-1',
+          expiry_date: new Date(Date.now() + 86400000).toISOString(),
+          payment_method_preference: PaymentMethodPreference.BOTH,
         },
         {
           id: '2',
-          farmerId: 'farmer2',
-          produceType: 'Potatoes',
+          farmer_id: 'farmer2',
+          produce_type: 'Potatoes',
           quantity: 200,
-          pricePerKg: 20,
-          certificateId: 'cert2',
-          createdAt: new Date(),
-          isActive: true,
+          price_per_kg: 20,
+          certificate_id: 'cert2',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          status: ListingStatus.ACTIVE,
+          listing_type: ListingType.POST_HARVEST,
+          produce_category_id: 'cat-1',
+          expiry_date: new Date(Date.now() + 86400000).toISOString(),
+          payment_method_preference: PaymentMethodPreference.BOTH,
         },
         {
           id: '3',
-          farmerId: 'farmer3',
-          produceType: 'Onions',
+          farmer_id: 'farmer3',
+          produce_type: 'Onions',
           quantity: 150,
-          pricePerKg: 25,
-          certificateId: 'cert3',
-          createdAt: new Date(),
-          isActive: true,
+          price_per_kg: 25,
+          certificate_id: 'cert3',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          status: ListingStatus.ACTIVE,
+          listing_type: ListingType.POST_HARVEST,
+          produce_category_id: 'cat-1',
+          expiry_date: new Date(Date.now() + 86400000).toISOString(),
+          payment_method_preference: PaymentMethodPreference.BOTH,
         },
       ];
 
-      (mockDbManager.getActiveListings as jest.Mock).mockResolvedValue(mockListings);
+      // Mock dbManager.all() to return rows (used by getListingsByStatus)
+      (mockDbManager.all as jest.Mock).mockResolvedValue(mockRows);
       (translationService.detectLanguage as jest.Mock).mockResolvedValue('en');
       (translationService.translateBatch as jest.Mock).mockResolvedValue([
         'टमाटर',
@@ -78,7 +98,7 @@ describe('MarketplaceService - Batch Translation', () => {
       const result = await service.getTranslatedListings('hi');
 
       // Assert
-      expect(mockDbManager.getActiveListings).toHaveBeenCalledTimes(1);
+      expect(mockDbManager.all).toHaveBeenCalledTimes(1);
       expect(translationService.detectLanguage).toHaveBeenCalledWith('Tomatoes');
       expect(translationService.translateBatch).toHaveBeenCalledTimes(1);
       expect(translationService.translateBatch).toHaveBeenCalledWith(
@@ -96,21 +116,26 @@ describe('MarketplaceService - Batch Translation', () => {
     });
 
     it('should skip translation when source and target languages are the same', async () => {
-      // Arrange
-      const mockListings: Listing[] = [
+      // Arrange - Mock database rows
+      const mockRows = [
         {
           id: '1',
-          farmerId: 'farmer1',
-          produceType: 'Tomatoes',
+          farmer_id: 'farmer1',
+          produce_type: 'Tomatoes',
           quantity: 100,
-          pricePerKg: 30,
-          certificateId: 'cert1',
-          createdAt: new Date(),
-          isActive: true,
+          price_per_kg: 30,
+          certificate_id: 'cert1',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          status: ListingStatus.ACTIVE,
+          listing_type: ListingType.POST_HARVEST,
+          produce_category_id: 'cat-1',
+          expiry_date: new Date(Date.now() + 86400000).toISOString(),
+          payment_method_preference: PaymentMethodPreference.BOTH,
         },
       ];
 
-      (mockDbManager.getActiveListings as jest.Mock).mockResolvedValue(mockListings);
+      (mockDbManager.all as jest.Mock).mockResolvedValue(mockRows);
       (translationService.detectLanguage as jest.Mock).mockResolvedValue('en');
 
       // Act
@@ -124,7 +149,7 @@ describe('MarketplaceService - Batch Translation', () => {
 
     it('should return empty array when no listings exist', async () => {
       // Arrange
-      (mockDbManager.getActiveListings as jest.Mock).mockResolvedValue([]);
+      (mockDbManager.all as jest.Mock).mockResolvedValue([]);
 
       // Act
       const result = await service.getTranslatedListings('hi');
@@ -135,21 +160,26 @@ describe('MarketplaceService - Batch Translation', () => {
     });
 
     it('should reduce API calls by batching (performance test)', async () => {
-      // Arrange - Create 30 listings to test batching
-      const mockListings: Listing[] = Array.from({ length: 30 }, (_, i) => ({
+      // Arrange - Create 30 database rows to test batching
+      const mockRows = Array.from({ length: 30 }, (_, i) => ({
         id: `listing-${i}`,
-        farmerId: `farmer-${i}`,
-        produceType: `Produce ${i}`,
+        farmer_id: `farmer-${i}`,
+        produce_type: `Produce ${i}`,
         quantity: 100,
-        pricePerKg: 30,
-        certificateId: `cert-${i}`,
-        createdAt: new Date(),
-        isActive: true,
+        price_per_kg: 30,
+        certificate_id: `cert-${i}`,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        status: ListingStatus.ACTIVE,
+        listing_type: ListingType.POST_HARVEST,
+        produce_category_id: 'cat-1',
+        expiry_date: new Date(Date.now() + 86400000).toISOString(),
+        payment_method_preference: PaymentMethodPreference.BOTH,
       }));
 
       const translatedTexts = Array.from({ length: 30 }, (_, i) => `उत्पाद ${i}`);
 
-      (mockDbManager.getActiveListings as jest.Mock).mockResolvedValue(mockListings);
+      (mockDbManager.all as jest.Mock).mockResolvedValue(mockRows);
       (translationService.detectLanguage as jest.Mock).mockResolvedValue('en');
       (translationService.translateBatch as jest.Mock).mockResolvedValue(translatedTexts);
 
@@ -171,21 +201,26 @@ describe('MarketplaceService - Batch Translation', () => {
     });
 
     it('should handle translation errors gracefully', async () => {
-      // Arrange
-      const mockListings: Listing[] = [
+      // Arrange - Mock database rows
+      const mockRows = [
         {
           id: '1',
-          farmerId: 'farmer1',
-          produceType: 'Tomatoes',
+          farmer_id: 'farmer1',
+          produce_type: 'Tomatoes',
           quantity: 100,
-          pricePerKg: 30,
-          certificateId: 'cert1',
-          createdAt: new Date(),
-          isActive: true,
+          price_per_kg: 30,
+          certificate_id: 'cert1',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          status: ListingStatus.ACTIVE,
+          listing_type: ListingType.POST_HARVEST,
+          produce_category_id: 'cat-1',
+          expiry_date: new Date(Date.now() + 86400000).toISOString(),
+          payment_method_preference: PaymentMethodPreference.BOTH,
         },
       ];
 
-      (mockDbManager.getActiveListings as jest.Mock).mockResolvedValue(mockListings);
+      (mockDbManager.all as jest.Mock).mockResolvedValue(mockRows);
       (translationService.detectLanguage as jest.Mock).mockResolvedValue('en');
       (translationService.translateBatch as jest.Mock).mockRejectedValue(
         new Error('Translation service unavailable')
@@ -198,3 +233,4 @@ describe('MarketplaceService - Batch Translation', () => {
     });
   });
 });
+

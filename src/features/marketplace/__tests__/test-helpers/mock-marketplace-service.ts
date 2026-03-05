@@ -6,6 +6,7 @@
  */
 
 import type { Listing } from '../../marketplace.types';
+import { ListingStatus, ListingType, PaymentMethodPreference } from '../../marketplace.types';
 import type { MediaUploadResponse } from '../../media.types';
 
 /**
@@ -40,7 +41,12 @@ export function configureMockMarketplaceService(mockService: ReturnType<typeof c
     pricePerKg: 50,
     certificateId: 'test-cert-id',
     createdAt: new Date('2024-01-01T00:00:00.000Z'),
-    isActive: true
+    updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+    status: ListingStatus.ACTIVE,
+    listingType: ListingType.POST_HARVEST,
+    produceCategoryId: 'cat-1',
+    expiryDate: new Date('2024-01-02T00:00:00.000Z'),
+    paymentMethodPreference: PaymentMethodPreference.BOTH
   } as Listing);
 
   mockService.getActiveListings.mockResolvedValue([
@@ -52,7 +58,12 @@ export function configureMockMarketplaceService(mockService: ReturnType<typeof c
       pricePerKg: 50,
       certificateId: 'test-cert-id',
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
-      isActive: true
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      status: ListingStatus.ACTIVE,
+      listingType: ListingType.POST_HARVEST,
+      produceCategoryId: 'cat-1',
+      expiryDate: new Date('2024-01-02T00:00:00.000Z'),
+      paymentMethodPreference: PaymentMethodPreference.BOTH
     }
   ] as Listing[]);
 
@@ -64,7 +75,12 @@ export function configureMockMarketplaceService(mockService: ReturnType<typeof c
     pricePerKg: 50,
     certificateId: 'test-cert-id',
     createdAt: new Date('2024-01-01T00:00:00.000Z'),
-    isActive: true
+    updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+    status: ListingStatus.ACTIVE,
+    listingType: ListingType.POST_HARVEST,
+    produceCategoryId: 'cat-1',
+    expiryDate: new Date('2024-01-02T00:00:00.000Z'),
+    paymentMethodPreference: PaymentMethodPreference.BOTH
   } as Listing);
 }
 

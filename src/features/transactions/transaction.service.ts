@@ -103,6 +103,52 @@ export class TransactionService {
     return { transaction: updatedTransaction, escrow: updatedEscrow };
   }
 
+  // Complete direct payment (skip escrow flow)
+  // Requirements: 20.1, 20.2, 20.3, 20.6, 20.7
+  async completeDirectPayment(transactionId: string): Promise<Transaction> {
+    const dbManager = getDbManager();
+
+    // Get transaction
+    const transaction = await this.getTransaction(transactionId);
+    if (!transaction) {
+      throw new Error(`Transaction with ID "${transactionId}" not found`);
+    }
+
+    // Validate transaction is in ACCEPTED state
+    if (transaction.status !== TransactionStatus.ACCEPTED) {
+      throw new Error(
+        `Cannot complete direct payment. Transaction status is ${transaction.status}, must be ACCEPTED`
+      );
+    }
+
+    // Get listing to validate payment_method_preference
+    const listing = await dbManager.get('SELECT * FROM listings WHERE id = ?', [transaction.listingId]);
+    if (!listing) {
+      throw new Error(`Listing with ID "${transaction.listingId}" not found`);
+    }
+
+    // Validate listing payment_method_preference allows direct payment
+    if (listing.payment_method_preference === 'PLATFORM_ONLY') {
+      throw new Error(
+        'Cannot complete direct payment. Listing only accepts platform payments (escrow)'
+      );
+    }
+
+    // Transition transaction to COMPLETED_DIRECT
+    const updatedTransaction = await dbManager.updateTransaction(transactionId, {
+      status: TransactionStatus.COMPLETED_DIRECT,
+      completedAt: new Date()
+    });
+
+    if (!updatedTransaction) {
+      throw new Error('Failed to update transaction status');
+    }
+
+    console.log(`[TransactionService] Transaction ${transactionId} completed via direct payment`);
+
+    return updatedTransaction;
+  }
+
   async getTransaction(id: string): Promise<Transaction | undefined> {
     return await getDbManager().getTransaction(id);
   }

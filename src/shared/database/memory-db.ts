@@ -60,7 +60,7 @@ class MemoryDatabase {
   }
 
   getActiveListings(): Listing[] {
-    return Array.from(this.listings.values()).filter(l => l.isActive);
+    return Array.from(this.listings.values()).filter(l => l.status === 'ACTIVE');
   }
 
   updateListing(id: string, updates: Partial<Listing>): Listing | undefined {

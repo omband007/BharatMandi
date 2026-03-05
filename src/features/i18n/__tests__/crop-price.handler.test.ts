@@ -1,6 +1,7 @@
 import { CropPriceHandler } from '../handlers/crop-price.handler';
 import type { DatabaseManager } from '../../../shared/database/db-abstraction';
 import type { Listing } from '../../marketplace/marketplace.types';
+import { ListingStatus, ListingType, PaymentMethodPreference } from '../../marketplace/marketplace.types';
 import { translationService } from '../translation.service';
 
 // Mock translation service
@@ -31,7 +32,12 @@ describe('CropPriceHandler', () => {
       pricePerKg,
       certificateId: 'cert-1',
       createdAt,
-      isActive: true,
+      updatedAt: createdAt,
+      status: ListingStatus.ACTIVE,
+      listingType: ListingType.POST_HARVEST,
+      produceCategoryId: 'cat-1',
+      expiryDate: new Date(Date.now() + 86400000),
+      paymentMethodPreference: PaymentMethodPreference.BOTH,
     };
   };
 
