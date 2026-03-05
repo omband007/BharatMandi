@@ -477,6 +477,8 @@
                                 📍
                             </button>
                         </div>
+                        <input type="hidden" id="editLatitude">
+                        <input type="hidden" id="editLongitude">
                     </div>
                     <div class="form-group">
                         <label>Language Preference</label>
@@ -673,7 +675,25 @@
             
             verifyOTP.addEventListener('input', checkVerifyFields);
             verifyName.addEventListener('input', checkVerifyFields);
-            verifyLocationText.addEventListener('input', checkVerifyFields);
+            verifyLocationText.addEventListener('input', () => {
+                // Clear GPS coordinates when user manually edits location text
+                // This ensures manual edits are saved as 'manual' type, not 'gps'
+                const currentText = verifyLocationText.value.trim();
+                const lat = document.getElementById('verifyLatitude').value;
+                const lon = document.getElementById('verifyLongitude').value;
+                
+                // If hidden fields have GPS coordinates, check if text still matches
+                if (lat && lon) {
+                    const gpsText = `${parseFloat(lat).toFixed(6)}, ${parseFloat(lon).toFixed(6)}`;
+                    // If user changed the GPS text, clear the hidden fields
+                    if (currentText !== gpsText) {
+                        document.getElementById('verifyLatitude').value = '';
+                        document.getElementById('verifyLongitude').value = '';
+                    }
+                }
+                
+                checkVerifyFields();
+            });
             
             // Tile 3: Setup PIN button
             const setupPin = document.getElementById('setupPin');
@@ -819,6 +839,17 @@
                     
                     // Set location text to coordinates
                     document.getElementById('verifyLocationText').value = `${lat}, ${lon}`;
+                    
+                    // Manually trigger validation check since programmatic changes don't fire 'input' event
+                    const verifyOTP = document.getElementById('verifyOTP');
+                    const verifyName = document.getElementById('verifyName');
+                    const verifyLocationText = document.getElementById('verifyLocationText');
+                    const verifyOTPBtn = document.getElementById('verifyOTPBtn');
+                    
+                    const hasOTP = verifyOTP.value.trim().length === 6;
+                    const hasName = verifyName.value.trim().length >= 2;
+                    const hasLocation = verifyLocationText.value.trim().length >= 3;
+                    verifyOTPBtn.disabled = !(hasOTP && hasName && hasLocation);
                     
                     showResult('verifyResult', '✅ Location captured!', false);
                 },
@@ -1184,17 +1215,52 @@
                 if (currentProfile.location.addressLine1) {
                     locationText = currentProfile.location.addressLine1;
                     console.log('[Profile] Using addressLine1:', locationText);
+                    // Clear GPS hidden fields for manual location
+                    document.getElementById('editLatitude').value = '';
+                    document.getElementById('editLongitude').value = '';
                 } else if (currentProfile.location.latitude && currentProfile.location.longitude) {
                     locationText = `${currentProfile.location.latitude}, ${currentProfile.location.longitude}`;
                     console.log('[Profile] Using lat/lng:', locationText);
+                    // Populate GPS hidden fields
+                    document.getElementById('editLatitude').value = currentProfile.location.latitude;
+                    document.getElementById('editLongitude').value = currentProfile.location.longitude;
                 } else {
                     console.warn('[Profile] Location object exists but no addressLine1 or coordinates found');
+                    // Clear GPS hidden fields
+                    document.getElementById('editLatitude').value = '';
+                    document.getElementById('editLongitude').value = '';
                 }
             } else {
                 console.warn('[Profile] currentProfile.location is null/undefined');
+                // Clear GPS hidden fields
+                document.getElementById('editLatitude').value = '';
+                document.getElementById('editLongitude').value = '';
             }
             console.log('[Profile] Setting editLocation value to:', locationText);
             document.getElementById('editLocation').value = locationText;
+            
+            // Add event listener to clear GPS coordinates when user manually edits location
+            // Remove any existing listener first to avoid duplicates
+            const editLocationField = document.getElementById('editLocation');
+            const newEditLocationField = editLocationField.cloneNode(true);
+            editLocationField.parentNode.replaceChild(newEditLocationField, editLocationField);
+            
+            newEditLocationField.addEventListener('input', () => {
+                const currentText = newEditLocationField.value.trim();
+                const lat = document.getElementById('editLatitude').value;
+                const lon = document.getElementById('editLongitude').value;
+                
+                // If hidden fields have GPS coordinates, check if text still matches
+                if (lat && lon) {
+                    const gpsText = `${parseFloat(lat).toFixed(6)}, ${parseFloat(lon).toFixed(6)}`;
+                    // If user changed the GPS text, clear the hidden fields
+                    if (currentText !== gpsText) {
+                        console.log('[Profile] User edited GPS location, clearing hidden fields');
+                        document.getElementById('editLatitude').value = '';
+                        document.getElementById('editLongitude').value = '';
+                    }
+                }
+            });
             
             // Optional fields
             document.getElementById('editLanguage').value = currentProfile.languagePreference || '';
@@ -1238,7 +1304,14 @@
                 (position) => {
                     const lat = position.coords.latitude.toFixed(6);
                     const lon = position.coords.longitude.toFixed(6);
+                    
+                    // Store coordinates in hidden fields
+                    document.getElementById('editLatitude').value = lat;
+                    document.getElementById('editLongitude').value = lon;
+                    
+                    // Set location text to coordinates
                     document.getElementById('editLocation').value = `${lat}, ${lon}`;
+                    
                     showResult('profileResult', '✅ Location captured!', false);
                 },
                 (error) => {
@@ -1267,17 +1340,33 @@
             const name = document.getElementById('editName').value.trim();
             const userType = document.querySelector('input[name="editUserType"]:checked')?.value;
             const location = document.getElementById('editLocation').value.trim();
+            const latitude = document.getElementById('editLatitude').value;
+            const longitude = document.getElementById('editLongitude').value;
             const language = document.getElementById('editLanguage').value;
             const cropsText = document.getElementById('editCrops').value.trim();
             const farmSizeValue = document.getElementById('editFarmSizeValue').value;
             const farmSizeUnit = document.getElementById('editFarmSizeUnit').value;
 
-            console.log('[Profile] Form values:', { name, userType, location, language, cropsText, farmSizeValue });
+            console.log('[Profile] Form values:', { name, userType, location, latitude, longitude, language, cropsText, farmSizeValue });
 
             // Validate mandatory fields
             if (!name || !userType || !location) {
                 showResult('profileResult', '❌ Name, User Type, and Location are required', true);
                 return;
+            }
+
+            // Determine location type based on whether coordinates are present
+            let locationValue;
+            if (latitude && longitude) {
+                locationValue = { 
+                    type: 'gps', 
+                    latitude: parseFloat(latitude), 
+                    longitude: parseFloat(longitude) 
+                };
+                console.log('[Profile] Sending GPS location:', locationValue);
+            } else {
+                locationValue = { type: 'manual', text: location };
+                console.log('[Profile] Sending manual location:', locationValue);
             }
 
             try {
@@ -1312,7 +1401,7 @@
                 updates.push(
                     apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
                         fieldName: 'location',
-                        value: { type: 'manual', text: location }
+                        value: locationValue
                     }).catch(err => {
                         console.error('[Profile] Location update failed:', err);
                         return { error: 'location', message: err.message };
