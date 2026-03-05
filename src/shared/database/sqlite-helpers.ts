@@ -393,8 +393,9 @@ export async function createListing(listing: any): Promise<any> {
   await db.run(
     `INSERT INTO listings (
       id, farmer_id, produce_type, quantity, price_per_kg, 
-      certificate_id, expected_harvest_date, is_active, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      certificate_id, expected_harvest_date, created_at, updated_at,
+      status, listing_type, produce_category_id, expiry_date, payment_method_preference
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       listing.id,
       listing.farmerId,
@@ -403,8 +404,13 @@ export async function createListing(listing: any): Promise<any> {
       listing.pricePerKg,
       listing.certificateId,
       listing.expectedHarvestDate?.toISOString() || null,
-      listing.isActive ? 1 : 0,
-      listing.createdAt.toISOString()
+      listing.createdAt.toISOString(),
+      listing.updatedAt.toISOString(),
+      listing.status || 'ACTIVE',
+      listing.listingType || 'POST_HARVEST',
+      listing.produceCategoryId,
+      listing.expiryDate.toISOString(),
+      listing.paymentMethodPreference || 'BOTH'
     ]
   );
   return listing;
@@ -418,7 +424,7 @@ export async function getListing(id: string): Promise<any | undefined> {
 
 export async function getActiveListings(): Promise<any[]> {
   const db = getSQLiteDB();
-  const rows = await db.all('SELECT * FROM listings WHERE is_active = 1 ORDER BY created_at DESC');
+  const rows = await db.all("SELECT * FROM listings WHERE status = 'ACTIVE' ORDER BY created_at DESC");
   return rows.map(mapRowToListing);
 }
 
@@ -435,9 +441,9 @@ export async function updateListing(id: string, updates: any): Promise<any | und
     fields.push('price_per_kg = ?');
     values.push(updates.pricePerKg);
   }
-  if (updates.isActive !== undefined) {
-    fields.push('is_active = ?');
-    values.push(updates.isActive ? 1 : 0);
+  if (updates.status !== undefined) {
+    fields.push('status = ?');
+    values.push(updates.status);
   }
   if (updates.expectedHarvestDate !== undefined) {
     fields.push('expected_harvest_date = ?');
@@ -463,8 +469,21 @@ function mapRowToListing(row: any): any {
     pricePerKg: row.price_per_kg,
     certificateId: row.certificate_id,
     expectedHarvestDate: row.expected_harvest_date ? new Date(row.expected_harvest_date) : undefined,
-    isActive: row.is_active === 1,
-    createdAt: new Date(row.created_at)
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+    status: row.status,
+    soldAt: row.sold_at ? new Date(row.sold_at) : undefined,
+    transactionId: row.transaction_id,
+    expiredAt: row.expired_at ? new Date(row.expired_at) : undefined,
+    cancelledAt: row.cancelled_at ? new Date(row.cancelled_at) : undefined,
+    cancelledBy: row.cancelled_by,
+    listingType: row.listing_type,
+    produceCategoryId: row.produce_category_id,
+    expiryDate: new Date(row.expiry_date),
+    paymentMethodPreference: row.payment_method_preference,
+    saleChannel: row.sale_channel,
+    salePrice: row.sale_price,
+    saleNotes: row.sale_notes
   };
 }
 
