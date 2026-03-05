@@ -331,7 +331,7 @@
                     <label>Location <span style="color: red;">*</span></label>
                     <div style="display: flex; gap: 10px;">
                         <input type="text" id="verifyLocationText" placeholder="e.g., Agra, Uttar Pradesh" style="flex: 1;">
-                        <button type="button" onclick="fillCurrentLocation()" title="Use my current GPS location" style="width: auto; padding: 10px 15px; background: #28a745; margin-top: 0;">
+                        <button type="button" id="gpsButtonRegister" onclick="fillCurrentLocation()" title="Use my current GPS location" style="width: auto; padding: 10px 15px; background: #28a745; margin-top: 0; transition: background 0.3s;">
                             📍
                         </button>
                     </div>
@@ -473,7 +473,7 @@
                         <label>Location <span style="color: red;">*</span></label>
                         <div style="display: flex; gap: 10px;">
                             <input type="text" id="editLocation" placeholder="e.g., Agra, Uttar Pradesh" style="flex: 1;">
-                            <button type="button" onclick="fillEditLocation()" title="Use my current GPS location" style="width: auto; padding: 10px 15px; background: #28a745; margin-top: 0;">
+                            <button type="button" id="gpsButtonEdit" onclick="fillEditLocation()" title="Use my current GPS location" style="width: auto; padding: 10px 15px; background: #28a745; margin-top: 0; transition: background 0.3s;">
                                 📍
                             </button>
                         </div>
@@ -554,6 +554,22 @@
         let sessionUserId = null;
         let authToken = null; // Store token after login
         let loggedInUserName = null; // Store user name after login
+
+        // Helper function to update GPS button state
+        function updateGPSButtonState(buttonId, isActive) {
+            const button = document.getElementById(buttonId);
+            if (!button) return;
+            
+            if (isActive) {
+                // GPS is active - blue color
+                button.style.background = '#007bff';
+                button.title = 'GPS location active - Click to refresh';
+            } else {
+                // GPS is inactive - green color
+                button.style.background = '#28a745';
+                button.title = 'Use my current GPS location';
+            }
+        }
 
         function showResult(elementId, data, isError = false) {
             const element = document.getElementById(elementId);
@@ -689,6 +705,8 @@
                     if (currentText !== gpsText) {
                         document.getElementById('verifyLatitude').value = '';
                         document.getElementById('verifyLongitude').value = '';
+                        // Update GPS button to inactive state (green)
+                        updateGPSButtonState('gpsButtonRegister', false);
                     }
                 }
                 
@@ -839,6 +857,9 @@
                     
                     // Set location text to coordinates
                     document.getElementById('verifyLocationText').value = `${lat}, ${lon}`;
+                    
+                    // Update GPS button to active state (blue)
+                    updateGPSButtonState('gpsButtonRegister', true);
                     
                     // Manually trigger validation check since programmatic changes don't fire 'input' event
                     const verifyOTP = document.getElementById('verifyOTP');
@@ -1211,6 +1232,8 @@
             // Location
             console.log('[Profile] currentProfile.location:', currentProfile.location);
             let locationText = '';
+            let hasGPSCoordinates = false;
+            
             if (currentProfile.location) {
                 if (currentProfile.location.addressLine1) {
                     locationText = currentProfile.location.addressLine1;
@@ -1218,26 +1241,33 @@
                     // Clear GPS hidden fields for manual location
                     document.getElementById('editLatitude').value = '';
                     document.getElementById('editLongitude').value = '';
+                    hasGPSCoordinates = false;
                 } else if (currentProfile.location.latitude && currentProfile.location.longitude) {
                     locationText = `${currentProfile.location.latitude}, ${currentProfile.location.longitude}`;
                     console.log('[Profile] Using lat/lng:', locationText);
                     // Populate GPS hidden fields
                     document.getElementById('editLatitude').value = currentProfile.location.latitude;
                     document.getElementById('editLongitude').value = currentProfile.location.longitude;
+                    hasGPSCoordinates = true;
                 } else {
                     console.warn('[Profile] Location object exists but no addressLine1 or coordinates found');
                     // Clear GPS hidden fields
                     document.getElementById('editLatitude').value = '';
                     document.getElementById('editLongitude').value = '';
+                    hasGPSCoordinates = false;
                 }
             } else {
                 console.warn('[Profile] currentProfile.location is null/undefined');
                 // Clear GPS hidden fields
                 document.getElementById('editLatitude').value = '';
                 document.getElementById('editLongitude').value = '';
+                hasGPSCoordinates = false;
             }
             console.log('[Profile] Setting editLocation value to:', locationText);
             document.getElementById('editLocation').value = locationText;
+            
+            // Update GPS button state based on whether we have GPS coordinates
+            updateGPSButtonState('gpsButtonEdit', hasGPSCoordinates);
             
             // Add event listener to clear GPS coordinates when user manually edits location
             // Remove any existing listener first to avoid duplicates
@@ -1258,6 +1288,8 @@
                         console.log('[Profile] User edited GPS location, clearing hidden fields');
                         document.getElementById('editLatitude').value = '';
                         document.getElementById('editLongitude').value = '';
+                        // Update GPS button to inactive state (green)
+                        updateGPSButtonState('gpsButtonEdit', false);
                     }
                 }
             });
@@ -1311,6 +1343,9 @@
                     
                     // Set location text to coordinates
                     document.getElementById('editLocation').value = `${lat}, ${lon}`;
+                    
+                    // Update GPS button to active state (blue)
+                    updateGPSButtonState('gpsButtonEdit', true);
                     
                     showResult('profileResult', '✅ Location captured!', false);
                 },
