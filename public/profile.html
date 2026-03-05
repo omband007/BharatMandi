@@ -1226,7 +1226,22 @@
         }
 
         async function saveProfile() {
+            console.log('[Profile] saveProfile() called');
+            
             const userId = document.getElementById('profileUserId').value.trim();
+            console.log('[Profile] userId:', userId);
+            console.log('[Profile] authToken exists:', !!authToken);
+            
+            if (!userId) {
+                showResult('profileResult', '❌ User ID is missing. Please login again.', true);
+                return;
+            }
+            
+            if (!authToken) {
+                showResult('profileResult', '❌ Not authenticated. Please login again.', true);
+                return;
+            }
+            
             const name = document.getElementById('editName').value.trim();
             const userType = document.querySelector('input[name="editUserType"]:checked')?.value;
             const location = document.getElementById('editLocation').value.trim();
@@ -1234,6 +1249,8 @@
             const cropsText = document.getElementById('editCrops').value.trim();
             const farmSizeValue = document.getElementById('editFarmSizeValue').value;
             const farmSizeUnit = document.getElementById('editFarmSizeUnit').value;
+
+            console.log('[Profile] Form values:', { name, userType, location, language, cropsText, farmSizeValue });
 
             // Validate mandatory fields
             if (!name || !userType || !location) {
@@ -1252,7 +1269,10 @@
                     apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
                         fieldName: 'name',
                         value: name
-                    }).catch(err => ({ error: 'name', message: err.message }))
+                    }).catch(err => {
+                        console.error('[Profile] Name update failed:', err);
+                        return { error: 'name', message: err.message };
+                    })
                 );
 
                 console.log('[Profile] Updating userType...');
@@ -1260,7 +1280,10 @@
                     apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
                         fieldName: 'userType',
                         value: userType
-                    }).catch(err => ({ error: 'userType', message: err.message }))
+                    }).catch(err => {
+                        console.error('[Profile] UserType update failed:', err);
+                        return { error: 'userType', message: err.message };
+                    })
                 );
 
                 console.log('[Profile] Updating location...');
@@ -1268,7 +1291,10 @@
                     apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
                         fieldName: 'location',
                         value: { type: 'manual', text: location }
-                    }).catch(err => ({ error: 'location', message: err.message }))
+                    }).catch(err => {
+                        console.error('[Profile] Location update failed:', err);
+                        return { error: 'location', message: err.message };
+                    })
                 );
 
                 // Update optional fields if provided
@@ -1278,7 +1304,10 @@
                         apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
                             fieldName: 'languagePreference',
                             value: language
-                        }).catch(err => ({ error: 'languagePreference', message: err.message }))
+                        }).catch(err => {
+                            console.error('[Profile] Language update failed:', err);
+                            return { error: 'languagePreference', message: err.message };
+                        })
                     );
                 }
 
@@ -1293,7 +1322,10 @@
                         apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
                             fieldName: 'cropsGrown',
                             value: cropsArray
-                        }).catch(err => ({ error: 'cropsGrown', message: err.message }))
+                        }).catch(err => {
+                            console.error('[Profile] Crops update failed:', err);
+                            return { error: 'cropsGrown', message: err.message };
+                        })
                     );
                 }
 
@@ -1306,12 +1338,17 @@
                                 value: parseFloat(farmSizeValue),
                                 unit: farmSizeUnit
                             }
-                        }).catch(err => ({ error: 'farmSize', message: err.message }))
+                        }).catch(err => {
+                            console.error('[Profile] FarmSize update failed:', err);
+                            return { error: 'farmSize', message: err.message };
+                        })
                     );
                 }
 
+                console.log('[Profile] Waiting for all updates to complete...');
                 // Wait for all updates to complete
                 const results = await Promise.all(updates);
+                console.log('[Profile] All updates completed:', results);
                 
                 // Check for errors
                 const errors = results.filter(r => r && r.error);
@@ -1325,10 +1362,12 @@
                 }
                 
                 // Refresh profile display
+                console.log('[Profile] Refreshing profile display...');
                 await fetchAndDisplayProfile();
                 
                 // Hide edit form
                 document.getElementById('profileEdit').style.display = 'none';
+                console.log('[Profile] Save complete');
             } catch (error) {
                 console.error('[Profile] Save profile error:', error);
                 showResult('profileResult', `❌ Error: ${error.message}`, true);
