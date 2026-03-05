@@ -1011,23 +1011,35 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
 
   /**
    * Execute a SQL query and return the first row
+   * Converts SQLite-style ? placeholders to PostgreSQL-style $1, $2, etc.
    * @param sql - SQL query to execute
    * @param params - Parameters for the SQL query
    * @returns First row or undefined
    */
   async get(sql: string, params?: any[]): Promise<any> {
-    const result = await pool.query(sql, params);
+    // Convert SQLite ? placeholders to PostgreSQL $1, $2, etc.
+    let pgSql = sql;
+    let paramIndex = 1;
+    pgSql = pgSql.replace(/\?/g, () => `$${paramIndex++}`);
+    
+    const result = await pool.query(pgSql, params);
     return result.rows[0];
   }
 
   /**
    * Execute a SQL query and return all rows
+   * Converts SQLite-style ? placeholders to PostgreSQL-style $1, $2, etc.
    * @param sql - SQL query to execute
    * @param params - Parameters for the SQL query
    * @returns Array of rows
    */
   async all(sql: string, params?: any[]): Promise<any[]> {
-    const result = await pool.query(sql, params);
+    // Convert SQLite ? placeholders to PostgreSQL $1, $2, etc.
+    let pgSql = sql;
+    let paramIndex = 1;
+    pgSql = pgSql.replace(/\?/g, () => `$${paramIndex++}`);
+    
+    const result = await pool.query(pgSql, params);
     return result.rows;
   }
 }
