@@ -1014,14 +1014,6 @@
                 localStorage.setItem('bharatMandiUserName', data.data.profile.name);
                 localStorage.setItem('bharatMandiUserType', data.data.profile.userType);
                 localStorage.setItem('bharatMandiToken', data.data.token);
-                
-                // Verify storage
-                console.log('[Profile] PIN Login - Stored to localStorage:', {
-                    userId: localStorage.getItem('bharatMandiUserId'),
-                    userName: localStorage.getItem('bharatMandiUserName'),
-                    userType: localStorage.getItem('bharatMandiUserType'),
-                    hasToken: !!localStorage.getItem('bharatMandiToken')
-                });
 
                 // Update login status
                 updateLoginStatus(true, loggedInUserName);
@@ -1070,14 +1062,6 @@
                 localStorage.setItem('bharatMandiUserType', data.data.profile.userType);
                 localStorage.setItem('bharatMandiToken', data.data.token);
                 
-                // Verify storage
-                console.log('[Profile] Biometric Login - Stored to localStorage:', {
-                    userId: localStorage.getItem('bharatMandiUserId'),
-                    userName: localStorage.getItem('bharatMandiUserName'),
-                    userType: localStorage.getItem('bharatMandiUserType'),
-                    hasToken: !!localStorage.getItem('bharatMandiToken')
-                });
-
                 // Update login status
                 updateLoginStatus(true, loggedInUserName);
 
@@ -1162,16 +1146,12 @@
                 document.getElementById('displayUserType').textContent = currentProfile.userType || '-';
                 
                 // Format location
-                console.log('[Profile] Formatting location for display');
-                console.log('[Profile] currentProfile.location:', currentProfile.location);
                 let locationText = '-';
                 if (currentProfile.location) {
                     if (currentProfile.location.addressLine1) {
                         locationText = currentProfile.location.addressLine1;
-                        console.log('[Profile] Display using addressLine1:', locationText);
                     } else if (currentProfile.location.latitude && currentProfile.location.longitude) {
                         locationText = `${currentProfile.location.latitude}, ${currentProfile.location.longitude}`;
-                        console.log('[Profile] Display using lat/lng:', locationText);
                     } else {
                         console.warn('[Profile] Location object exists but no addressLine1 or coordinates');
                     }
@@ -1210,9 +1190,6 @@
         }
 
         function enableEditMode() {
-            console.log('[Profile] enableEditMode() called');
-            console.log('[Profile] currentProfile:', currentProfile);
-            
             if (!currentProfile) {
                 console.error('[Profile] currentProfile is null/undefined');
                 return;
@@ -1230,21 +1207,18 @@
             }
             
             // Location
-            console.log('[Profile] currentProfile.location:', currentProfile.location);
             let locationText = '';
             let hasGPSCoordinates = false;
             
             if (currentProfile.location) {
                 if (currentProfile.location.addressLine1) {
                     locationText = currentProfile.location.addressLine1;
-                    console.log('[Profile] Using addressLine1:', locationText);
                     // Clear GPS hidden fields for manual location
                     document.getElementById('editLatitude').value = '';
                     document.getElementById('editLongitude').value = '';
                     hasGPSCoordinates = false;
                 } else if (currentProfile.location.latitude && currentProfile.location.longitude) {
                     locationText = `${currentProfile.location.latitude}, ${currentProfile.location.longitude}`;
-                    console.log('[Profile] Using lat/lng:', locationText);
                     // Populate GPS hidden fields
                     document.getElementById('editLatitude').value = currentProfile.location.latitude;
                     document.getElementById('editLongitude').value = currentProfile.location.longitude;
@@ -1263,7 +1237,6 @@
                 document.getElementById('editLongitude').value = '';
                 hasGPSCoordinates = false;
             }
-            console.log('[Profile] Setting editLocation value to:', locationText);
             document.getElementById('editLocation').value = locationText;
             
             // Update GPS button state based on whether we have GPS coordinates
@@ -1285,7 +1258,6 @@
                     const gpsText = `${parseFloat(lat).toFixed(6)}, ${parseFloat(lon).toFixed(6)}`;
                     // If user changed the GPS text (including adding spaces), clear the hidden fields
                     if (currentText !== gpsText) {
-                        console.log('[Profile] User edited GPS location, clearing hidden fields');
                         document.getElementById('editLatitude').value = '';
                         document.getElementById('editLongitude').value = '';
                         // Update GPS button to inactive state (green)
@@ -1356,11 +1328,7 @@
         }
 
         async function saveProfile() {
-            console.log('[Profile] saveProfile() called');
-            
             const userId = document.getElementById('profileUserId').value.trim();
-            console.log('[Profile] userId:', userId);
-            console.log('[Profile] authToken exists:', !!authToken);
             
             if (!userId) {
                 showResult('profileResult', '❌ User ID is missing. Please login again.', true);
@@ -1382,8 +1350,6 @@
             const farmSizeValue = document.getElementById('editFarmSizeValue').value;
             const farmSizeUnit = document.getElementById('editFarmSizeUnit').value;
 
-            console.log('[Profile] Form values:', { name, userType, location, latitude, longitude, language, cropsText, farmSizeValue });
-
             // Validate mandatory fields
             if (!name || !userType || !location) {
                 showResult('profileResult', '❌ Name, User Type, and Location are required', true);
@@ -1398,10 +1364,8 @@
                     latitude: parseFloat(latitude), 
                     longitude: parseFloat(longitude) 
                 };
-                console.log('[Profile] Sending GPS location:', locationValue);
             } else {
                 locationValue = { type: 'manual', text: location };
-                console.log('[Profile] Sending manual location:', locationValue);
             }
 
             try {
@@ -1410,7 +1374,6 @@
                 const updates = [];
 
                 // Update mandatory fields
-                console.log('[Profile] Updating name...');
                 updates.push(
                     apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
                         fieldName: 'name',
@@ -1421,7 +1384,6 @@
                     })
                 );
 
-                console.log('[Profile] Updating userType...');
                 updates.push(
                     apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
                         fieldName: 'userType',
@@ -1432,7 +1394,6 @@
                     })
                 );
 
-                console.log('[Profile] Updating location...');
                 updates.push(
                     apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
                         fieldName: 'location',
@@ -1445,7 +1406,6 @@
 
                 // Update optional fields if provided
                 if (language) {
-                    console.log('[Profile] Updating languagePreference...');
                     updates.push(
                         apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
                             fieldName: 'languagePreference',
@@ -1463,7 +1423,6 @@
                         name: c.trim(),
                         addedAt: new Date().toISOString()
                     }));
-                    console.log('[Profile] Updating cropsGrown...');
                     updates.push(
                         apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
                             fieldName: 'cropsGrown',
@@ -1476,7 +1435,6 @@
                 }
 
                 if (farmSizeValue) {
-                    console.log('[Profile] Updating farmSize...');
                     updates.push(
                         apiCall(`${API_BASE}/${userId}/fields`, 'PATCH', {
                             fieldName: 'farmSize',
@@ -1491,10 +1449,8 @@
                     );
                 }
 
-                console.log('[Profile] Waiting for all updates to complete...');
                 // Wait for all updates to complete
                 const results = await Promise.all(updates);
-                console.log('[Profile] All updates completed:', results);
                 
                 // Check for errors
                 const errors = results.filter(r => r && r.error);
@@ -1504,16 +1460,13 @@
                     console.error('[Profile] Update errors:', errors);
                 } else {
                     showResult('profileResult', '✅ Profile updated successfully!', false);
-                    console.log('[Profile] All fields updated successfully');
                 }
                 
                 // Refresh profile display
-                console.log('[Profile] Refreshing profile display...');
                 await fetchAndDisplayProfile();
                 
                 // Hide edit form
                 document.getElementById('profileEdit').style.display = 'none';
-                console.log('[Profile] Save complete');
             } catch (error) {
                 console.error('[Profile] Save profile error:', error);
                 showResult('profileResult', `❌ Error: ${error.message}`, true);
