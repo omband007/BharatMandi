@@ -1137,9 +1137,6 @@
                 const data = await apiCall(`${API_BASE}/${userId}`);
                 currentProfile = data.data;
 
-                console.log('Profile data received:', currentProfile); // Debug log
-                console.log('Mobile number field:', currentProfile.mobileNumber); // Debug log
-
                 // Display profile data
                 document.getElementById('displayName').textContent = currentProfile.name || '-';
                 document.getElementById('displayMobile').textContent = currentProfile.mobileNumber || '-';
@@ -1506,20 +1503,6 @@
                 showResult('exportResult', `❌ Error: ${error.message}`, true);
             }
         }
-
-        // Verify all functions are loaded
-        console.log('All functions loaded:', {
-            register: typeof register,
-            fillCurrentLocation: typeof fillCurrentLocation,
-            verifyOTP: typeof verifyOTP,
-            setupPIN: typeof setupPIN,
-            loginWithPIN: typeof loginWithPIN,
-            loginWithBiometric: typeof loginWithBiometric,
-            fetchAndDisplayProfile: typeof fetchAndDisplayProfile,
-            enableEditMode: typeof enableEditMode,
-            saveProfile: typeof saveProfile,
-            exportProfile: typeof exportProfile
-        });
     </script>
 </body>
 </html>
