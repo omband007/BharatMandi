@@ -694,14 +694,14 @@
             verifyLocationText.addEventListener('input', () => {
                 // Clear GPS coordinates when user manually edits location text
                 // This ensures manual edits are saved as 'manual' type, not 'gps'
-                const currentText = verifyLocationText.value.trim();
+                const currentText = verifyLocationText.value;  // Don't trim - we want to detect any change
                 const lat = document.getElementById('verifyLatitude').value;
                 const lon = document.getElementById('verifyLongitude').value;
                 
                 // If hidden fields have GPS coordinates, check if text still matches
                 if (lat && lon) {
                     const gpsText = `${parseFloat(lat).toFixed(6)}, ${parseFloat(lon).toFixed(6)}`;
-                    // If user changed the GPS text, clear the hidden fields
+                    // If user changed the GPS text (including adding spaces), clear the hidden fields
                     if (currentText !== gpsText) {
                         document.getElementById('verifyLatitude').value = '';
                         document.getElementById('verifyLongitude').value = '';
@@ -1276,14 +1276,14 @@
             editLocationField.parentNode.replaceChild(newEditLocationField, editLocationField);
             
             newEditLocationField.addEventListener('input', () => {
-                const currentText = newEditLocationField.value.trim();
+                const currentText = newEditLocationField.value;  // Don't trim - we want to detect any change
                 const lat = document.getElementById('editLatitude').value;
                 const lon = document.getElementById('editLongitude').value;
                 
                 // If hidden fields have GPS coordinates, check if text still matches
                 if (lat && lon) {
                     const gpsText = `${parseFloat(lat).toFixed(6)}, ${parseFloat(lon).toFixed(6)}`;
-                    // If user changed the GPS text, clear the hidden fields
+                    // If user changed the GPS text (including adding spaces), clear the hidden fields
                     if (currentText !== gpsText) {
                         console.log('[Profile] User edited GPS location, clearing hidden fields');
                         document.getElementById('editLatitude').value = '';
