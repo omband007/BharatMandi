@@ -373,7 +373,17 @@
             color: #155724;
         }
 
-        .listing-status.inactive {
+        .listing-status.sold {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .listing-status.expired {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .listing-status.cancelled {
             background: #f8d7da;
             color: #721c24;
         }
@@ -604,6 +614,8 @@
             <p>✓ Manage your produce inventory and pricing</p>
             <p>✓ Add, reorder, and delete media files</p>
             <p>✓ Edit listing details anytime</p>
+            <p>✓ Track listing status: ACTIVE, SOLD, EXPIRED, CANCELLED</p>
+            <p>✓ Automatic expiration based on harvest dates</p>
         </div>
 
         <div class="tile-grid">
@@ -713,6 +725,9 @@
                     <p><strong>Quantity:</strong> <span id="viewQuantity">-</span> kg</p>
                     <p><strong>Price per kg:</strong> ₹<span id="viewPricePerKg">-</span></p>
                     <p><strong>Status:</strong> <span id="viewStatus">-</span></p>
+                    <p><strong>Listing Type:</strong> <span id="viewListingType">-</span></p>
+                    <p><strong>Category:</strong> <span id="viewCategory">-</span></p>
+                    <p><strong>Expiry Date:</strong> <span id="viewExpiryDate">-</span></p>
                     <p><strong>Certificate:</strong> <span id="viewCertificate">-</span></p>
                     <p><strong>Created:</strong> <span id="viewCreatedAt">-</span></p>
                 </div>
@@ -755,10 +770,11 @@
 
                 <div class="form-group">
                     <label>Status</label>
-                    <select id="editIsActive">
-                        <option value="true">Active</option>
-                        <option value="false">Inactive</option>
+                    <select id="editStatus">
+                        <option value="ACTIVE">Active</option>
+                        <option value="CANCELLED">Cancelled</option>
                     </select>
+                    <p class="info-text">Note: SOLD and EXPIRED statuses are set automatically by the system</p>
                 </div>
 
                 <div class="button-group">
@@ -1125,12 +1141,16 @@
                     try {
                         const mediaResponse = await fetch(`${API_BASE}/marketplace/listings/${listing.id}/media`);
                         if (mediaResponse.ok) {
-                            const mediaList = await mediaResponse.json();
+                            const mediaData = await mediaResponse.json();
+                            // Handle both old format (array) and new format (object with media property)
+                            const mediaList = Array.isArray(mediaData) ? mediaData : (mediaData.media || []);
                             const primaryMedia = mediaList.find(m => m.isPrimary) || mediaList[0];
-                            if (primaryMedia && primaryMedia.mediaType === 'image') {
+                            if (primaryMedia && primaryMedia.mediaType === 'photo') {
+                                // Handle both url and storageUrl fields
+                                const imageUrl = primaryMedia.url || primaryMedia.storageUrl;
                                 primaryImageHtml = `
                                     <div style="margin-top: 10px;">
-                                        <img src="${primaryMedia.url}" alt="Primary image" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; border: 2px solid #e0e0e0;">
+                                        <img src="${imageUrl}" alt="Primary image" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; border: 2px solid #e0e0e0;">
                                     </div>
                                 `;
                             }
@@ -1142,8 +1162,8 @@
                     card.innerHTML = `
                         <div class="listing-header">
                             <div class="listing-title">${listing.produceType}</div>
-                            <div class="listing-status ${listing.isActive ? 'active' : 'inactive'}">
-                                ${listing.isActive ? 'Active' : 'Inactive'}
+                            <div class="listing-status ${listing.status.toLowerCase()}">
+                                ${listing.status}
                             </div>
                         </div>
                         <div class="listing-details">
@@ -1207,7 +1227,10 @@
                 document.getElementById('viewProduceType').textContent = listing.produceType;
                 document.getElementById('viewQuantity').textContent = listing.quantity;
                 document.getElementById('viewPricePerKg').textContent = listing.pricePerKg;
-                document.getElementById('viewStatus').textContent = listing.isActive ? 'Active' : 'Inactive';
+                document.getElementById('viewStatus').textContent = listing.status;
+                document.getElementById('viewListingType').textContent = listing.listingType || 'POST_HARVEST';
+                document.getElementById('viewCategory').textContent = listing.produceCategoryName || listing.produceCategoryId || 'N/A';
+                document.getElementById('viewExpiryDate').textContent = listing.expiryDate ? new Date(listing.expiryDate).toLocaleString() : 'N/A';
                 document.getElementById('viewCertificate').textContent = listing.certificateId || 'None';
                 document.getElementById('viewCreatedAt').textContent = new Date(listing.createdAt).toLocaleString();
 
@@ -1235,13 +1258,16 @@
 
                 const data = await response.json();
                 
-                if (!data.media || data.media.length === 0) {
+                // Handle both old format (array) and new format (object with media property)
+                const mediaArray = Array.isArray(data) ? data : (data.media || []);
+                
+                if (!mediaArray || mediaArray.length === 0) {
                     document.getElementById('viewMediaGrid').innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No media uploaded yet</p>';
                     state.mediaList = [];
                     return;
                 }
 
-                state.mediaList = data.media;
+                state.mediaList = mediaArray;
                 renderMediaGrid();
 
             } catch (error) {
@@ -1258,7 +1284,8 @@
             }
 
             mediaGrid.innerHTML = state.mediaList.map((media, index) => {
-                let imageUrl = media.storageUrl;
+                // Handle both storageUrl and url fields
+                let imageUrl = media.url || media.storageUrl;
                 if (imageUrl.startsWith('/')) {
                     imageUrl = 'http://localhost:3000' + imageUrl;
                 } else if (!imageUrl.startsWith('http')) {
@@ -1293,7 +1320,8 @@
             const photoUrls = state.mediaList
                 .filter(media => media.mediaType === 'photo')
                 .map(media => {
-                    let imageUrl = media.storageUrl;
+                    // Handle both url and storageUrl fields
+                    let imageUrl = media.url || media.storageUrl;
                     if (imageUrl.startsWith('/')) {
                         return 'http://localhost:3000' + imageUrl;
                     } else if (!imageUrl.startsWith('http')) {
@@ -1884,7 +1912,7 @@
             document.getElementById('editProduceType').value = listing.produceType;
             document.getElementById('editQuantity').value = listing.quantity;
             document.getElementById('editPricePerKg').value = listing.pricePerKg;
-            document.getElementById('editIsActive').value = listing.isActive.toString();
+            document.getElementById('editStatus').value = listing.status;
         }
 
         function cancelEdit() {
@@ -1899,7 +1927,7 @@
                 const produceType = document.getElementById('editProduceType').value.trim();
                 const quantity = parseInt(document.getElementById('editQuantity').value);
                 const pricePerKg = parseInt(document.getElementById('editPricePerKg').value);
-                const isActive = document.getElementById('editIsActive').value === 'true';
+                const status = document.getElementById('editStatus').value;
 
                 if (!produceType || !quantity || !pricePerKg) {
                     showResult('editResult', '❌ Please fill all required fields', true);
@@ -1915,7 +1943,7 @@
                         produceType,
                         quantity,
                         pricePerKg,
-                        isActive
+                        status
                     })
                 });
 
@@ -1934,7 +1962,7 @@
                 document.getElementById('viewProduceType').textContent = data.produceType;
                 document.getElementById('viewQuantity').textContent = data.quantity;
                 document.getElementById('viewPricePerKg').textContent = data.pricePerKg;
-                document.getElementById('viewStatus').textContent = data.isActive ? 'Active' : 'Inactive';
+                document.getElementById('viewStatus').textContent = data.status;
 
                 // Switch back to view mode after 1 second
                 setTimeout(() => {
