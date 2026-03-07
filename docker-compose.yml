@@ -1,21 +1,40 @@
 version: '3.8'
 
 services:
+  # MongoDB for Kisan Mitra conversation logs and farming tips
+  mongodb:
+    image: mongo:7.0
+    container_name: bharat-mandi-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=bharat_mandi
+    restart: unless-stopped
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/bharat_mandi --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for translation caching
   redis:
     image: redis:7-alpine
     container_name: bharat-mandi-redis
     ports:
       - "6379:6379"
     volumes:
-      - redis-data:/data
-    command: redis-server --appendonly yes
+      - redis_data:/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
-      timeout: 3s
-      retries: 3
+      timeout: 5s
+      retries: 5
 
 volumes:
-  redis-data:
+  mongodb_data:
+    driver: local
+  redis_data:
     driver: local
