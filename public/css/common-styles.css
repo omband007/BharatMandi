@@ -1,0 +1,162 @@
+/* Common Styles for Bharat Mandi Application */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Combined Brand Header and Navigation */
+.brand-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    background: white;
+    padding: 15px 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.brand-logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.brand-logo {
+    max-width: 100%;
+    height: auto;
+    max-height: 60px;
+    object-fit: contain;
+}
+
+.nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    flex: 1;
+    min-width: 300px;
+}
+
+.nav-link {
+    padding: 8px 20px;
+    color: #666;
+    text-decoration: none;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.nav-link:hover {
+    background: #f0f0f0;
+    color: #667eea;
+}
+
+.nav-link.active {
+    background: #667eea;
+    color: white;
+}
+
+/* User Welcome Section */
+.user-welcome {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 25px;
+    color: white;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.user-welcome .user-icon {
+    font-size: 18px;
+}
+
+.user-welcome .user-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.user-welcome .user-name {
+    font-weight: 600;
+}
+
+.user-welcome .user-role {
+    font-size: 12px;
+    opacity: 0.9;
+    text-transform: capitalize;
+}
+
+/* Info Card */
+.info-card {
+    background: #e3f2fd;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.info-card p {
+    color: #666;
+    font-size: 14px;
+    margin: 0 0 3px 0;
+}
+
+/* Login Status */
+.login-status {
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.login-status.logged-out {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.login-status.logged-in {
+    background: #d4edda;
+    color: #155724;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .brand-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .nav-bar {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    body {
+        padding: 10px;
+    }
+}

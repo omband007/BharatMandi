@@ -1,0 +1,380 @@
+{
+  "diseases": [
+    {
+      "name": "Late Blight",
+      "scientificName": "Phytophthora infestans",
+      "affectedCrops": ["tomato", "potato"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Mancozeb",
+          "brandNames": ["Dithane M-45", "Indofil M-45", "Kavach"],
+          "dosage": "2.5g per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 7-10 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Wear gloves and mask during application",
+            "Avoid spraying in windy conditions",
+            "Do not spray during flowering",
+            "Keep away from water sources"
+          ],
+          "costEstimate": "₹200-300 per acre"
+        },
+        {
+          "genericName": "Metalaxyl + Mancozeb",
+          "brandNames": ["Ridomil Gold", "Matco"],
+          "dosage": "2g per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10-14 days",
+          "preHarvestInterval": 14,
+          "safetyPrecautions": [
+            "Wear protective clothing",
+            "Avoid contact with skin and eyes",
+            "Do not eat or drink during application"
+          ],
+          "costEstimate": "₹400-500 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Neem oil spray",
+          "ingredients": ["Neem oil 10ml", "Water 1 liter", "Liquid soap 1ml"],
+          "preparation": [
+            "Mix neem oil with liquid soap",
+            "Add to water and stir well",
+            "Strain through cloth before use"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 5-7 days",
+          "effectiveness": "60-70% effective compared to chemical, best for early stages"
+        },
+        {
+          "name": "Copper sulfate solution",
+          "ingredients": ["Copper sulfate 3g", "Lime 3g", "Water 1 liter"],
+          "preparation": [
+            "Dissolve copper sulfate in half liter water",
+            "Mix lime in remaining water separately",
+            "Combine both solutions slowly while stirring"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 7-10 days",
+          "effectiveness": "70-80% effective, good preventive measure",
+          "commercialProducts": ["Blitox", "Fytolan"]
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "spacing",
+          "description": "Maintain 60cm spacing between plants for proper air circulation",
+          "timing": "At planting time",
+          "frequency": "One-time"
+        },
+        {
+          "category": "irrigation",
+          "description": "Avoid overhead irrigation, use drip irrigation to keep foliage dry",
+          "timing": "Throughout growing season",
+          "frequency": "Daily"
+        },
+        {
+          "category": "crop_rotation",
+          "description": "Rotate with non-solanaceous crops for 2-3 years",
+          "timing": "Next season planning",
+          "frequency": "Yearly"
+        },
+        {
+          "category": "timing",
+          "description": "Remove and destroy infected plant debris immediately",
+          "timing": "As soon as symptoms appear",
+          "frequency": "Weekly inspection"
+        }
+      ]
+    },
+    {
+      "name": "Powdery Mildew",
+      "scientificName": "Erysiphe cichoracearum",
+      "affectedCrops": ["tomato", "brinjal", "chili", "wheat"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Sulfur",
+          "brandNames": ["Sulfex", "Cosavet"],
+          "dosage": "3g per liter of water",
+          "applicationMethod": "foliar spray or dusting",
+          "frequency": "Every 7-10 days",
+          "preHarvestInterval": 3,
+          "safetyPrecautions": [
+            "Do not apply when temperature exceeds 32°C",
+            "Wear dust mask for dusting application",
+            "Avoid application during flowering"
+          ],
+          "costEstimate": "₹150-200 per acre"
+        },
+        {
+          "genericName": "Hexaconazole",
+          "brandNames": ["Contaf", "Sitara"],
+          "dosage": "1ml per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10-15 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Wear gloves and protective clothing",
+            "Do not contaminate water bodies",
+            "Store in cool, dry place"
+          ],
+          "costEstimate": "₹300-400 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Baking soda spray",
+          "ingredients": ["Baking soda 5g", "Liquid soap 2ml", "Water 1 liter"],
+          "preparation": [
+            "Dissolve baking soda in water",
+            "Add liquid soap and mix well",
+            "Use immediately after preparation"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 5-7 days",
+          "effectiveness": "50-60% effective, good for early prevention"
+        },
+        {
+          "name": "Milk spray",
+          "ingredients": ["Fresh milk 100ml", "Water 900ml"],
+          "preparation": [
+            "Mix milk with water in 1:9 ratio",
+            "Stir well before use"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 7 days",
+          "effectiveness": "60-70% effective, safe and economical"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "spacing",
+          "description": "Ensure adequate plant spacing (45-60cm) for air movement",
+          "timing": "At planting",
+          "frequency": "One-time"
+        },
+        {
+          "category": "irrigation",
+          "description": "Water early morning to allow foliage to dry during day",
+          "timing": "Throughout season",
+          "frequency": "Daily"
+        },
+        {
+          "category": "soil_health",
+          "description": "Avoid excessive nitrogen fertilization",
+          "timing": "During fertilizer application",
+          "frequency": "As per schedule"
+        }
+      ]
+    },
+    {
+      "name": "Rust",
+      "scientificName": "Puccinia spp.",
+      "affectedCrops": ["wheat", "maize", "sugarcane"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Propiconazole",
+          "brandNames": ["Tilt", "Bumper"],
+          "dosage": "1ml per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 15 days",
+          "preHarvestInterval": 21,
+          "safetyPrecautions": [
+            "Wear protective equipment",
+            "Do not spray during windy conditions",
+            "Avoid drift to nearby crops"
+          ],
+          "costEstimate": "₹350-450 per acre"
+        },
+        {
+          "genericName": "Mancozeb",
+          "brandNames": ["Dithane M-45", "Indofil M-45"],
+          "dosage": "2.5g per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10-14 days",
+          "preHarvestInterval": 14,
+          "safetyPrecautions": [
+            "Use protective clothing",
+            "Avoid inhalation of spray mist",
+            "Do not contaminate water sources"
+          ],
+          "costEstimate": "₹200-300 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Garlic extract spray",
+          "ingredients": ["Garlic cloves 100g", "Water 1 liter", "Neem oil 5ml"],
+          "preparation": [
+            "Crush garlic cloves and soak in water overnight",
+            "Strain and add neem oil",
+            "Mix well before spraying"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 7 days",
+          "effectiveness": "50-60% effective, good preventive measure"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "crop_rotation",
+          "description": "Rotate with non-host crops for 2 years",
+          "timing": "Next season",
+          "frequency": "Yearly"
+        },
+        {
+          "category": "timing",
+          "description": "Remove volunteer plants and crop debris",
+          "timing": "After harvest and before planting",
+          "frequency": "Seasonal"
+        },
+        {
+          "category": "soil_health",
+          "description": "Apply balanced fertilization, avoid excess nitrogen",
+          "timing": "During crop growth",
+          "frequency": "As per schedule"
+        }
+      ]
+    },
+    {
+      "name": "Leaf Spot",
+      "scientificName": "Alternaria spp., Cercospora spp.",
+      "affectedCrops": ["tomato", "potato", "onion", "chili"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Chlorothalonil",
+          "brandNames": ["Kavach", "Nominee"],
+          "dosage": "2g per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 7-10 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Wear gloves and mask",
+            "Avoid contact with skin",
+            "Do not spray near water bodies"
+          ],
+          "costEstimate": "₹250-350 per acre"
+        },
+        {
+          "genericName": "Copper oxychloride",
+          "brandNames": ["Blitox", "Fytolan"],
+          "dosage": "3g per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10 days",
+          "preHarvestInterval": 5,
+          "safetyPrecautions": [
+            "Use protective clothing",
+            "Avoid spraying during hot weather",
+            "Store in cool place"
+          ],
+          "costEstimate": "₹200-250 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Neem and turmeric spray",
+          "ingredients": ["Neem leaves 250g", "Turmeric powder 20g", "Water 1 liter"],
+          "preparation": [
+            "Boil neem leaves in water for 15 minutes",
+            "Cool and strain",
+            "Add turmeric powder and mix well"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 7 days",
+          "effectiveness": "55-65% effective, good for organic farming"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "spacing",
+          "description": "Maintain proper plant spacing for air circulation",
+          "timing": "At planting",
+          "frequency": "One-time"
+        },
+        {
+          "category": "irrigation",
+          "description": "Use drip irrigation to avoid wetting foliage",
+          "timing": "Throughout season",
+          "frequency": "Daily"
+        },
+        {
+          "category": "timing",
+          "description": "Remove infected leaves immediately",
+          "timing": "As soon as spotted",
+          "frequency": "Weekly inspection"
+        }
+      ]
+    },
+    {
+      "name": "Anthracnose",
+      "scientificName": "Colletotrichum spp.",
+      "affectedCrops": ["chili", "tomato", "brinjal", "onion"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Carbendazim",
+          "brandNames": ["Bavistin", "Derosal"],
+          "dosage": "1g per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10-15 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Wear protective gear",
+            "Avoid inhalation",
+            "Do not mix with alkaline products"
+          ],
+          "costEstimate": "₹250-300 per acre"
+        },
+        {
+          "genericName": "Mancozeb",
+          "brandNames": ["Dithane M-45", "Indofil M-45"],
+          "dosage": "2.5g per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 7-10 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Use mask and gloves",
+            "Avoid spraying in rain",
+            "Keep away from children"
+          ],
+          "costEstimate": "₹200-300 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Cow urine and neem spray",
+          "ingredients": ["Cow urine 200ml", "Neem oil 10ml", "Water 800ml"],
+          "preparation": [
+            "Mix cow urine with water",
+            "Add neem oil and stir well",
+            "Filter before use"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 7 days",
+          "effectiveness": "50-60% effective, traditional remedy"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "crop_rotation",
+          "description": "Rotate with non-host crops for 2-3 years",
+          "timing": "Next season",
+          "frequency": "Yearly"
+        },
+        {
+          "category": "timing",
+          "description": "Harvest fruits at proper maturity to reduce infection",
+          "timing": "During harvest period",
+          "frequency": "Regular"
+        },
+        {
+          "category": "soil_health",
+          "description": "Maintain soil pH between 6.0-7.0",
+          "timing": "Before planting",
+          "frequency": "Seasonal"
+        }
+      ]
+    }
+  ]
+}

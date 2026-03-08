@@ -116,10 +116,29 @@ export class AIVisionService {
       console.log(`Color Analysis - R:${avgRed.toFixed(1)} G:${avgGreen.toFixed(1)} B:${avgBlue.toFixed(1)}`);
       console.log(`Ratios - R/G:${redGreenRatio.toFixed(2)} R/B:${redBlueRatio.toFixed(2)}`);
 
-      // Tomato: High red, red dominates green and blue
-      // Adjusted thresholds to catch darker/less saturated tomatoes
-      // Red should be at least 1.2x green and 1.3x blue
-      if (avgRed > 100 && redGreenRatio > 1.2 && redBlueRatio > 1.3 && avgRed > avgGreen && avgRed > avgBlue) {
+      // Onion (White/Yellow): High values across all channels, relatively balanced
+      // White onions have high RGB values (>150) with small differences
+      // Yellow onions have high R and G, moderate B
+      if ((avgRed > 150 && avgGreen > 140 && avgBlue > 120 && // White onion
+           Math.abs(avgRed - avgGreen) < 40 && Math.abs(avgGreen - avgBlue) < 40) ||
+          (avgRed > 160 && avgGreen > 140 && avgBlue > 80 && avgBlue < 140 && // Yellow onion
+           redGreenRatio < 1.3 && Math.abs(avgRed - avgGreen) < 50)) {
+        console.log('Detected: ONION (white/yellow)');
+        return 'onion';
+      }
+
+      // Onion (Purple/Red): High red and blue, lower green
+      if (avgRed > 100 && avgBlue > 80 && avgGreen < 90 && redGreenRatio > 1.2) {
+        console.log('Detected: ONION (purple/red)');
+        return 'onion';
+      }
+
+      // Tomato: High red, red strongly dominates green and blue
+      // More strict thresholds to avoid false positives with onions
+      // Tomatoes should have red > 120 and strong red dominance
+      if (avgRed > 120 && avgGreen < 110 && avgBlue < 100 &&
+          redGreenRatio > 1.4 && redBlueRatio > 1.5 && 
+          avgRed > avgGreen && avgRed > avgBlue) {
         console.log('Detected: TOMATO');
         return 'tomato';
       }
@@ -149,13 +168,6 @@ export class AIVisionService {
           redGreenRatio < 1.2) { // Key: potato should NOT have high red dominance
         console.log('Detected: POTATO');
         return 'potato';
-      }
-      
-      // Onion: Purple/red or white/yellow
-      if ((avgRed > 100 && avgBlue > 80 && avgGreen < 90) || // Purple
-          (avgRed > 170 && avgGreen > 150 && avgBlue > 130)) { // White/yellow
-        console.log('Detected: ONION');
-        return 'onion';
       }
       
       // Cabbage/Leafy greens: Green dominates

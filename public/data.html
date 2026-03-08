@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Management - Bharat Mandi</title>
+    <link rel="stylesheet" href="/css/common-styles.css">
+    <style>
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .tab:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .tab.active {
+            color: white;
+            background: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        
+        th:hover {
+            background: #e9ecef;
+        }
+        
+        th.sortable::after {
+            content: ' ⇅';
+            opacity: 0.3;
+            font-size: 12px;
+        }
+        
+        th.sort-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+        
+        th.sort-desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 5px;
+        }
+        
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: #000; }
+        .btn-danger { background: #dc3545; color: white; }
+        
+        .btn:hover { opacity: 0.8; transform: translateY(-1px); }
+        
+        .btn-link {
+            background: none;
+            color: #667eea;
+            padding: 4px 8px;
+            font-size: 18px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-link:hover {
+            color: #5568d3;
+            transform: none;
+            opacity: 1;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .filter-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-active { background: #d4edda; color: #155724; }
+        .badge-in_transaction { background: #fff3cd; color: #856404; }
+        .badge-sold { background: #d1ecf1; color: #0c5460; }
+        .badge-cancelled { background: #f8d7da; color: #721c24; }
+        .badge-expired { background: #f8d7da; color: #721c24; }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .result {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="brand-header">
+            <div class="brand-logo-container">
+                <img src="/assets/bharat-mandi-logo.png" alt="Bharat Mandi Logo" class="brand-logo">
+            </div>
+            <nav class="nav-bar">
+                <a href="/" class="nav-link">Main</a>
+                <a href="/profile.html" class="nav-link">Profile</a>
+                <a href="/listing.html" class="nav-link">Listings</a>
+                <a href="/marketplace.html" class="nav-link">Marketplace</a>
+                <a href="/transactions.html" class="nav-link">Transactions</a>
+                <a href="/kisan-mitra.html" class="nav-link">Kisan Mitra</a>
+                <a href="/crop-diagnosis.html" class="nav-link">Dr. Fasal</a>
+                <a href="/data.html" class="nav-link active">Data</a>
+            </nav>
+
+            <div id="userWelcome" style="display: none;"></div>
+        </div>
+
+        <div class="info-card">
+            <p style="color: #666; font-size: 14px; margin: 0;"><strong>🛠️ Data Management Tool:</strong> View, edit, and manage users and listings for testing purposes.</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('users')">👥 Users</button>
+            <button class="tab" onclick="switchTab('listings')">📦 Listings</button>
+            <button class="tab" onclick="switchTab('purge')">🗑️ Data Purge</button>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="users-tab" class="tab-content active">
+            <div class="card">
+                <h2>👥 User Management</h2>
+                <button class="btn btn-primary" onclick="loadUsers()">🔄 Refresh Users</button>
+                <div class="table-container">
+                    <table id="usersTable">
+                        <thead>
+                            <tr>
+                                <th class="sortable" onclick="sortTable('users', 'name')">Name</th>
+                                <th class="sortable" onclick="sortTable('users', 'phoneNumber')">Phone</th>
+                                <th class="sortable" onclick="sortTable('users', 'userType')">Type</th>
+                                <th class="sortable" onclick="sortTable('users', 'listingCount')">Listings</th>
+                                <th class="sortable" onclick="sortTable('users', 'createdAt')">Created On</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr><td colspan="6" style="text-align: center; padding: 40px;">Click "Refresh Users" to load data</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="usersResult" class="result"></div>
+            </div>
+        </div>
+
+        <!-- Listings Tab -->
+        <div id="listings-tab" class="tab-content">
+            <div class="card">
+                <h2>📦 Listing Management</h2>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="statusFilter" onchange="loadListings()">
+                            <option value="">All Statuses</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="SOLD">Sold</option>
+                            <option value="CANCELLED">Cancelled</option>
+                            <option value="EXPIRED">Expired</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>From Date</label>
+                        <input type="date" id="fromDateFilter" onchange="loadListings()">
+                    </div>
+                    <div class="filter-group">
+                        <label>To Date</label>
+                        <input type="date" id="toDateFilter" onchange="loadListings()">
+                    </div>
+                    <div class="filter-group" style="justify-content: flex-end;">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary" onclick="loadListings()">🔄 Refresh</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="listingsTable">
+                        <thead>
+                            <tr>
+                                <th class="sortable" onclick="sortTable('listings', 'produceType')">Produce</th>
+                                <th class="sortable" onclick="sortTable('listings', 'farmerName')">Farmer</th>
+                                <th class="sortable" onclick="sortTable('listings', 'quantity')">Quantity</th>
+                                <th class="sortable" onclick="sortTable('listings', 'pricePerKg')">Price/kg</th>
+                                <th class="sortable" onclick="sortTable('listings', 'status')">Status</th>
+                                <th class="sortable" onclick="sortTable('listings', 'createdAt')">Created On</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listingsTableBody">
+                            <tr><td colspan="7" style="text-align: center; padding: 40px;">Click "Refresh" to load data</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="listingsResult" class="result"></div>
+            </div>
+        </div>
+
+        <!-- Data Purge Tab -->
+        <div id="purge-tab" class="tab-content">
+            <div class="card">
+                <h2>🗑️ Data Purge</h2>
+                <div class="warning-box">
+                    <strong>⚠️ Warning</strong>
+                    <p>These actions cannot be undone. All data will be permanently deleted.</p>
+                </div>
+                <button class="btn btn-warning" onclick="deleteAllMedia()">🖼️ Delete All Media</button>
+                <button class="btn btn-danger" onclick="deleteAllListings()">📦 Delete All Listings</button>
+                <button class="btn btn-danger" onclick="deleteAllData()">🗑️ Delete All Data</button>
+                <div id="purgeResult" class="result"></div>
+            </div>
+        </div>
+
+        <!-- User Details Modal -->
+        <div id="userModal" class="modal">
+            <div class="modal-content">
+                <h2>User Details</h2>
+                <div id="userDetailsContent"></div>
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button class="btn btn-primary" onclick="editUser()">✏️ Edit</button>
+                    <button class="btn" onclick="closeModal('userModal')">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit User Modal -->
+        <div id="editUserModal" class="modal">
+            <div class="modal-content">
+                <h2>Edit User</h2>
+                <form id="editUserForm" onsubmit="saveUser(event)">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="editUserName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="editUserPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label>User Type</label>
+                        <select id="editUserType" required>
+                            <option value="farmer">Farmer</option>
+                            <option value="buyer">Buyer</option>
+                            <option value="both">Both</option>
+                        </select>
+                    </div>
+                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-success">💾 Save</button>
+                        <button type="button" class="btn" onclick="closeModal('editUserModal')">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Listing Modal -->
+        <div id="editListingModal" class="modal">
+            <div class="modal-content">
+                <h2>Edit Listing</h2>
+                <form id="editListingForm" onsubmit="saveListing(event)">
+                    <div class="form-group">
+                        <label>Produce Type</label>
+                        <input type="text" id="editListingProduce" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity (kg)</label>
+                        <input type="number" id="editListingQuantity" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Price per kg (₹)</label>
+                        <input type="number" id="editListingPrice" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="editListingStatus" required>
+                            <option value="ACTIVE">Active</option>
+                            <option value="SOLD">Sold</option>
+                            <option value="CANCELLED">Cancelled</option>
+                            <option value="EXPIRED">Expired</option>
+                        </select>
+                    </div>
+                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-success">💾 Save</button>
+                        <button type="button" class="btn" onclick="closeModal('editListingModal')">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = `${window.location.protocol}//${window.location.hostname}:${window.location.port}/api`;
+        let currentUser = null;
+        let currentListing = null;
+        let usersData = [];
+        let listingsData = [];
+        let sortState = {
+            users: { column: null, direction: 'asc' },
+            listings: { column: null, direction: 'asc' }
+        };
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            if (tabName === 'users') loadUsers();
+            if (tabName === 'listings') loadListings();
+        }
+        
+        function sortTable(table, column) {
+            const state = sortState[table];
+            
+            // Toggle direction if same column, otherwise reset to asc
+            if (state.column === column) {
+                state.direction = state.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                state.column = column;
+                state.direction = 'asc';
+            }
+            
+            // Update header styles
+            const headers = document.querySelectorAll(`#${table}Table th`);
+            headers.forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+            });
+            
+            const clickedHeader = event.target;
+            clickedHeader.classList.add(state.direction === 'asc' ? 'sort-asc' : 'sort-desc');
+            
+            // Sort data
+            const data = table === 'users' ? usersData : listingsData;
+            data.sort((a, b) => {
+                let aVal = a[column];
+                let bVal = b[column];
+                
+                // Handle different data types
+                if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal.toLowerCase();
+                }
+                
+                if (aVal < bVal) return state.direction === 'asc' ? -1 : 1;
+                if (aVal > bVal) return state.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            // Re-render table
+            if (table === 'users') {
+                renderUsersTable();
+            } else {
+                renderListingsTable();
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                showResult('usersResult', '🔄 Loading users...', false);
+                const response = await fetch(`${API_BASE}/dev/users`);
+                if (!response.ok) throw new Error('Failed to fetch users');
+                
+                usersData = await response.json();
+                renderUsersTable();
+                showResult('usersResult', `✅ Loaded ${usersData.length} user(s)`, false);
+            } catch (error) {
+                showResult('usersResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+        
+        function renderUsersTable() {
+            const tbody = document.getElementById('usersTableBody');
+            
+            if (usersData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No users found</td></tr>';
+            } else {
+                tbody.innerHTML = usersData.map(user => `
+                    <tr>
+                        <td>${user.name}</td>
+                        <td>${user.phoneNumber}</td>
+                        <td><span class="badge badge-active">${user.userType}</span></td>
+                        <td>${user.listingCount || 0}</td>
+                        <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn-link" onclick="viewUser('${user.id}')" title="View Details">👁️</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        async function viewUser(userId) {
+            try {
+                const response = await fetch(`${API_BASE}/dev/users/${userId}`);
+                if (!response.ok) throw new Error('Failed to fetch user details');
+                
+                const data = await response.json();
+                currentUser = data.user;
+                
+                const content = document.getElementById('userDetailsContent');
+                content.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <p><strong>Name:</strong> ${data.user.name}</p>
+                        <p><strong>Phone:</strong> ${data.user.phoneNumber}</p>
+                        <p><strong>Type:</strong> ${data.user.userType}</p>
+                        <p><strong>Created:</strong> ${new Date(data.user.createdAt).toLocaleString()}</p>
+                    </div>
+                    <h3>Listings (${data.listings.length})</h3>
+                    ${data.listings.length === 0 ? '<p>No listings</p>' : `
+                        <table style="width: 100%; font-size: 13px;">
+                            <thead>
+                                <tr>
+                                    <th>Produce</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.listings.map(l => `
+                                    <tr>
+                                        <td>${l.produceType}</td>
+                                        <td>${l.quantity} kg</td>
+                                        <td>₹${l.pricePerKg}/kg</td>
+                                        <td><span class="badge badge-${l.status.toLowerCase()}">${l.status}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `}
+                `;
+                
+                openModal('userModal');
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        function editUser() {
+            if (!currentUser) return;
+            
+            document.getElementById('editUserName').value = currentUser.name;
+            document.getElementById('editUserPhone').value = currentUser.phoneNumber;
+            document.getElementById('editUserType').value = currentUser.userType;
+            
+            closeModal('userModal');
+            openModal('editUserModal');
+        }
+
+        async function saveUser(event) {
+            event.preventDefault();
+            
+            try {
+                const response = await fetch(`${API_BASE}/dev/users/${currentUser.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('editUserName').value,
+                        phoneNumber: document.getElementById('editUserPhone').value,
+                        userType: document.getElementById('editUserType').value
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Failed to update user');
+                
+                closeModal('editUserModal');
+                loadUsers();
+                showResult('usersResult', '✅ User updated successfully', false);
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        async function loadListings() {
+            try {
+                showResult('listingsResult', '🔄 Loading listings...', false);
+                
+                const params = new URLSearchParams();
+                const status = document.getElementById('statusFilter').value;
+                const fromDate = document.getElementById('fromDateFilter').value;
+                const toDate = document.getElementById('toDateFilter').value;
+                
+                if (status) params.append('status', status);
+                if (fromDate) params.append('fromDate', fromDate);
+                if (toDate) params.append('toDate', toDate);
+                
+                const response = await fetch(`${API_BASE}/dev/listings?${params}`);
+                if (!response.ok) throw new Error('Failed to fetch listings');
+                
+                listingsData = await response.json();
+                renderListingsTable();
+                showResult('listingsResult', `✅ Loaded ${listingsData.length} listing(s)`, false);
+            } catch (error) {
+                showResult('listingsResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+        
+        function renderListingsTable() {
+            const tbody = document.getElementById('listingsTableBody');
+            
+            if (listingsData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No listings found</td></tr>';
+            } else {
+                tbody.innerHTML = listingsData.map(listing => `
+                    <tr>
+                        <td>${listing.produceType}</td>
+                        <td>${listing.farmerName || listing.farmerId.substring(0, 8) + '...'}</td>
+                        <td>${listing.quantity} kg</td>
+                        <td>₹${listing.pricePerKg}</td>
+                        <td><span class="badge badge-${listing.status.toLowerCase()}">${listing.status}</span></td>
+                        <td>${new Date(listing.createdAt).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn-link" onclick="editListing('${listing.id}', '${listing.produceType}', ${listing.quantity}, ${listing.pricePerKg}, '${listing.status}')" title="Edit">✏️</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function editListing(id, produceType, quantity, pricePerKg, status) {
+            currentListing = { id };
+            
+            document.getElementById('editListingProduce').value = produceType;
+            document.getElementById('editListingQuantity').value = quantity;
+            document.getElementById('editListingPrice').value = pricePerKg;
+            document.getElementById('editListingStatus').value = status;
+            
+            openModal('editListingModal');
+        }
+
+        async function saveListing(event) {
+            event.preventDefault();
+            
+            try {
+                const response = await fetch(`${API_BASE}/dev/listings/${currentListing.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        produceType: document.getElementById('editListingProduce').value,
+                        quantity: parseFloat(document.getElementById('editListingQuantity').value),
+                        pricePerKg: parseFloat(document.getElementById('editListingPrice').value),
+                        status: document.getElementById('editListingStatus').value
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Failed to update listing');
+                
+                closeModal('editListingModal');
+                loadListings();
+                showResult('listingsResult', '✅ Listing updated successfully', false);
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        async function deleteAllMedia() {
+            if (!confirm('Are you sure you want to delete ALL media files? This cannot be undone!')) return;
+            
+            try {
+                showResult('purgeResult', '🔄 Deleting all media...', false);
+                const response = await fetch(`${API_BASE}/dev/delete-media`, { method: 'POST' });
+                const data = await response.json();
+                
+                if (!response.ok) throw new Error(data.error || 'Failed to delete media');
+                showResult('purgeResult', '✅ All media deleted successfully!', false);
+            } catch (error) {
+                showResult('purgeResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function deleteAllListings() {
+            if (!confirm('Are you sure you want to delete ALL listings and their media? This cannot be undone!')) return;
+            
+            try {
+                showResult('purgeResult', '🔄 Deleting all listings...', false);
+                const response = await fetch(`${API_BASE}/dev/delete-listings`, { method: 'POST' });
+                const data = await response.json();
+                
+                if (!response.ok) throw new Error(data.error || 'Failed to delete listings');
+                showResult('purgeResult', '✅ All listings and their media deleted successfully!', false);
+            } catch (error) {
+                showResult('purgeResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function deleteAllData() {
+            if (!confirm('⚠️ FINAL WARNING: This will delete ALL data including users, listings, media, transactions, and escrow accounts. Are you absolutely sure?')) return;
+            
+            try {
+                showResult('purgeResult', '🔄 Deleting all data...', false);
+                const response = await fetch(`${API_BASE}/dev/clean-all-data`, { method: 'POST' });
+                const data = await response.json();
+                
+                if (!response.ok) throw new Error(data.error || 'Failed to delete all data');
+                showResult('purgeResult', '✅ All data deleted successfully! Database is now clean.', false);
+            } catch (error) {
+                showResult('purgeResult', `❌ Error: ${error.message}`, true);
+            }
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function showResult(elementId, message, isError = false) {
+            const el = document.getElementById(elementId);
+            el.className = `result ${isError ? 'error' : 'success'}`;
+            el.innerHTML = message;
+        }
+
+        // Load users on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUsers();
+        });
+    </script>
+    <script src="/js/user-session.js"></script>
+</body>
+</html>

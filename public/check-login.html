@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Login Status - Bharat Mandi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .info-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .info-box strong {
+            color: #667eea;
+        }
+        .value {
+            font-family: monospace;
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        .warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            color: #856404;
+        }
+        .success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Login Status Checker</h1>
+        
+        <div id="localStorageInfo"></div>
+        
+        <button onclick="clearAndRedirect()">Clear localStorage & Go to Profile</button>
+        <button onclick="window.location.href='/profile.html'" style="background: #28a745;">Go to Profile Page</button>
+        <button onclick="window.location.href='/listing.html'" style="background: #6c757d;">Try Listings Page</button>
+        <button onclick="window.location.href='/marketplace.html'" style="background: #6c757d;">Try Marketplace Page</button>
+    </div>
+
+    <script>
+        function displayLocalStorage() {
+            const container = document.getElementById('localStorageInfo');
+            
+            const userId = localStorage.getItem('bharatMandiUserId');
+            const userName = localStorage.getItem('bharatMandiUserName');
+            const userType = localStorage.getItem('bharatMandiUserType');
+            const token = localStorage.getItem('bharatMandiToken');
+            
+            let html = '';
+            
+            if (!userId) {
+                html = `
+                    <div class="info-box warning">
+                        <strong>⚠️ Not Logged In</strong>
+                        <p>No login data found in localStorage. Please login on the Profile page.</p>
+                    </div>
+                `;
+            } else {
+                const userTypeLower = userType ? userType.toLowerCase() : '';
+                const canAccessListings = userTypeLower === 'farmer' || userTypeLower === 'both';
+                const canAccessMarketplace = userTypeLower === 'buyer' || userTypeLower === 'both';
+                
+                html = `
+                    <div class="info-box ${canAccessListings && canAccessMarketplace ? 'success' : ''}">
+                        <strong>✅ Logged In</strong>
+                        <p><strong>User ID:</strong><br><span class="value">${userId}</span></p>
+                        <p><strong>Name:</strong><br><span class="value">${userName || 'Not set'}</span></p>
+                        <p><strong>User Type:</strong><br><span class="value">${userType || 'Not set'}</span></p>
+                        <p><strong>User Type (lowercase):</strong><br><span class="value">${userTypeLower || 'Not set'}</span></p>
+                        <p><strong>Token:</strong><br><span class="value">${token ? 'Present' : 'Not set'}</span></p>
+                    </div>
+                    
+                    <div class="info-box ${canAccessListings ? 'success' : 'warning'}">
+                        <strong>${canAccessListings ? '✅' : '❌'} Listings Page Access</strong>
+                        <p>Can access: ${canAccessListings ? 'YES' : 'NO'}</p>
+                        <p>Reason: User type is "${userTypeLower}" ${canAccessListings ? '(farmer or both)' : '(must be farmer or both)'}</p>
+                    </div>
+                    
+                    <div class="info-box ${canAccessMarketplace ? 'success' : 'warning'}">
+                        <strong>${canAccessMarketplace ? '✅' : '❌'} Marketplace Page Access</strong>
+                        <p>Can access: ${canAccessMarketplace ? 'YES' : 'NO'}</p>
+                        <p>Reason: User type is "${userTypeLower}" ${canAccessMarketplace ? '(buyer or both)' : '(must be buyer or both)'}</p>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        function clearAndRedirect() {
+            if (confirm('This will clear your login data. You will need to login again. Continue?')) {
+                localStorage.removeItem('bharatMandiUserId');
+                localStorage.removeItem('bharatMandiUserName');
+                localStorage.removeItem('bharatMandiUserType');
+                localStorage.removeItem('bharatMandiToken');
+                
+                alert('localStorage cleared! Redirecting to Profile page...');
+                window.location.href = '/profile.html';
+            }
+        }
+        
+        // Display on load
+        displayLocalStorage();
+    </script>
+</body>
+</html>

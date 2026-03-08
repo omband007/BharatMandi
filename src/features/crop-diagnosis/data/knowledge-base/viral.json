@@ -1,0 +1,343 @@
+{
+  "diseases": [
+    {
+      "name": "Tomato Mosaic Virus",
+      "scientificName": "Tomato mosaic virus (ToMV)",
+      "affectedCrops": ["tomato", "chili"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Imidacloprid",
+          "brandNames": ["Confidor", "Admire", "Tatamida"],
+          "dosage": "0.5ml per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10-15 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Wear protective clothing",
+            "Highly toxic to bees - avoid spraying during flowering",
+            "Do not contaminate water sources",
+            "Store in locked cabinet"
+          ],
+          "costEstimate": "₹350-450 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Neem oil and garlic spray",
+          "ingredients": ["Neem oil 10ml", "Garlic extract 50ml", "Water 1 liter"],
+          "preparation": [
+            "Crush garlic and soak overnight",
+            "Strain and mix with neem oil",
+            "Add to water and mix well"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 7 days",
+          "effectiveness": "30-40% effective, mainly controls vectors (aphids)"
+        },
+        {
+          "name": "Milk spray for virus suppression",
+          "ingredients": ["Fresh milk 200ml", "Water 800ml"],
+          "preparation": [
+            "Mix milk with water",
+            "Use immediately after preparation"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 5-7 days",
+          "effectiveness": "25-35% effective, may slow virus spread"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "timing",
+          "description": "Use virus-free certified seeds and seedlings",
+          "timing": "Before planting",
+          "frequency": "Each season"
+        },
+        {
+          "category": "timing",
+          "description": "Remove and destroy infected plants immediately",
+          "timing": "As soon as symptoms appear",
+          "frequency": "Daily inspection"
+        },
+        {
+          "category": "timing",
+          "description": "Control aphid vectors with neem spray or yellow sticky traps",
+          "timing": "Throughout season",
+          "frequency": "Weekly"
+        },
+        {
+          "category": "timing",
+          "description": "Sanitize tools and hands after handling infected plants",
+          "timing": "During field operations",
+          "frequency": "Always"
+        },
+        {
+          "category": "crop_rotation",
+          "description": "Avoid planting near tobacco or other solanaceous crops",
+          "timing": "Planning stage",
+          "frequency": "Each season"
+        }
+      ]
+    },
+    {
+      "name": "Leaf Curl Virus",
+      "scientificName": "Tomato leaf curl virus (ToLCV)",
+      "affectedCrops": ["tomato", "chili", "brinjal"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Imidacloprid",
+          "brandNames": ["Confidor", "Admire", "Tatamida"],
+          "dosage": "0.5ml per liter of water",
+          "applicationMethod": "foliar spray and soil drench",
+          "frequency": "Every 10 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Wear mask and gloves",
+            "Toxic to bees - do not spray on flowers",
+            "Avoid drift to nearby crops",
+            "Keep away from children and pets"
+          ],
+          "costEstimate": "₹350-450 per acre"
+        },
+        {
+          "genericName": "Thiamethoxam",
+          "brandNames": ["Actara", "Manik"],
+          "dosage": "0.3g per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 12-15 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Use protective equipment",
+            "Highly toxic to bees",
+            "Do not mix with alkaline products",
+            "Store in original container"
+          ],
+          "costEstimate": "₹400-500 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Neem seed kernel extract",
+          "ingredients": ["Neem seed kernel powder 50g", "Water 1 liter"],
+          "preparation": [
+            "Soak neem powder in water overnight",
+            "Strain through cloth",
+            "Dilute 1:5 before spraying"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 5-7 days",
+          "effectiveness": "35-45% effective, controls whitefly vectors"
+        },
+        {
+          "name": "Yellow sticky traps",
+          "ingredients": ["Yellow plastic sheets", "Sticky adhesive"],
+          "preparation": [
+            "Cut yellow sheets into 15x20cm pieces",
+            "Apply sticky adhesive on both sides",
+            "Hang at plant canopy level"
+          ],
+          "applicationMethod": "trap placement",
+          "frequency": "Replace every 15 days",
+          "effectiveness": "40-50% effective for whitefly monitoring and control"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "timing",
+          "description": "Use resistant varieties like Arka Vikas, Arka Abha",
+          "timing": "Variety selection",
+          "frequency": "Each season"
+        },
+        {
+          "category": "timing",
+          "description": "Install insect-proof nets (40-50 mesh) in nursery",
+          "timing": "Nursery stage",
+          "frequency": "Each season"
+        },
+        {
+          "category": "spacing",
+          "description": "Maintain wider spacing (75cm x 60cm) to reduce whitefly spread",
+          "timing": "At planting",
+          "frequency": "One-time"
+        },
+        {
+          "category": "timing",
+          "description": "Remove weeds that harbor whiteflies",
+          "timing": "Throughout season",
+          "frequency": "Weekly"
+        },
+        {
+          "category": "crop_rotation",
+          "description": "Avoid continuous cropping of susceptible crops",
+          "timing": "Season planning",
+          "frequency": "Yearly"
+        }
+      ]
+    },
+    {
+      "name": "Yellow Vein Mosaic Virus",
+      "scientificName": "Bhendi yellow vein mosaic virus (BYVMV)",
+      "affectedCrops": ["brinjal", "cotton"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Acetamiprid",
+          "brandNames": ["Pride", "Assail"],
+          "dosage": "0.5g per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10-12 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Wear protective gear",
+            "Toxic to bees and aquatic organisms",
+            "Do not spray near water bodies",
+            "Avoid spraying during flowering"
+          ],
+          "costEstimate": "₹300-400 per acre"
+        },
+        {
+          "genericName": "Dimethoate",
+          "brandNames": ["Rogor", "Tafgor"],
+          "dosage": "2ml per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 15 days",
+          "preHarvestInterval": 14,
+          "safetyPrecautions": [
+            "Highly toxic - use with extreme caution",
+            "Wear full protective clothing",
+            "Do not eat, drink or smoke during application",
+            "Wash thoroughly after use"
+          ],
+          "costEstimate": "₹250-350 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Neem oil and soap spray",
+          "ingredients": ["Neem oil 15ml", "Liquid soap 5ml", "Water 1 liter"],
+          "preparation": [
+            "Mix neem oil with soap first",
+            "Add to water and stir well",
+            "Use within 8 hours of preparation"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 5-7 days",
+          "effectiveness": "40-50% effective, controls whitefly vectors"
+        },
+        {
+          "name": "Reflective mulch",
+          "ingredients": ["Silver or aluminum reflective mulch"],
+          "preparation": [
+            "Spread reflective mulch around plant base",
+            "Ensure good coverage between rows"
+          ],
+          "applicationMethod": "ground application",
+          "frequency": "One-time at planting",
+          "effectiveness": "30-40% effective, repels whiteflies"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "timing",
+          "description": "Use resistant varieties like Arka Abhay, Arka Anamika",
+          "timing": "Variety selection",
+          "frequency": "Each season"
+        },
+        {
+          "category": "timing",
+          "description": "Avoid planting during peak whitefly season (March-May)",
+          "timing": "Crop planning",
+          "frequency": "Yearly"
+        },
+        {
+          "category": "spacing",
+          "description": "Maintain proper spacing (60cm x 45cm) for air circulation",
+          "timing": "At planting",
+          "frequency": "One-time"
+        },
+        {
+          "category": "timing",
+          "description": "Remove infected plants and weeds immediately",
+          "timing": "Throughout season",
+          "frequency": "Weekly"
+        }
+      ]
+    },
+    {
+      "name": "Rice Tungro Virus",
+      "scientificName": "Rice tungro bacilliform virus (RTBV)",
+      "affectedCrops": ["rice"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Imidacloprid",
+          "brandNames": ["Confidor", "Admire", "Tatamida"],
+          "dosage": "0.5ml per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10-15 days",
+          "preHarvestInterval": 21,
+          "safetyPrecautions": [
+            "Wear protective clothing",
+            "Toxic to bees - avoid flowering period",
+            "Do not contaminate water in paddy fields",
+            "Follow label instructions carefully"
+          ],
+          "costEstimate": "₹350-450 per acre"
+        },
+        {
+          "genericName": "Fipronil",
+          "brandNames": ["Regent", "Fipforce"],
+          "dosage": "2ml per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 15 days",
+          "preHarvestInterval": 30,
+          "safetyPrecautions": [
+            "Highly toxic - use with caution",
+            "Wear full protective gear",
+            "Toxic to fish and aquatic life",
+            "Do not apply near water bodies"
+          ],
+          "costEstimate": "₹400-500 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Neem cake and neem oil combination",
+          "ingredients": ["Neem cake 1kg per acre", "Neem oil 10ml per liter water"],
+          "preparation": [
+            "Apply neem cake to soil before planting",
+            "Prepare neem oil spray for foliar application",
+            "Use both methods together"
+          ],
+          "applicationMethod": "soil application and foliar spray",
+          "frequency": "Neem cake once, spray every 7 days",
+          "effectiveness": "35-45% effective, controls leafhopper vectors"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "timing",
+          "description": "Use resistant varieties like Vikramarya, Improved Samba Mahsuri",
+          "timing": "Variety selection",
+          "frequency": "Each season"
+        },
+        {
+          "category": "timing",
+          "description": "Synchronize planting dates in the area to break disease cycle",
+          "timing": "Planting time",
+          "frequency": "Each season"
+        },
+        {
+          "category": "timing",
+          "description": "Remove infected plants within 30 days of transplanting",
+          "timing": "Early growth stage",
+          "frequency": "Weekly inspection"
+        },
+        {
+          "category": "timing",
+          "description": "Control leafhopper vectors in nursery and main field",
+          "timing": "Throughout season",
+          "frequency": "Weekly"
+        }
+      ]
+    }
+  ]
+}

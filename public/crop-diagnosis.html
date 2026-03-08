@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Fasal - Disease Diagnosis - Bharat Mandi</title>
+    <link rel="stylesheet" href="/css/common-styles.css">
+    <style>
+        .tiles-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .tile {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-height: 500px;
+            position: relative;
+            padding-bottom: 70px;
+        }
+
+        .tile h2 {
+            color: #667eea;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        /* Upload Tile Styles */
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            background: #e9ecef;
+            border-color: #5568d3;
+        }
+
+        .upload-area.dragover {
+            background: #e7f3ff;
+            border-color: #007bff;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .analyze-button, .change-image-button {
+            flex: 1;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .analyze-button {
+            background: #28a745;
+            color: white;
+        }
+
+        .analyze-button:hover {
+            background: #218838;
+        }
+
+        .analyze-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .change-image-button {
+            background: #6c757d;
+            color: white;
+        }
+
+        .change-image-button:hover {
+            background: #5a6268;
+        }
+
+        /* Results Tile Styles */
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-content {
+            display: none;
+        }
+
+        .crop-type-display {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 20px;
+            text-transform: capitalize;
+        }
+
+        .disease-card {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .disease-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 5px;
+        }
+
+        .disease-scientific {
+            font-style: italic;
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .disease-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .detail-item {
+            font-size: 0.9rem;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .confidence-highlight {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .confidence-high {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .confidence-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .confidence-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .healthy-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .remedy-section {
+            margin-top: 25px;
+        }
+
+        .remedy-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .remedy-type {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .remedy-card ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .remedy-card li {
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        @media (max-width: 968px) {
+            .tiles-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="brand-header">
+            <div class="brand-logo-container">
+                <img src="/assets/bharat-mandi-logo.png" alt="Bharat Mandi Logo" class="brand-logo">
+            </div>
+
+            <nav class="nav-bar">
+                <a href="/" class="nav-link">Main</a>
+                <a href="/profile.html" class="nav-link">Profile</a>
+                <a href="/listing.html" class="nav-link">Listings</a>
+                <a href="/marketplace.html" class="nav-link">Marketplace</a>
+                <a href="/transactions.html" class="nav-link">Transactions</a>
+                <a href="/kisan-mitra.html" class="nav-link">Kisan Mitra</a>
+                <a href="/crop-diagnosis.html" class="nav-link active">Dr. Fasal</a>
+                <a href="/data.html" class="nav-link">Data</a>
+            </nav>
+
+            <div id="userWelcome" style="display: none;"></div>
+        </div>
+
+        <div class="info-card">
+            <p><strong>🌾 Dr. Fasal - AI Disease Diagnosis:</strong></p>
+            <p>✓ AI-powered crop disease identification using Amazon Nova Pro</p>
+            <p>✓ Multi-language support with local crop and disease names</p>
+            <p>✓ Detailed treatment recommendations (chemical, organic, preventive)</p>
+            <p>✓ Confidence scoring and expert escalation for low-confidence cases</p>
+            <p>✓ Diagnosis history and caching for faster results</p>
+            <p style="margin-top: 10px;"><strong>🚀 Coming Next:</strong></p>
+            <p>• Integration with Kisan Mitra for follow-up questions</p>
+            <p>• Expert review system for complex cases</p>
+            <p>• Seasonal disease alerts and prevention tips</p>
+            <p>• Community-sourced treatment effectiveness ratings</p>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+            <div class="tiles-container">
+                <!-- Tile 1: Upload Image -->
+                <div class="tile">
+                    <h2>📸 Upload Image</h2>
+                    
+                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-icon">📷</div>
+                        <h3>Select Crop Image</h3>
+                        <p>Click or drag and drop</p>
+                        <p style="font-size: 0.85em; color: #666;">JPEG, PNG, WebP (10KB-10MB, min 200x200px)</p>
+                        <input type="file" id="fileInput" class="file-input" accept="image/jpeg,image/png,image/webp" onchange="handleFileSelect(event)">
+                    </div>
+
+                    <div id="previewContainer" style="display: none;">
+                        <img id="previewImage" class="preview-image" alt="Preview">
+                        <div class="button-group">
+                            <button class="analyze-button" id="analyzeButton" onclick="analyzeCrop()">
+                                🔍 Analyze Crop
+                            </button>
+                            <button class="change-image-button" onclick="changeImage()">
+                                🔄 Change Image
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Nova Pro Attribution -->
+                    <div style="position: absolute; bottom: 15px; left: 0; right: 0; padding: 10px 30px 0; border-top: 1px solid #e0e0e0; text-align: center; background: white;">
+                        <p style="font-size: 11px; color: #666; margin: 0;">
+                            <span style="opacity: 0.7;">🤖</span> AI powered by Amazon Nova Pro
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tile 2: Diagnosis Results -->
+                <div class="tile">
+                    <h2>📊 Diagnosis Results</h2>
+                    
+                    <div id="emptyState" class="empty-state">
+                        <div class="empty-state-icon">🔬</div>
+                        <p>Upload an image to see diagnosis results</p>
+                    </div>
+
+                    <div id="loadingState" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <h3>Analyzing...</h3>
+                        <p>This may take a few seconds</p>
+                    </div>
+
+                    <div id="resultsContent" class="results-content">
+                        <div class="crop-type-display" id="cropTypeDisplay"></div>
+                        
+                        <div id="diseasesList"></div>
+                        
+                        <div class="remedy-section" id="remedySection"></div>
+                    </div>
+                    
+                    <!-- Nova Pro Attribution -->
+                    <div style="position: absolute; bottom: 15px; left: 0; right: 0; padding: 10px 30px 0; border-top: 1px solid #e0e0e0; text-align: center; background: white;">
+                        <p style="font-size: 11px; color: #666; margin: 0;">
+                            <span style="opacity: 0.7;">🤖</span> AI powered by Amazon Nova Pro
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        const API_BASE = `${window.location.protocol}//${window.location.host}/api`;
+
+        // Drag and drop handlers
+        const uploadArea = document.getElementById('uploadArea');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                showError('Please select a valid image file (JPEG, PNG, or WebP)');
+                return;
+            }
+
+            // Validate file size (10KB - 10MB)
+            const minSize = 10 * 1024; // 10KB
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.size < minSize || file.size > maxSize) {
+                showError('Image size must be between 10KB and 10MB');
+                return;
+            }
+
+            selectedFile = file;
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('previewImage').src = e.target.result;
+                document.getElementById('uploadArea').style.display = 'none';
+                document.getElementById('previewContainer').style.display = 'block';
+                hideError();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function changeImage() {
+            // Reset file input and show upload area again
+            selectedFile = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadArea').style.display = 'block';
+            document.getElementById('previewContainer').style.display = 'none';
+            hideError();
+        }
+
+        async function analyzeCrop() {
+            if (!selectedFile) {
+                showError('Please select an image first');
+                return;
+            }
+
+            // Show loading in results tile
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('resultsContent').style.display = 'none';
+
+            // Disable analyze button
+            document.getElementById('analyzeButton').disabled = true;
+
+            try {
+                // Create form data
+                const formData = new FormData();
+                formData.append('image', selectedFile);
+                formData.append('language', 'en'); // TODO: Add language selector
+
+                // Call diagnosis API (using test endpoint - no auth required)
+                const response = await fetch(`${API_BASE}/diagnosis/test`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                console.log('[Diagnosis] API Response:', result);
+
+                if (result.success) {
+                    displayResults(result.data);
+                } else {
+                    // Handle error
+                    console.error('[Diagnosis] API Error:', result.error);
+                    const errorMessage = typeof result.error === 'string' 
+                        ? result.error 
+                        : result.error?.message || 'Failed to analyze image';
+                    showError(errorMessage);
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('emptyState').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('[Diagnosis] Exception:', error);
+                showError('Failed to connect to the server. Please try again.');
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+            } finally {
+                // Re-enable analyze button
+                document.getElementById('analyzeButton').disabled = false;
+            }
+        }
+
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function displayResults(data) {
+            // Hide loading, show results
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('resultsContent').style.display = 'block';
+
+            // Display crop type (capitalized) with local name if available
+            const cropTypeDiv = document.getElementById('cropTypeDisplay');
+            const cropDisplay = capitalize(data.cropType || 'Unknown');
+            const localCropName = data.cropLocalName ? ` (${data.cropLocalName})` : '';
+            cropTypeDiv.textContent = cropDisplay + localCropName;
+
+            // Display diseases
+            const diseasesDiv = document.getElementById('diseasesList');
+            
+            if (data.diseases && data.diseases.length > 0) {
+                let diseasesHTML = '';
+                data.diseases.forEach(disease => {
+                    const confidenceClass = disease.confidence >= 80 ? 'confidence-high' : 
+                                          disease.confidence >= 60 ? 'confidence-medium' : 'confidence-low';
+                    
+                    const diseaseName = capitalize(disease.name);
+                    const localDiseaseName = disease.localName ? ` (${disease.localName})` : '';
+                    
+                    diseasesHTML += `
+                        <div class="disease-card">
+                            <div class="disease-name">${diseaseName}${localDiseaseName}</div>
+                            <div class="disease-scientific">${disease.scientificName}</div>
+                            <div class="disease-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">Type:</span> ${capitalize(disease.type.replace('_', ' '))}
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Severity:</span> ${capitalize(disease.severity)}
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Confidence:</span> 
+                                    <span class="confidence-highlight ${confidenceClass}">${disease.confidence}%</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Affected:</span> ${disease.affectedParts?.map(p => capitalize(p)).join(', ') || 'N/A'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                diseasesDiv.innerHTML = diseasesHTML;
+            } else {
+                diseasesDiv.innerHTML = '<div class="healthy-message">✅ No diseases detected! Your crop appears healthy.</div>';
+            }
+
+            // Display remedies
+            const remedyDiv = document.getElementById('remedySection');
+            let remedyHTML = '';
+
+            if (data.remedies && (data.remedies.length > 0 || data.preventiveMeasures)) {
+                // Chemical remedies
+                const chemicalRemedies = Array.isArray(data.remedies) 
+                    ? data.remedies.filter(r => r.type === 'chemical')
+                    : [];
+                    
+                if (chemicalRemedies.length > 0) {
+                    remedyHTML += '<div class="remedy-card"><div class="remedy-type">🧪 Chemical Remedies</div><ul>';
+                    chemicalRemedies.forEach(remedy => {
+                        remedyHTML += `
+                            <li>
+                                <strong>${remedy.name}</strong><br>
+                                <em>Dosage:</em> ${remedy.dosage}<br>
+                                <em>Application:</em> ${remedy.applicationMethod}<br>
+                                <em>Frequency:</em> ${remedy.frequency}
+                            </li>
+                        `;
+                    });
+                    remedyHTML += '</ul></div>';
+                }
+
+                // Organic remedies
+                const organicRemedies = Array.isArray(data.remedies)
+                    ? data.remedies.filter(r => r.type === 'organic')
+                    : [];
+                    
+                if (organicRemedies.length > 0) {
+                    remedyHTML += '<div class="remedy-card"><div class="remedy-type">🌿 Organic Remedies</div><ul>';
+                    organicRemedies.forEach(remedy => {
+                        remedyHTML += `
+                            <li>
+                                <strong>${remedy.name}</strong><br>
+                                <em>Dosage:</em> ${remedy.dosage}<br>
+                                <em>Application:</em> ${remedy.applicationMethod}<br>
+                                <em>Frequency:</em> ${remedy.frequency}
+                            </li>
+                        `;
+                    });
+                    remedyHTML += '</ul></div>';
+                }
+
+                // Preventive measures
+                if (data.preventiveMeasures && data.preventiveMeasures.length > 0) {
+                    remedyHTML += '<div class="remedy-card"><div class="remedy-type">🛡️ Preventive Measures</div><ul>';
+                    data.preventiveMeasures.forEach(measure => {
+                        remedyHTML += `<li>${measure}</li>`;
+                    });
+                    remedyHTML += '</ul></div>';
+                }
+            }
+
+            if (!remedyHTML && data.diseases && data.diseases.length > 0) {
+                remedyHTML = '<p style="color: #666; font-style: italic;">No specific treatment recommendations available.</p>';
+            }
+
+            remedyDiv.innerHTML = remedyHTML;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+    </script>
+    <script src="/js/user-session.js"></script>
+</body>
+</html>

@@ -452,7 +452,7 @@ Welcome</textarea>
     <script src="/components/audio-player.js"></script>
 
     <script>
-        const API_BASE = 'http://localhost:3000/api/i18n';
+        const API_BASE = `${window.location.protocol}//${window.location.host}/api/i18n`;
 
         async function testSingleTranslation() {
             const btn = document.getElementById('singleBtn');
@@ -693,7 +693,7 @@ Welcome</textarea>
             btn.innerHTML = '<span class="loading"></span> Clearing...';
             
             try {
-                const response = await fetch('http://localhost:3000/api/dev/clear-translation-cache', {
+                const response = await fetch(`${window.location.protocol}//${window.location.host}/api/dev/clear-translation-cache`, {
                     method: 'POST'
                 });
                 const data = await response.json();

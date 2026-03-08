@@ -1,0 +1,462 @@
+{
+  "diseases": [
+    {
+      "name": "Aphids Infestation",
+      "scientificName": "Aphis gossypii, Myzus persicae",
+      "affectedCrops": ["cotton", "chili", "tomato", "brinjal", "wheat"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Imidacloprid",
+          "brandNames": ["Confidor", "Admire", "Tatamida"],
+          "dosage": "0.5ml per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10-15 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Wear protective clothing",
+            "Highly toxic to bees - avoid spraying on flowers",
+            "Do not contaminate water sources",
+            "Use only when pest threshold is reached"
+          ],
+          "costEstimate": "₹350-450 per acre"
+        },
+        {
+          "genericName": "Dimethoate",
+          "brandNames": ["Rogor", "Tafgor"],
+          "dosage": "2ml per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 12-15 days",
+          "preHarvestInterval": 14,
+          "safetyPrecautions": [
+            "Highly toxic - use with extreme caution",
+            "Wear full protective gear",
+            "Do not eat, drink or smoke during application",
+            "Wash hands and face thoroughly after use"
+          ],
+          "costEstimate": "₹250-350 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Neem oil spray",
+          "ingredients": ["Neem oil 10ml", "Liquid soap 2ml", "Water 1 liter"],
+          "preparation": [
+            "Mix neem oil with soap",
+            "Add to water and stir well",
+            "Use fresh solution each time"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 5-7 days",
+          "effectiveness": "60-70% effective, safe for beneficial insects"
+        },
+        {
+          "name": "Soap water spray",
+          "ingredients": ["Liquid soap 5ml", "Water 1 liter"],
+          "preparation": [
+            "Mix soap with water",
+            "Stir until well dissolved",
+            "Spray directly on aphids"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 3-5 days",
+          "effectiveness": "50-60% effective, immediate contact action"
+        },
+        {
+          "name": "Garlic and chili spray",
+          "ingredients": ["Garlic 50g", "Green chili 50g", "Water 1 liter", "Soap 2ml"],
+          "preparation": [
+            "Grind garlic and chili together",
+            "Soak in water overnight",
+            "Strain and add soap before use"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 5-7 days",
+          "effectiveness": "55-65% effective, repellent action"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "timing",
+          "description": "Monitor regularly using yellow sticky traps",
+          "timing": "Throughout season",
+          "frequency": "Weekly"
+        },
+        {
+          "category": "timing",
+          "description": "Encourage natural predators like ladybugs and lacewings",
+          "timing": "Throughout season",
+          "frequency": "Continuous"
+        },
+        {
+          "category": "spacing",
+          "description": "Avoid overcrowding of plants",
+          "timing": "At planting",
+          "frequency": "One-time"
+        },
+        {
+          "category": "soil_health",
+          "description": "Avoid excessive nitrogen fertilization",
+          "timing": "During fertilizer application",
+          "frequency": "As per schedule"
+        }
+      ]
+    },
+    {
+      "name": "Whiteflies Infestation",
+      "scientificName": "Bemisia tabaci",
+      "affectedCrops": ["tomato", "cotton", "brinjal", "chili"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Thiamethoxam",
+          "brandNames": ["Actara", "Manik"],
+          "dosage": "0.3g per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10-12 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Wear protective equipment",
+            "Highly toxic to bees",
+            "Do not spray during flowering",
+            "Avoid drift to nearby crops"
+          ],
+          "costEstimate": "₹400-500 per acre"
+        },
+        {
+          "genericName": "Acetamiprid",
+          "brandNames": ["Pride", "Assail"],
+          "dosage": "0.5g per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10-15 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Use mask and gloves",
+            "Toxic to bees and aquatic life",
+            "Do not contaminate water bodies",
+            "Store in locked cabinet"
+          ],
+          "costEstimate": "₹300-400 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Neem seed kernel extract",
+          "ingredients": ["Neem seed kernel powder 50g", "Water 1 liter"],
+          "preparation": [
+            "Soak neem powder overnight",
+            "Strain through cloth",
+            "Dilute 1:5 before use"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 5-7 days",
+          "effectiveness": "55-65% effective, disrupts life cycle"
+        },
+        {
+          "name": "Yellow sticky traps",
+          "ingredients": ["Yellow plastic sheets", "Sticky adhesive or castor oil"],
+          "preparation": [
+            "Cut yellow sheets (15x20cm)",
+            "Apply sticky substance on both sides",
+            "Hang at plant canopy level (10-15 traps per acre)"
+          ],
+          "applicationMethod": "trap placement",
+          "frequency": "Replace every 15 days",
+          "effectiveness": "50-60% effective for monitoring and mass trapping"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "timing",
+          "description": "Use insect-proof nets (40-50 mesh) in nursery",
+          "timing": "Nursery stage",
+          "frequency": "Each season"
+        },
+        {
+          "category": "spacing",
+          "description": "Maintain wider spacing to reduce pest spread",
+          "timing": "At planting",
+          "frequency": "One-time"
+        },
+        {
+          "category": "timing",
+          "description": "Remove weeds that harbor whiteflies",
+          "timing": "Throughout season",
+          "frequency": "Weekly"
+        },
+        {
+          "category": "timing",
+          "description": "Use reflective mulch to repel whiteflies",
+          "timing": "At planting",
+          "frequency": "One-time"
+        }
+      ]
+    },
+    {
+      "name": "Bollworms",
+      "scientificName": "Helicoverpa armigera",
+      "affectedCrops": ["cotton", "tomato", "chili"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Chlorantraniliprole",
+          "brandNames": ["Coragen", "Ferterra"],
+          "dosage": "0.3ml per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10-15 days",
+          "preHarvestInterval": 3,
+          "safetyPrecautions": [
+            "Wear protective clothing",
+            "Safe for beneficial insects",
+            "Do not mix with alkaline products",
+            "Follow label instructions"
+          ],
+          "costEstimate": "₹500-600 per acre"
+        },
+        {
+          "genericName": "Emamectin benzoate",
+          "brandNames": ["Proclaim", "Emacot"],
+          "dosage": "0.5g per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 12-15 days",
+          "preHarvestInterval": 5,
+          "safetyPrecautions": [
+            "Wear mask and gloves",
+            "Toxic to aquatic organisms",
+            "Do not spray near water bodies",
+            "Store in cool, dry place"
+          ],
+          "costEstimate": "₹400-500 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Bacillus thuringiensis (Bt) spray",
+          "ingredients": ["Bt formulation 1g", "Water 1 liter"],
+          "preparation": [
+            "Mix Bt powder with water",
+            "Add sticker (soap) for better adhesion",
+            "Use in evening for better efficacy"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 7 days",
+          "effectiveness": "65-75% effective, safe biological control",
+          "commercialProducts": ["Dipel", "Halt", "Biolep"]
+        },
+        {
+          "name": "Neem seed kernel extract",
+          "ingredients": ["NSKE 5%", "Water 1 liter"],
+          "preparation": [
+            "Mix NSKE with water",
+            "Add soap solution for better spread",
+            "Spray on larvae and eggs"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 5-7 days",
+          "effectiveness": "50-60% effective, growth regulator"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "timing",
+          "description": "Install pheromone traps (8-10 per acre) for monitoring",
+          "timing": "From flowering stage",
+          "frequency": "Replace lures every 3 weeks"
+        },
+        {
+          "category": "timing",
+          "description": "Hand-pick and destroy egg masses and larvae",
+          "timing": "Throughout season",
+          "frequency": "Every 3-4 days"
+        },
+        {
+          "category": "timing",
+          "description": "Release Trichogramma wasps (50,000 per acre)",
+          "timing": "From flowering stage",
+          "frequency": "Every 10 days, 5-6 releases"
+        },
+        {
+          "category": "crop_rotation",
+          "description": "Avoid continuous cotton or tomato cultivation",
+          "timing": "Season planning",
+          "frequency": "Yearly"
+        }
+      ]
+    },
+    {
+      "name": "Stem Borers",
+      "scientificName": "Scirpophaga incertulas (Rice), Chilo partellus (Maize)",
+      "affectedCrops": ["rice", "maize", "sugarcane"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Cartap hydrochloride",
+          "brandNames": ["Padan", "Caldan"],
+          "dosage": "2g per liter of water",
+          "applicationMethod": "foliar spray and whorl application",
+          "frequency": "Every 15 days",
+          "preHarvestInterval": 21,
+          "safetyPrecautions": [
+            "Wear protective gear",
+            "Moderately toxic",
+            "Do not contaminate water",
+            "Wash hands after use"
+          ],
+          "costEstimate": "₹300-400 per acre"
+        },
+        {
+          "genericName": "Chlorantraniliprole",
+          "brandNames": ["Coragen", "Ferterra"],
+          "dosage": "0.3ml per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 15 days",
+          "preHarvestInterval": 14,
+          "safetyPrecautions": [
+            "Use protective clothing",
+            "Safe for beneficial insects",
+            "Follow recommended dosage",
+            "Store properly"
+          ],
+          "costEstimate": "₹500-600 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Trichogramma egg parasitoid release",
+          "ingredients": ["Trichogramma chilonis cards"],
+          "preparation": [
+            "Release 1 lakh parasitoids per acre",
+            "Place cards in shaded areas of field",
+            "Release in early morning or evening"
+          ],
+          "applicationMethod": "biological control",
+          "frequency": "Every 10 days, 5-6 releases",
+          "effectiveness": "60-70% effective, eco-friendly"
+        },
+        {
+          "name": "Neem cake soil application",
+          "ingredients": ["Neem cake 250kg per acre"],
+          "preparation": [
+            "Apply neem cake to soil",
+            "Mix with last plowing",
+            "Can also apply as top dressing"
+          ],
+          "applicationMethod": "soil application",
+          "frequency": "Once before planting",
+          "effectiveness": "40-50% effective, improves soil health"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "timing",
+          "description": "Remove and destroy egg masses from leaves",
+          "timing": "Early crop stage",
+          "frequency": "Weekly"
+        },
+        {
+          "category": "timing",
+          "description": "Cut and remove dead hearts and white ears",
+          "timing": "Throughout season",
+          "frequency": "Weekly"
+        },
+        {
+          "category": "crop_rotation",
+          "description": "Practice crop rotation with non-host crops",
+          "timing": "Season planning",
+          "frequency": "Yearly"
+        },
+        {
+          "category": "timing",
+          "description": "Avoid staggered planting in the area",
+          "timing": "Planting time",
+          "frequency": "Each season"
+        }
+      ]
+    },
+    {
+      "name": "Leaf Miners",
+      "scientificName": "Liriomyza trifolii",
+      "affectedCrops": ["tomato", "potato", "brinjal"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Abamectin",
+          "brandNames": ["Vertimec", "Abathor"],
+          "dosage": "0.5ml per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10-12 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Wear protective equipment",
+            "Toxic to aquatic organisms",
+            "Do not spray near water bodies",
+            "Avoid spray drift"
+          ],
+          "costEstimate": "₹400-500 per acre"
+        },
+        {
+          "genericName": "Cyromazine",
+          "brandNames": ["Trigard"],
+          "dosage": "0.6g per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 12-15 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Use mask and gloves",
+            "Relatively safe for beneficial insects",
+            "Follow label instructions",
+            "Store in cool place"
+          ],
+          "costEstimate": "₹450-550 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Neem oil spray",
+          "ingredients": ["Neem oil 10ml", "Soap 2ml", "Water 1 liter"],
+          "preparation": [
+            "Mix neem oil with soap",
+            "Add to water and stir",
+            "Spray on both sides of leaves"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 5-7 days",
+          "effectiveness": "45-55% effective, disrupts larval development"
+        },
+        {
+          "name": "Yellow sticky traps",
+          "ingredients": ["Yellow sticky traps"],
+          "preparation": [
+            "Hang traps at plant canopy level",
+            "Use 15-20 traps per acre",
+            "Replace when covered with insects"
+          ],
+          "applicationMethod": "trap placement",
+          "frequency": "Replace every 15 days",
+          "effectiveness": "40-50% effective for adult monitoring"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "timing",
+          "description": "Remove and destroy infested leaves",
+          "timing": "Throughout season",
+          "frequency": "Weekly"
+        },
+        {
+          "category": "timing",
+          "description": "Use insect-proof nets in nursery",
+          "timing": "Nursery stage",
+          "frequency": "Each season"
+        },
+        {
+          "category": "spacing",
+          "description": "Maintain proper spacing for air circulation",
+          "timing": "At planting",
+          "frequency": "One-time"
+        },
+        {
+          "category": "timing",
+          "description": "Encourage parasitoid wasps (natural enemies)",
+          "timing": "Throughout season",
+          "frequency": "Continuous"
+        }
+      ]
+    }
+  ]
+}

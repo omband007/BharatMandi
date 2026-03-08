@@ -1,0 +1,250 @@
+{
+  "diseases": [
+    {
+      "name": "Bacterial Wilt",
+      "scientificName": "Ralstonia solanacearum",
+      "affectedCrops": ["tomato", "potato", "brinjal", "chili"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Streptocycline",
+          "brandNames": ["Plantomycin", "Agrimycin"],
+          "dosage": "1g per 10 liters of water",
+          "applicationMethod": "soil drench and foliar spray",
+          "frequency": "Every 10 days",
+          "preHarvestInterval": 5,
+          "safetyPrecautions": [
+            "Wear gloves during application",
+            "Do not use on same crop continuously",
+            "Avoid overuse to prevent resistance"
+          ],
+          "costEstimate": "₹300-400 per acre"
+        },
+        {
+          "genericName": "Copper oxychloride",
+          "brandNames": ["Blitox", "Fytolan"],
+          "dosage": "3g per liter of water",
+          "applicationMethod": "soil drench",
+          "frequency": "Every 15 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Use protective clothing",
+            "Avoid application during hot weather",
+            "Do not contaminate water sources"
+          ],
+          "costEstimate": "₹200-300 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Pseudomonas fluorescens treatment",
+          "ingredients": ["Pseudomonas fluorescens 10g", "Water 1 liter"],
+          "preparation": [
+            "Mix biocontrol agent with water",
+            "Let it stand for 30 minutes",
+            "Apply to soil around plant base"
+          ],
+          "applicationMethod": "soil drench",
+          "frequency": "Every 15 days",
+          "effectiveness": "60-70% effective, good biological control",
+          "commercialProducts": ["Biosafe", "Biocatch"]
+        },
+        {
+          "name": "Neem cake soil amendment",
+          "ingredients": ["Neem cake 500g per plant", "Compost 1kg per plant"],
+          "preparation": [
+            "Mix neem cake with compost",
+            "Apply around plant base",
+            "Incorporate into top soil"
+          ],
+          "applicationMethod": "soil application",
+          "frequency": "Once at planting, repeat after 30 days",
+          "effectiveness": "50-60% effective, improves soil health"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "crop_rotation",
+          "description": "Rotate with non-solanaceous crops for 3-4 years",
+          "timing": "Next season planning",
+          "frequency": "Yearly"
+        },
+        {
+          "category": "soil_health",
+          "description": "Improve soil drainage, avoid waterlogging",
+          "timing": "Before planting",
+          "frequency": "Seasonal"
+        },
+        {
+          "category": "timing",
+          "description": "Remove and destroy infected plants immediately",
+          "timing": "As soon as symptoms appear",
+          "frequency": "Daily inspection"
+        },
+        {
+          "category": "irrigation",
+          "description": "Avoid overhead irrigation, use drip system",
+          "timing": "Throughout season",
+          "frequency": "Daily"
+        }
+      ]
+    },
+    {
+      "name": "Bacterial Blight",
+      "scientificName": "Xanthomonas spp.",
+      "affectedCrops": ["rice", "cotton", "tomato"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Streptocycline + Copper oxychloride",
+          "brandNames": ["Plantomycin + Blitox"],
+          "dosage": "1g Streptocycline + 3g Copper oxychloride per liter",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Wear protective equipment",
+            "Mix fresh solution each time",
+            "Avoid spraying during rain"
+          ],
+          "costEstimate": "₹400-500 per acre"
+        },
+        {
+          "genericName": "Copper hydroxide",
+          "brandNames": ["Kocide", "Champion"],
+          "dosage": "2g per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 7-10 days",
+          "preHarvestInterval": 5,
+          "safetyPrecautions": [
+            "Use mask and gloves",
+            "Do not apply in hot weather",
+            "Store in cool, dry place"
+          ],
+          "costEstimate": "₹300-400 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Garlic and ginger extract",
+          "ingredients": ["Garlic 100g", "Ginger 100g", "Water 1 liter"],
+          "preparation": [
+            "Crush garlic and ginger together",
+            "Soak in water overnight",
+            "Strain and dilute 1:5 before use"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 7 days",
+          "effectiveness": "45-55% effective, good preventive measure"
+        },
+        {
+          "name": "Bordeaux mixture",
+          "ingredients": ["Copper sulfate 10g", "Lime 10g", "Water 1 liter"],
+          "preparation": [
+            "Dissolve copper sulfate in half water",
+            "Mix lime in remaining water",
+            "Combine slowly while stirring"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10 days",
+          "effectiveness": "65-75% effective, traditional remedy",
+          "commercialProducts": ["Bordeaux mixture ready-to-use"]
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "spacing",
+          "description": "Maintain recommended spacing for air circulation",
+          "timing": "At planting",
+          "frequency": "One-time"
+        },
+        {
+          "category": "timing",
+          "description": "Use disease-free seeds and seedlings",
+          "timing": "Before planting",
+          "frequency": "Each season"
+        },
+        {
+          "category": "irrigation",
+          "description": "Avoid water splash on leaves",
+          "timing": "Throughout season",
+          "frequency": "Daily"
+        }
+      ]
+    },
+    {
+      "name": "Soft Rot",
+      "scientificName": "Erwinia carotovora",
+      "affectedCrops": ["potato", "onion", "tomato", "brinjal"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Streptocycline",
+          "brandNames": ["Plantomycin", "Agrimycin"],
+          "dosage": "1g per 10 liters of water",
+          "applicationMethod": "soil drench",
+          "frequency": "Every 15 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Wear gloves",
+            "Do not use continuously",
+            "Rotate with other treatments"
+          ],
+          "costEstimate": "₹300-400 per acre"
+        },
+        {
+          "genericName": "Copper oxychloride",
+          "brandNames": ["Blitox", "Fytolan"],
+          "dosage": "3g per liter of water",
+          "applicationMethod": "foliar spray and soil drench",
+          "frequency": "Every 10-15 days",
+          "preHarvestInterval": 5,
+          "safetyPrecautions": [
+            "Use protective clothing",
+            "Avoid application in hot weather",
+            "Keep away from water bodies"
+          ],
+          "costEstimate": "₹200-300 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Trichoderma treatment",
+          "ingredients": ["Trichoderma viride 10g", "Water 1 liter"],
+          "preparation": [
+            "Mix Trichoderma with water",
+            "Let stand for 30 minutes",
+            "Apply to soil around plants"
+          ],
+          "applicationMethod": "soil drench",
+          "frequency": "Every 20 days",
+          "effectiveness": "55-65% effective, good biological control",
+          "commercialProducts": ["Trichoguard", "Ecoderma"]
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "soil_health",
+          "description": "Ensure good drainage, avoid waterlogging",
+          "timing": "Before planting and throughout season",
+          "frequency": "Continuous"
+        },
+        {
+          "category": "timing",
+          "description": "Harvest at proper maturity, avoid injuries",
+          "timing": "During harvest",
+          "frequency": "Regular"
+        },
+        {
+          "category": "irrigation",
+          "description": "Avoid excessive irrigation, especially near harvest",
+          "timing": "Throughout season",
+          "frequency": "Daily"
+        },
+        {
+          "category": "timing",
+          "description": "Store harvested produce in cool, dry conditions",
+          "timing": "Post-harvest",
+          "frequency": "Continuous"
+        }
+      ]
+    }
+  ]
+}

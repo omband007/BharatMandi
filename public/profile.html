@@ -7,99 +7,8 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Profile Management - Bharat Mandi</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .brand-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 15px;
-        }
-
-        .brand-logo-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .brand-logo {
-            width: 50px;
-            height: 50px;
-            flex-shrink: 0;
-        }
-
-        .brand-text {
-            text-align: left;
-        }
-
-        .brand-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: white;
-            line-height: 1.2;
-            margin: 0;
-        }
-
-        .brand-subtitle {
-            font-size: 0.85rem;
-            color: white;
-            opacity: 0.9;
-            margin: 0;
-        }
-
-        .nav-bar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 12px 20px;
-            margin-bottom: 20px;
-            border-radius: 50px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-
-        .nav-link {
-            padding: 8px 20px;
-            color: #666;
-            text-decoration: none;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-
-        .nav-link:hover {
-            background: #f0f0f0;
-            color: #667eea;
-        }
-
-        .nav-link.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .info-card {
+    <link rel="stylesheet" href="/css/common-styles.css">
+    <style>        .info-card {
             background: #e3f2fd;
             border-radius: 8px;
             padding: 15px;
@@ -229,35 +138,22 @@
     <div class="container">
         <div class="brand-header">
             <div class="brand-logo-container">
-                <svg class="brand-logo" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10 35 Q12 25 18 22 Q22 25 20 35 Q18 40 14 42 Z" fill="#FF9933"/>
-                    <path d="M13 28 Q15 32 13 37" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
-                    <path d="M25 15 Q28 10 30 8 Q32 10 35 15 Q33 30 30 35 Q27 30 25 15 Z" fill="white" stroke="#FF9933" stroke-width="1.5"/>
-                    <line x1="30" y1="12" x2="30" y2="32" stroke="#003DA5" stroke-width="1.5"/>
-                    <path d="M40 22 Q43 25 46 30 Q48 36 46 40 Q42 42 38 37 Q37 28 40 22 Z" fill="#138808"/>
-                    <path d="M41 28 Q43 32 42 37" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
-                    <rect x="28" y="35" width="4" height="15" fill="#8B4513" rx="1"/>
-                    <path d="M18 45 Q30 48 42 45" stroke="#138808" stroke-width="2" fill="none" opacity="0.6"/>
-                </svg>
-                <div class="brand-text">
-                    <div class="brand-title">Bharat Mandi</div>
-                    <div class="brand-subtitle">AI Powered Marketplace</div>
-                </div>
+                <img src="/assets/bharat-mandi-logo.png" alt="Bharat Mandi Logo" class="brand-logo">
             </div>
-        </div>
 
-        <nav class="nav-bar">
-            <a href="/" class="nav-link">Main</a>
-            <a href="/profile.html" class="nav-link active">Profile</a>
-            <a href="/listing.html" class="nav-link">Listings</a>
-            <a href="/buyer.html" class="nav-link">Marketplace</a>
-            <a href="/language-test.html" class="nav-link">Localization</a>
-            <a href="/translation-test.html" class="nav-link">Translation</a>
-            <a href="/voice-test.html" class="nav-link">Voice</a>
-            <a href="/voice-integration-demo.html" class="nav-link">Voice Integration</a>
-            <a href="/kisan-mitra-test.html" class="nav-link">Kisan Mitra</a>
-            <a href="/data-purge.html" class="nav-link">Data</a>
-        </nav>
+            <nav class="nav-bar">
+                <a href="/" class="nav-link">Main</a>
+                <a href="/profile.html" class="nav-link active">Profile</a>
+                <a href="/listing.html" class="nav-link">Listings</a>
+                <a href="/marketplace.html" class="nav-link">Marketplace</a>
+                <a href="/transactions.html" class="nav-link">Transactions</a>
+                <a href="/kisan-mitra.html" class="nav-link">Kisan Mitra</a>
+                <a href="/crop-diagnosis.html" class="nav-link">Dr. Fasal</a>
+                <a href="/data.html" class="nav-link">Data</a>
+            </nav>
+
+            <div id="userWelcome" style="display: none;"></div>
+        </div>
 
         <div class="info-card">
             <p><strong>✨ Profile Management UI:</strong></p>
@@ -323,6 +219,10 @@
                         <label style="display: flex; align-items: center; cursor: pointer;">
                             <input type="radio" name="userType" value="buyer" style="margin-right: 5px;">
                             <span>Buyer</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="userType" value="both" style="margin-right: 5px;">
+                            <span>Both</span>
                         </label>
                     </div>
                 </div>
@@ -395,14 +295,8 @@
             <div class="card">
                 <h2><span class="step-number">5</span> Profile</h2>
                 <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
-                    View and edit your profile information. Click "Load Profile" after logging in.
+                    View and edit your profile information.
                 </p>
-                
-                <!-- Login Status -->
-                <div id="loginStatus" style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 20px;">🔒</span>
-                    <span><strong>Not logged in</strong> - Please login first</span>
-                </div>
                 
                 <input type="hidden" id="profileUserId">
                 
@@ -467,6 +361,10 @@
                                 <input type="radio" name="editUserType" value="buyer" style="margin-right: 5px;">
                                 <span>Buyer</span>
                             </label>
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="radio" name="editUserType" value="both" style="margin-right: 5px;">
+                                <span>Both</span>
+                            </label>
                         </div>
                     </div>
                     <div class="form-group">
@@ -515,8 +413,8 @@
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button onclick="saveProfile()" style="flex: 1; background: #28a745;">Save Changes</button>
-                        <button onclick="cancelEdit()" style="flex: 1; background: #6c757d;">Cancel</button>
+                        <button type="button" onclick="saveProfile()" style="flex: 1; background: #28a745;">Save Changes</button>
+                        <button type="button" onclick="cancelEdit()" style="flex: 1; background: #6c757d;">Cancel</button>
                     </div>
                 </div>
                 
@@ -534,12 +432,6 @@
                     Download your complete profile data as JSON.
                 </p>
                 
-                <!-- Login Status -->
-                <div id="exportLoginStatus" style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 20px;">🔒</span>
-                    <span><strong>Not logged in</strong> - Please login first</span>
-                </div>
-                
                 <button onclick="exportProfile()" id="exportProfileBtn" style="background: #17a2b8;" disabled>
                     📥 Export Profile Data
                 </button>
@@ -549,8 +441,9 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:3000/api/v1/profiles';
-        const API_AUTH = 'http://localhost:3000/api/v1/profiles/auth';
+        // Use current host for API calls (works in both local and deployed environments)
+        const API_BASE = `${window.location.protocol}//${window.location.host}/api/v1/profiles`;
+        const API_AUTH = `${window.location.protocol}//${window.location.host}/api/v1/profiles/auth`;
         let sessionUserId = null;
         let authToken = null; // Store token after login
         let loggedInUserName = null; // Store user name after login
@@ -584,28 +477,11 @@
 
         // Update login status display
         function updateLoginStatus(isLoggedIn, userName = '') {
-            const loginStatus = document.getElementById('loginStatus');
-            const exportLoginStatus = document.getElementById('exportLoginStatus');
             const loadProfileBtn = document.getElementById('loadProfileBtn');
             const exportProfileBtn = document.getElementById('exportProfileBtn');
             const logoutBtn = document.getElementById('logoutBtn');
             
             if (isLoggedIn) {
-                // Update status displays
-                loginStatus.style.background = '#d4edda';
-                loginStatus.style.color = '#155724';
-                loginStatus.innerHTML = `
-                    <span style="font-size: 20px;">✅</span>
-                    <span><strong>Logged in as:</strong> ${userName}</span>
-                `;
-                
-                exportLoginStatus.style.background = '#d4edda';
-                exportLoginStatus.style.color = '#155724';
-                exportLoginStatus.innerHTML = `
-                    <span style="font-size: 20px;">✅</span>
-                    <span><strong>Logged in as:</strong> ${userName}</span>
-                `;
-                
                 // Enable profile buttons
                 loadProfileBtn.disabled = false;
                 exportProfileBtn.disabled = false;
@@ -613,21 +489,6 @@
                 // Show logout button
                 logoutBtn.style.display = 'block';
             } else {
-                // Update status displays
-                loginStatus.style.background = '#f8d7da';
-                loginStatus.style.color = '#721c24';
-                loginStatus.innerHTML = `
-                    <span style="font-size: 20px;">🔒</span>
-                    <span><strong>Not logged in</strong> - Please login first</span>
-                `;
-                
-                exportLoginStatus.style.background = '#f8d7da';
-                exportLoginStatus.style.color = '#721c24';
-                exportLoginStatus.innerHTML = `
-                    <span style="font-size: 20px;">🔒</span>
-                    <span><strong>Not logged in</strong> - Please login first</span>
-                `;
-                
                 // Disable profile buttons
                 loadProfileBtn.disabled = true;
                 exportProfileBtn.disabled = true;
@@ -649,6 +510,9 @@
             localStorage.removeItem('bharatMandiUserName');
             localStorage.removeItem('bharatMandiUserType');
             localStorage.removeItem('bharatMandiToken');
+            
+            // Trigger custom event to update UI immediately
+            window.dispatchEvent(new Event('userLoggedOut'));
             
             // Clear profile data
             clearProfileDisplay();
@@ -763,8 +627,11 @@
                 // Update UI
                 updateLoginStatus(true, storedUserName);
                 
-                // Auto-load profile
-                fetchAndDisplayProfile();
+                // Try to auto-load profile, but don't block if it fails
+                fetchAndDisplayProfile().catch(err => {
+                    console.warn('[Profile] Auto-load failed:', err);
+                    // Profile will show error message, user can proceed with registration
+                });
             } else {
                 updateLoginStatus(false);
             }
@@ -828,10 +695,17 @@
                 document.getElementById('verifyUserId').value = data.data.userId;
                 document.getElementById('profileUserId').value = data.data.userId;
 
+                // Display OTP if returned (development mode)
+                let otpMessage = '';
+                if (data.data.otp) {
+                    otpMessage = `<br><strong style="color: #4CAF50; font-size: 1.2em;">🔑 OTP: ${data.data.otp}</strong>`;
+                    // Auto-fill OTP in the verification field
+                    document.getElementById('verifyOTP').value = data.data.otp;
+                }
+
                 showResult('regResult', 
                     `✅ OTP sent!<br>
-                    <strong>Mobile:</strong> ${data.data.userId}<br>
-                    <strong>⚠️ Check server console for OTP</strong>`, 
+                    <strong>Mobile:</strong> ${data.data.userId}${otpMessage}`, 
                     false);
             } catch (error) {
                 showResult('regResult', `❌ Error: ${error.message}`, true);
@@ -840,7 +714,7 @@
 
         function fillCurrentLocation() {
             if (!navigator.geolocation) {
-                alert('Geolocation not supported by your browser');
+                showResult('verifyResult', '❌ Geolocation not supported by your browser', true);
                 return;
             }
 
@@ -941,6 +815,14 @@
                 document.getElementById('setupPinUserId').value = data.data.profile.userId;
                 document.getElementById('profileUserId').value = data.data.profile.userId;
 
+                // Store user info in localStorage so welcome section shows up
+                localStorage.setItem('bharatMandiUserId', data.data.profile.userId);
+                localStorage.setItem('bharatMandiUserName', data.data.profile.name);
+                localStorage.setItem('bharatMandiUserType', data.data.profile.userType);
+                
+                // Trigger custom event to update UI immediately
+                window.dispatchEvent(new Event('userLoggedIn'));
+
                 showResult('verifyResult', 
                     `✅ Registration complete!<br>
                     <strong>User ID:</strong> ${data.data.profile.userId}<br>
@@ -1015,6 +897,9 @@
                 localStorage.setItem('bharatMandiUserType', data.data.profile.userType);
                 localStorage.setItem('bharatMandiToken', data.data.token);
 
+                // Trigger custom event to update UI immediately
+                window.dispatchEvent(new Event('userLoggedIn'));
+
                 // Update login status
                 updateLoginStatus(true, loggedInUserName);
 
@@ -1061,6 +946,9 @@
                 localStorage.setItem('bharatMandiUserName', data.data.profile.name);
                 localStorage.setItem('bharatMandiUserType', data.data.profile.userType);
                 localStorage.setItem('bharatMandiToken', data.data.token);
+                
+                // Trigger custom event to update UI immediately
+                window.dispatchEvent(new Event('userLoggedIn'));
                 
                 // Update login status
                 updateLoginStatus(true, loggedInUserName);
@@ -1182,7 +1070,22 @@
                 document.getElementById('profileResult').style.display = 'none';
             } catch (error) {
                 console.error('Fetch profile error:', error);
-                showResult('profileResult', `❌ Error: ${error.message}`, true);
+                
+                // Check if it's a "Profile not found" error
+                if (error.message === 'Profile not found') {
+                    showResult('profileResult', 
+                        `❌ Profile not found in database.<br><br>
+                        <strong>To create your profile:</strong><br>
+                        1. Enter your mobile number in "Verify Mobile" section<br>
+                        2. Click "Send OTP" to receive verification code<br>
+                        3. Complete registration with your details<br>
+                        4. Setup your PIN<br>
+                        5. Login with your mobile and PIN<br><br>
+                        Your profile will be created automatically during registration.`, 
+                        true);
+                } else {
+                    showResult('profileResult', `❌ Error: ${error.message}`, true);
+                }
             }
         }
 
@@ -1295,7 +1198,7 @@
 
         function fillEditLocation() {
             if (!navigator.geolocation) {
-                alert('Geolocation not supported by your browser');
+                showResult('profileResult', '❌ Geolocation not supported by your browser', true);
                 return;
             }
 
@@ -1325,7 +1228,9 @@
         }
 
         async function saveProfile() {
+            console.log('[Profile] saveProfile() called');
             const userId = document.getElementById('profileUserId').value.trim();
+            console.log('[Profile] userId:', userId);
             
             if (!userId) {
                 showResult('profileResult', '❌ User ID is missing. Please login again.', true);
@@ -1333,10 +1238,12 @@
             }
             
             if (!authToken) {
+                console.log('[Profile] No authToken');
                 showResult('profileResult', '❌ Not authenticated. Please login again.', true);
                 return;
             }
             
+            console.log('[Profile] Starting profile save...');
             const name = document.getElementById('editName').value.trim();
             const userType = document.querySelector('input[name="editUserType"]:checked')?.value;
             const location = document.getElementById('editLocation').value.trim();
@@ -1347,11 +1254,16 @@
             const farmSizeValue = document.getElementById('editFarmSizeValue').value;
             const farmSizeUnit = document.getElementById('editFarmSizeUnit').value;
 
+            console.log('[Profile] Form values:', { name, userType, location, latitude, longitude, language, cropsText, farmSizeValue, farmSizeUnit });
+
             // Validate mandatory fields
             if (!name || !userType || !location) {
+                console.log('[Profile] Validation failed:', { name: !!name, userType: !!userType, location: !!location });
                 showResult('profileResult', '❌ Name, User Type, and Location are required', true);
                 return;
             }
+
+            console.log('[Profile] Validation passed, preparing location value...');
 
             // Determine location type based on whether coordinates are present
             let locationValue;
@@ -1462,8 +1374,8 @@
                 // Refresh profile display
                 await fetchAndDisplayProfile();
                 
-                // Hide edit form
-                document.getElementById('profileEdit').style.display = 'none';
+                // Switch back to view mode
+                cancelEdit();
             } catch (error) {
                 console.error('[Profile] Save profile error:', error);
                 showResult('profileResult', `❌ Error: ${error.message}`, true);
@@ -1504,5 +1416,6 @@
             }
         }
     </script>
+    <script src="/js/user-session.js"></script>
 </body>
 </html>

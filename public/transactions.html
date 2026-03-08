@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Workflow - Bharat Mandi</title>
+    <link rel="stylesheet" href="/css/common-styles.css">
+    <style>
+        .workflow-tracker {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .workflow-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            margin: 30px 0;
+        }
+        
+        .workflow-line {
+            position: absolute;
+            top: 25px;
+            left: 50px;
+            right: 50px;
+            height: 4px;
+            background: #e0e0e0;
+            z-index: 0;
+        }
+        
+        .workflow-progress {
+            position: absolute;
+            top: 25px;
+            left: 50px;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            z-index: 1;
+            transition: width 0.5s ease;
+        }
+        
+        .workflow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+            position: relative;
+        }
+        
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            color: #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            border: 4px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        
+        .step-circle.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .step-circle.completed {
+            background: #28a745;
+            color: white;
+        }
+        
+        .step-label {
+            margin-top: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            color: #666;
+            max-width: 80px;
+        }
+        
+        .step-label.active {
+            color: #667eea;
+        }
+        
+        .dual-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .role-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .role-panel.farmer {
+            border-top: 5px solid #28a745;
+        }
+        
+        .role-panel.buyer {
+            border-top: 5px solid #007bff;
+        }
+        
+        .role-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .role-icon {
+            font-size: 32px;
+        }
+        
+        .role-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .transaction-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .info-label {
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .info-value {
+            color: #333;
+        }
+        
+        .action-section {
+            margin-top: 20px;
+        }
+        
+        .action-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .action-button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+        
+        .action-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .action-button:disabled {
+            background: #e0e0e0 !important;
+            color: #999 !important;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-farmer {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-buyer {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-reject {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .status-message {
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 15px;
+        }
+        
+        .status-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-message.waiting {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        @media (max-width: 968px) {
+            .dual-view {
+                grid-template-columns: 1fr;
+            }
+            
+            .workflow-steps {
+                flex-wrap: wrap;
+                gap: 20px;
+            }
+            
+            .workflow-line, .workflow-progress {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="brand-header">
+            <div class="brand-logo-container">
+                <img src="/assets/bharat-mandi-logo.png" alt="Bharat Mandi Logo" class="brand-logo">
+            </div>
+            <nav class="nav-bar">
+                <a href="/" class="nav-link">Main</a>
+                <a href="/profile.html" class="nav-link">Profile</a>
+                <a href="/listing.html" class="nav-link">Listings</a>
+                <a href="/marketplace.html" class="nav-link">Marketplace</a>
+                <a href="/transactions.html" class="nav-link active">Transactions</a>
+                <a href="/kisan-mitra.html" class="nav-link">Kisan Mitra</a>
+                <a href="/crop-diagnosis.html" class="nav-link">Dr. Fasal</a>
+                <a href="/data.html" class="nav-link">Data</a>
+            </nav>
+
+            <div id="userWelcome" style="display: none;"></div>
+        </div>
+
+        <div class="info-card">
+            <p><strong>📦 Transaction Workflow:</strong></p>
+            <p>✓ Complete purchase flow from buyer to farmer</p>
+            <p>✓ Real-time status tracking (Pending, Accepted, In Transit, Delivered)</p>
+            <p>✓ Secure payment processing and escrow</p>
+            <p>✓ Delivery confirmation and dispute resolution</p>
+            <p style="margin-top: 10px;"><strong>🚀 Coming Next:</strong></p>
+            <p>• UPI and digital payment integration</p>
+            <p>• Logistics partner integration for delivery</p>
+            <p>• Transaction history and analytics</p>
+            <p>• Invoice generation and GST compliance</p>
+        </div>
+
+        <!-- Listing Details Card -->
+        <div class="workflow-tracker" id="listingDetailsCard" style="display: none;">
+            <h2 style="color: #667eea; margin-bottom: 15px;">📋 Listing Details</h2>
+            <div id="listingDetails" style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Workflow Visual Tracker -->
+        <div class="workflow-tracker">
+            <h2 style="color: #667eea; margin-bottom: 20px;">Transaction Progress</h2>
+            <div class="workflow-steps">
+                <div class="workflow-line"></div>
+                <div class="workflow-progress" id="workflowProgress" style="width: 0%"></div>
+                
+                <div class="workflow-step">
+                    <div class="step-circle completed" data-step="CREATED">✓</div>
+                    <div class="step-label">CREATED<br/><small>(Marketplace)</small></div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-circle" data-step="PENDING">1</div>
+                    <div class="step-label">PENDING</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-circle" data-step="ACCEPTED">2</div>
+                    <div class="step-label">ACCEPTED</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-circle" data-step="PAYMENT_LOCKED">3</div>
+                    <div class="step-label">PAYMENT LOCKED</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-circle" data-step="IN_TRANSIT">4</div>
+                    <div class="step-label">IN TRANSIT</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-circle" data-step="DELIVERED">5</div>
+                    <div class="step-label">DELIVERED</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-circle" data-step="COMPLETED">✓</div>
+                    <div class="step-label">COMPLETED</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dual View: Farmer and Buyer -->
+        <div class="dual-view">
+            <!-- Farmer Panel -->
+            <div class="role-panel farmer">
+                <div class="role-header">
+                    <div class="role-icon">🌾</div>
+                    <div class="role-title">Farmer View</div>
+                </div>
+                
+                <div class="transaction-info" id="farmerInfo">
+                    <div class="info-row">
+                        <span class="info-label">Loading...</span>
+                    </div>
+                </div>
+                
+                <div class="action-section" id="farmerActions">
+                    <!-- Actions will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Buyer Panel -->
+            <div class="role-panel buyer">
+                <div class="role-header">
+                    <div class="role-icon">🛒</div>
+                    <div class="role-title">Buyer View</div>
+                </div>
+                
+                <div class="transaction-info" id="buyerInfo">
+                    <div class="info-row">
+                        <span class="info-label">Loading...</span>
+                    </div>
+                </div>
+                
+                <div class="action-section" id="buyerActions">
+                    <!-- Actions will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let transaction = null;
+        let listing = null;
+        let transactionId = null;
+
+        // Get transaction ID from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        transactionId = urlParams.get('id');
+
+        async function initialize() {
+            // Check if we have a transaction ID from URL or sessionStorage
+            if (!transactionId) {
+                // Try to restore from sessionStorage
+                const savedTransactionId = sessionStorage.getItem('currentTransactionId');
+                if (savedTransactionId) {
+                    transactionId = savedTransactionId;
+                    // Update URL without reloading
+                    window.history.replaceState({}, '', `/transactions.html?id=${transactionId}`);
+                }
+            }
+            
+            if (!transactionId) {
+                // Show workflow diagram but no data
+                document.getElementById('farmerInfo').innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #999;">
+                        <p style="font-size: 16px; margin-bottom: 10px;">📋 No active transaction</p>
+                        <p style="font-size: 13px;">Start a purchase from the Marketplace to see the workflow in action</p>
+                    </div>
+                `;
+                document.getElementById('buyerInfo').innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #999;">
+                        <p style="font-size: 16px; margin-bottom: 10px;">📋 No active transaction</p>
+                        <p style="font-size: 13px;">Start a purchase from the Marketplace to see the workflow in action</p>
+                    </div>
+                `;
+                document.getElementById('farmerActions').innerHTML = `
+                    <a href="/marketplace.html" class="action-button btn-farmer" style="display: block; text-align: center; text-decoration: none;">
+                        🛒 Go to Marketplace
+                    </a>
+                `;
+                document.getElementById('buyerActions').innerHTML = `
+                    <a href="/marketplace.html" class="action-button btn-buyer" style="display: block; text-align: center; text-decoration: none;">
+                        🛒 Go to Marketplace
+                    </a>
+                `;
+                return;
+            }
+            
+            await loadTransaction();
+        }
+
+        async function loadTransaction() {
+            if (!transactionId) return;
+            
+            try {
+                const response = await fetch(`/api/transactions/${transactionId}`);
+                if (!response.ok) throw new Error('Transaction not found');
+                
+                transaction = await response.json();
+                
+                // Normalize data
+                transaction = {
+                    id: transaction.id,
+                    listingId: transaction.listing_id || transaction.listingId,
+                    farmerId: transaction.farmer_id || transaction.farmerId,
+                    buyerId: transaction.buyer_id || transaction.buyerId,
+                    amount: parseFloat(transaction.amount),
+                    status: transaction.status,
+                    createdAt: transaction.created_at || transaction.createdAt,
+                    updatedAt: transaction.updated_at || transaction.updatedAt
+                };
+                
+                // Save to sessionStorage
+                sessionStorage.setItem('currentTransactionId', transactionId);
+                sessionStorage.setItem('currentTransaction', JSON.stringify(transaction));
+                
+                // Load listing details
+                await loadListing();
+                
+                updateUI();
+            } catch (error) {
+                console.error('Error loading transaction:', error);
+                alert('Failed to load transaction: ' + error.message);
+            }
+        }
+
+        async function loadListing() {
+            try {
+                const response = await fetch(`/api/marketplace/listings/${transaction.listingId}`);
+                if (response.ok) {
+                    listing = await response.json();
+                    // Save to sessionStorage
+                    sessionStorage.setItem('currentListing', JSON.stringify(listing));
+                    displayListingDetails();
+                }
+            } catch (error) {
+                console.error('Error loading listing:', error);
+            }
+        }
+
+        function displayListingDetails() {
+            if (!listing) return;
+            
+            const card = document.getElementById('listingDetailsCard');
+            const detailsDiv = document.getElementById('listingDetails');
+            
+            card.style.display = 'block';
+            
+            // Status badge styling
+            const statusColors = {
+                'ACTIVE': 'background: #d4edda; color: #155724;',
+                'IN_TRANSACTION': 'background: #fff3cd; color: #856404;',
+                'SOLD': 'background: #28a745; color: white;',
+                'EXPIRED': 'background: #f8d7da; color: #721c24;',
+                'CANCELLED': 'background: #e2e3e5; color: #383d41;'
+            };
+            const statusStyle = statusColors[listing.status] || 'background: #e0e0e0; color: #666;';
+            
+            detailsDiv.innerHTML = `
+                <div style="line-height: 1.6;">
+                    <p style="margin: 5px 0;"><strong>Listing ID:</strong> <span style="color: #667eea; font-family: monospace; font-size: 13px;">${listing.id}</span></p>
+                    <p style="margin: 5px 0;"><strong>Produce Type:</strong> ${listing.produceType}</p>
+                    <p style="margin: 5px 0;"><strong>Quantity:</strong> ${listing.quantity} kg</p>
+                    <p style="margin: 5px 0;"><strong>Price per kg:</strong> ₹${listing.pricePerKg}</p>
+                    <p style="margin: 5px 0;"><strong>Total Price:</strong> <span style="color: #28a745; font-weight: 600;">₹${(listing.quantity * listing.pricePerKg).toFixed(2)}</span></p>
+                    <p style="margin: 5px 0;"><strong>Status:</strong> <span style="display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; ${statusStyle}">${listing.status}</span></p>
+                </div>
+            `;
+        }
+
+        function updateUI() {
+            updateWorkflowTracker();
+            updateFarmerPanel();
+            updateBuyerPanel();
+        }
+
+        function updateWorkflowTracker() {
+            if (!transaction) return;
+            
+            const steps = ['CREATED', 'PENDING', 'ACCEPTED', 'PAYMENT_LOCKED', 'IN_TRANSIT', 'DELIVERED', 'COMPLETED'];
+            const currentIndex = steps.indexOf(transaction.status);
+            
+            // Update step circles (skip first one as it's always completed)
+            document.querySelectorAll('.step-circle').forEach((circle, index) => {
+                if (index === 0) return; // Skip CREATED step
+                
+                circle.classList.remove('active', 'completed');
+                if (index <= currentIndex) {
+                    circle.classList.add('completed');
+                }
+                if (index === currentIndex) {
+                    circle.classList.add('active');
+                }
+            });
+            
+            document.querySelectorAll('.step-label').forEach((label, index) => {
+                label.classList.remove('active');
+                if (index === currentIndex) {
+                    label.classList.add('active');
+                }
+            });
+            
+            // Update progress bar (exclude CREATED from calculation)
+            const progress = ((currentIndex) / (steps.length - 1)) * 100;
+            document.getElementById('workflowProgress').style.width = progress + '%';
+        }
+
+        function updateFarmerPanel() {
+            const infoDiv = document.getElementById('farmerInfo');
+            const actionsDiv = document.getElementById('farmerActions');
+            
+            infoDiv.innerHTML = `
+                <div class="info-row">
+                    <span class="info-label">Produce:</span>
+                    <span class="info-value">${listing ? listing.produceType : 'Loading...'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Amount:</span>
+                    <span class="info-value">₹${transaction.amount.toFixed(2)}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Buyer ID:</span>
+                    <span class="info-value">${transaction.buyerId.substring(0, 12)}...</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status:</span>
+                    <span class="info-value" style="font-weight: 700; color: #667eea;">${transaction.status}</span>
+                </div>
+            `;
+            
+            actionsDiv.innerHTML = getFarmerActions();
+        }
+
+        function updateBuyerPanel() {
+            const infoDiv = document.getElementById('buyerInfo');
+            const actionsDiv = document.getElementById('buyerActions');
+            
+            infoDiv.innerHTML = `
+                <div class="info-row">
+                    <span class="info-label">Produce:</span>
+                    <span class="info-value">${listing ? listing.produceType : 'Loading...'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Amount:</span>
+                    <span class="info-value">₹${transaction.amount.toFixed(2)}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Farmer ID:</span>
+                    <span class="info-value">${transaction.farmerId.substring(0, 12)}...</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status:</span>
+                    <span class="info-value" style="font-weight: 700; color: #667eea;">${transaction.status}</span>
+                </div>
+            `;
+            
+            actionsDiv.innerHTML = getBuyerActions();
+        }
+
+        function getFarmerActions() {
+            switch(transaction.status) {
+                case 'PENDING':
+                    return `
+                        <div class="action-title">⏳ Order Pending - Your Action Required</div>
+                        <button class="action-button btn-farmer" onclick="acceptOrder()">✓ Accept Order</button>
+                        <button class="action-button btn-reject" onclick="rejectOrder()">✗ Reject Order</button>
+                        <div class="status-message info">Review the order details and decide whether to accept or reject.</div>
+                    `;
+                case 'ACCEPTED':
+                    return `
+                        <div class="action-title">✓ Order Accepted</div>
+                        <div class="status-message waiting">⏳ Waiting for buyer to lock payment...</div>
+                    `;
+                case 'PAYMENT_LOCKED':
+                    return `
+                        <div class="action-title">💰 Payment Secured - Your Action Required</div>
+                        <button class="action-button btn-farmer" onclick="markDispatched()">🚚 Mark as Dispatched</button>
+                        <div class="status-message info">Payment is locked in escrow. Dispatch the goods and update the status.</div>
+                    `;
+                case 'IN_TRANSIT':
+                    return `
+                        <div class="action-title">🚚 Goods in Transit</div>
+                        <div class="status-message waiting">⏳ Waiting for buyer to confirm delivery...</div>
+                    `;
+                case 'DELIVERED':
+                    return `
+                        <div class="action-title">📦 Delivered</div>
+                        <div class="status-message waiting">⏳ Waiting for buyer to release funds...</div>
+                    `;
+                case 'COMPLETED':
+                    return `
+                        <div class="action-title">✅ Transaction Complete</div>
+                        <div class="status-message success">💰 Funds have been released to you. Transaction complete!</div>
+                    `;
+                default:
+                    return `<div class="status-message info">Status: ${transaction.status}</div>`;
+            }
+        }
+
+        function getBuyerActions() {
+            switch(transaction.status) {
+                case 'PENDING':
+                    return `
+                        <div class="action-title">⏳ Order Placed</div>
+                        <div class="status-message waiting">⏳ Waiting for farmer to accept your order...</div>
+                    `;
+                case 'ACCEPTED':
+                    return `
+                        <div class="action-title">✓ Order Accepted - Your Action Required</div>
+                        <button class="action-button btn-buyer" onclick="lockPayment()">🔒 Lock Payment in Escrow</button>
+                        <div class="status-message info">Farmer accepted your order. Lock payment to proceed.</div>
+                    `;
+                case 'PAYMENT_LOCKED':
+                    return `
+                        <div class="action-title">💰 Payment Locked</div>
+                        <div class="status-message waiting">⏳ Waiting for farmer to dispatch goods...</div>
+                    `;
+                case 'IN_TRANSIT':
+                    return `
+                        <div class="action-title">🚚 Goods in Transit - Your Action Required</div>
+                        <button class="action-button btn-buyer" onclick="markDelivered()">📦 Confirm Delivery</button>
+                        <div class="status-message info">Confirm that you have received the goods.</div>
+                    `;
+                case 'DELIVERED':
+                    return `
+                        <div class="action-title">📦 Delivered - Your Action Required</div>
+                        <button class="action-button btn-buyer" onclick="releaseFunds()">💰 Release Funds to Farmer</button>
+                        <div class="status-message info">Release payment to the farmer to complete the transaction.</div>
+                    `;
+                case 'COMPLETED':
+                    return `
+                        <div class="action-title">✅ Transaction Complete</div>
+                        <div class="status-message success">✓ Transaction completed successfully. Thank you for your purchase!</div>
+                    `;
+                default:
+                    return `<div class="status-message info">Status: ${transaction.status}</div>`;
+            }
+        }
+
+        async function acceptOrder() {
+            const result = await performAction(`/api/transactions/${transactionId}/accept`, 'POST', 'Order accepted!');
+            
+            // Update listing status to IN_TRANSACTION when farmer accepts
+            if (result && listing) {
+                try {
+                    console.log('Updating listing status to IN_TRANSACTION for listing:', listing.id);
+                    const response = await fetch(`/api/marketplace/listings/${listing.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'IN_TRANSACTION' })
+                    });
+                    
+                    if (response.ok) {
+                        console.log('Listing status updated to IN_TRANSACTION successfully');
+                        listing.status = 'IN_TRANSACTION';
+                        displayListingDetails(); // Refresh the listing details display
+                    } else {
+                        const error = await response.json();
+                        console.error('Failed to update listing status:', error);
+                    }
+                } catch (error) {
+                    console.error('Error updating listing status:', error);
+                }
+            }
+        }
+
+        async function rejectOrder() {
+            if (!confirm('Are you sure you want to reject this order?')) return;
+            alert('Reject functionality needs to be added to the backend');
+        }
+
+        async function lockPayment() {
+            await performAction(`/api/transactions/${transactionId}/lock-payment`, 'POST', 'Payment locked in escrow!');
+        }
+
+        async function markDispatched() {
+            await performAction(`/api/transactions/${transactionId}/dispatch`, 'POST', 'Marked as dispatched!');
+        }
+
+        async function markDelivered() {
+            await performAction(`/api/transactions/${transactionId}/deliver`, 'POST', 'Marked as delivered!');
+        }
+
+        async function releaseFunds() {
+            const result = await performAction(`/api/transactions/${transactionId}/release-funds`, 'POST', 'Funds released to farmer!');
+            
+            // Update listing status to SOLD
+            if (result && listing) {
+                try {
+                    console.log('Updating listing status to SOLD for listing:', listing.id);
+                    const response = await fetch(`/api/marketplace/listings/${listing.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'SOLD' })
+                    });
+                    
+                    if (response.ok) {
+                        console.log('Listing status updated to SOLD successfully');
+                        listing.status = 'SOLD';
+                        displayListingDetails(); // Refresh the listing details display
+                    } else {
+                        const error = await response.json();
+                        console.error('Failed to update listing status:', error);
+                    }
+                } catch (error) {
+                    console.error('Error updating listing status:', error);
+                }
+            }
+        }
+
+        async function performAction(url, method, successMessage) {
+            try {
+                const response = await fetch(url, { method });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Action failed');
+                }
+                
+                const result = await response.json();
+                transaction = result.transaction || result;
+                
+                // Normalize data
+                transaction = {
+                    id: transaction.id,
+                    listingId: transaction.listing_id || transaction.listingId,
+                    farmerId: transaction.farmer_id || transaction.farmerId,
+                    buyerId: transaction.buyer_id || transaction.buyerId,
+                    amount: parseFloat(transaction.amount),
+                    status: transaction.status,
+                    createdAt: transaction.created_at || transaction.createdAt,
+                    updatedAt: transaction.updated_at || transaction.updatedAt
+                };
+                
+                updateUI();
+                
+                // Show success message briefly
+                const tempDiv = document.createElement('div');
+                tempDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9999; font-weight: 600;';
+                tempDiv.textContent = '✓ ' + successMessage;
+                document.body.appendChild(tempDiv);
+                setTimeout(() => tempDiv.remove(), 3000);
+                
+                return true; // Return success
+                
+            } catch (error) {
+                console.error('Action error:', error);
+                alert('❌ ' + error.message);
+                return false; // Return failure
+            }
+        }
+
+        // Initialize
+        initialize();
+    </script>
+    <script src="/js/user-session.js"></script>
+</body>
+</html>

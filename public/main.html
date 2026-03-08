@@ -1,0 +1,2901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bharat Mandi - POC Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .help-link {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .help-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .workflow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .status-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .status-value {
+            color: #333;
+            font-family: monospace;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .brand-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand-logo {
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+        }
+
+        .brand-text {
+            text-align: left;
+        }
+
+        .brand-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            line-height: 1.2;
+            margin: 0;
+        }
+
+        .brand-subtitle {
+            font-size: 0.85rem;
+            color: white;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .nav-link {
+            padding: 8px 20px;
+            color: #666;
+            text-decoration: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            background: #f0f0f0;
+            color: #667eea;
+        }
+
+        .nav-link.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .badge.pending { background: #ffc107; color: #000; }
+        .badge.accepted { background: #17a2b8; color: white; }
+        .badge.locked { background: #fd7e14; color: white; }
+        .badge.transit { background: #6f42c1; color: white; }
+        .badge.delivered { background: #20c997; color: white; }
+        .badge.completed { background: #28a745; color: white; }
+        
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="brand-header">
+            <div class="brand-logo-container">
+                <svg class="brand-logo" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Saffron leaf (left) -->
+                    <path d="M10 35 Q12 25 18 22 Q22 25 20 35 Q18 40 14 42 Z" fill="#FF9933"/>
+                    <path d="M13 28 Q15 32 13 37" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
+                    
+                    <!-- White leaf (center) with outline -->
+                    <path d="M25 15 Q28 10 30 8 Q32 10 35 15 Q33 30 30 35 Q27 30 25 15 Z" fill="white" stroke="#FF9933" stroke-width="1.5"/>
+                    <line x1="30" y1="12" x2="30" y2="32" stroke="#003DA5" stroke-width="1.5"/>
+                    
+                    <!-- Green leaf (right) -->
+                    <path d="M40 22 Q43 25 46 30 Q48 36 46 40 Q42 42 38 37 Q37 28 40 22 Z" fill="#138808"/>
+                    <path d="M41 28 Q43 32 42 37" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
+                    
+                    <!-- Stem -->
+                    <rect x="28" y="35" width="4" height="15" fill="#8B4513" rx="1"/>
+                    <path d="M18 45 Q30 48 42 45" stroke="#138808" stroke-width="2" fill="none" opacity="0.6"/>
+                </svg>
+                <div class="brand-text">
+                    <div class="brand-title">Bharat Mandi</div>
+                    <div class="brand-subtitle">AI Powered Marketplace</div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="nav-bar">
+            <a href="/" class="nav-link active">Main</a>
+            <a href="/profile.html" class="nav-link">Profile</a>
+            <a href="/listing.html" class="nav-link">Listings</a>
+            <a href="/marketplace.html" class="nav-link">Marketplace</a>
+            <a href="/transactions.html" class="nav-link">Transactions</a>
+            <a href="/kisan-mitra.html" class="nav-link">Kisan Mitra</a>
+            <a href="/crop-diagnosis.html" class="nav-link">Dr. Fasal</a>
+            <a href="/data.html" class="nav-link">Data</a>
+        </nav>
+
+        <div class="info-card" style="background: #e3f2fd; border-radius: 8px; padding: 15px; margin-bottom: 20px; line-height: 1.5;">
+            <p style="color: #666; font-size: 14px; margin: 0 0 3px 0;"><strong>G�� Completed Features:</strong></p>
+            <p style="color: #666; font-size: 14px; margin: 0 0 3px 0;">G�� OTP-based authentication with PIN and biometric login</p>
+            <p style="color: #666; font-size: 14px; margin: 0 0 3px 0;">G�� User registration and profile management</p>
+            <p style="color: #666; font-size: 14px; margin: 0 0 3px 0;">G�� AI-powered produce grading with quality assessment</p>
+            <p style="color: #666; font-size: 14px; margin: 0 0 3px 0;">G�� Marketplace listing creation and management</p>
+            <p style="color: #666; font-size: 14px; margin: 0 0 3px 0;">G�� Escrow-based transaction workflow with status tracking</p>
+            <p style="color: #666; font-size: 14px; margin: 0 0 3px 0;">G�� End-to-end marketplace workflow demonstration</p>
+            
+            <p style="color: #666; font-size: 14px; margin: 15px 0 3px 0;"><strong>=��� Coming Next:</strong></p>
+            <p style="color: #666; font-size: 14px; margin: 0 0 3px 0;">G�� Voice interface for low-literacy users</p>
+            <p style="color: #666; font-size: 14px; margin: 0 0 3px 0;">G�� Real-time price recommendations based on market data</p>
+            <p style="color: #666; font-size: 14px; margin: 0;">G�� Logistics integration with delivery tracking</p>
+        </div>
+
+        <div class="status-bar">
+            <h3 style="margin-bottom: 15px; color: #667eea;">=��� Current Status</h3>
+            <div class="status-item">
+                <span class="status-label">Farmer ID:</span>
+                <span class="status-value" id="farmerIdDisplay">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Buyer ID:</span>
+                <span class="status-value" id="buyerIdDisplay">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Certificate ID:</span>
+                <span class="status-value" id="certIdDisplay">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Listing ID:</span>
+                <span class="status-value" id="listingIdDisplay">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Transaction ID:</span>
+                <span class="status-value" id="txIdDisplay">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Transaction Status:</span>
+                <span class="status-value" id="txStatusDisplay">-</span>
+            </div>
+        </div>
+
+        <div class="workflow">
+            <!-- Step 0: Authentication -->
+            <div class="card" id="authCard">
+                <h2><span class="step-number">0</span> Authentication</h2>
+                <div id="authStep1" style="display: block;">
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="authPhone" placeholder="+919876543210 or 9876543210" maxlength="13">
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            Enter phone number (with or without +91)
+                        </small>
+                    </div>
+                    <button onclick="showLoginOptions()" style="margin-bottom: 10px;">Login with PIN/Biometric</button>
+                    <button onclick="requestOTP()" style="background: #6c757d;">Register / Login with OTP</button>
+                    <div id="otpRequestResult" class="result"></div>
+                </div>
+                
+                <div id="authStep2" style="display: none;">
+                    <div class="form-group">
+                        <label>Enter OTP</label>
+                        <input type="text" id="otpCode" placeholder="123456" maxlength="6">
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            Check console for OTP (in production, sent via SMS)
+                        </small>
+                    </div>
+                    <button onclick="verifyOTP()">Verify OTP</button>
+                    <div id="otpVerifyResult" class="result"></div>
+                </div>
+                
+                <div id="authStep3" style="display: none;">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">Complete Registration</h3>
+                    <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                        Please provide the following mandatory information to complete your registration.
+                    </p>
+                    <div class="form-group">
+                        <label>Full Name <span style="color: red;">*</span></label>
+                        <input type="text" id="regName" placeholder="Enter your full name" minlength="2" maxlength="100">
+                        <small style="color: #666; display: block; margin-top: 5px;">2-100 characters</small>
+                    </div>
+                    <div class="form-group">
+                        <label>User Type <span style="color: red;">*</span></label>
+                        <select id="regUserType">
+                            <option value="">-- Select your role --</option>
+                            <option value="farmer">Farmer</option>
+                            <option value="buyer">Buyer</option>
+                            <option value="both">Both (Farmer & Buyer)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Location Type <span style="color: red;">*</span></label>
+                        <select id="regLocationType" onchange="toggleRegLocationFields()">
+                            <option value="">-- Select location type --</option>
+                            <option value="manual">Manual Entry</option>
+                            <option value="gps">GPS Coordinates</option>
+                        </select>
+                    </div>
+                    <div id="regManualLocationFields" style="display: none;">
+                        <div class="form-group">
+                            <label>Location <span style="color: red;">*</span></label>
+                            <input type="text" id="regAddress" placeholder="Village/City, District, State" minlength="3" maxlength="200">
+                            <small style="color: #666; display: block; margin-top: 5px;">Example: Saharanpur, Uttar Pradesh</small>
+                        </div>
+                    </div>
+                    <div id="regGpsLocationFields" style="display: none;">
+                        <div class="form-group">
+                            <label>Latitude <span style="color: red;">*</span></label>
+                            <input type="number" id="regLat" placeholder="28.6139" step="0.000001" min="-90" max="90">
+                        </div>
+                        <div class="form-group">
+                            <label>Longitude <span style="color: red;">*</span></label>
+                            <input type="number" id="regLng" placeholder="77.2090" step="0.000001" min="-180" max="180">
+                        </div>
+                        <button type="button" onclick="getRegCurrentLocation()" style="background: #28a745; margin-bottom: 15px;">
+                            =��� Get Current Location
+                        </button>
+                    </div>
+                    <button onclick="completeRegistration()">Complete Registration</button>
+                    <div id="registrationResult" class="result"></div>
+                </div>
+                
+                <div id="authStep3b" style="display: none;">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">Setup PIN</h3>
+                    <p style="color: #666; margin-bottom: 15px;">Create a 4-6 digit PIN for secure login</p>
+                    <div class="form-group">
+                        <label>Enter PIN</label>
+                        <input type="password" id="setupPin" placeholder="1234" maxlength="6" pattern="[0-9]*" inputmode="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm PIN</label>
+                        <input type="password" id="confirmPin" placeholder="1234" maxlength="6" pattern="[0-9]*" inputmode="numeric">
+                    </div>
+                    <button onclick="setupPIN()">Setup PIN</button>
+                    <div id="pinSetupResult" class="result"></div>
+                </div>
+                
+                <div id="authStepLogin" style="display: none;">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">Login</h3>
+                    <div class="form-group">
+                        <label>Enter PIN</label>
+                        <input type="password" id="loginPin" placeholder="1234" maxlength="6" pattern="[0-9]*" inputmode="numeric">
+                    </div>
+                    <button onclick="loginWithPIN()" style="margin-bottom: 10px;">Login with PIN</button>
+                    <button onclick="loginWithBiometric()" style="background: #28a745; margin-bottom: 10px;">Login with Biometric</button>
+                    <button onclick="backToStart()" style="background: #6c757d;">Back / Use OTP</button>
+                    <div id="loginResult" class="result"></div>
+                </div>
+                
+                <div id="authStep4" style="display: none;">
+                    <div style="text-align: center; padding: 20px;">
+                        <h3 style="color: #28a745; margin-bottom: 10px;">G�� Authenticated</h3>
+                        <p id="authenticatedUser" style="color: #666;"></p>
+                        <p id="tokenStatus" style="color: #999; font-size: 12px; margin-top: 10px;"></p>
+                        <button onclick="logout()" style="margin-top: 15px; background: #dc3545;">Logout</button>
+                    </div>
+                </div>
+                
+                <div id="profileView" style="display: none;">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">My Profile</h3>
+                    <div id="profileDisplay" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <!-- Profile data will be displayed here -->
+                    </div>
+                    <button onclick="showEditProfile()" style="background: #667eea; margin-right: 10px;">Edit Profile</button>
+                    <button onclick="hideProfile()" style="background: #6c757d;">Back</button>
+                    <div id="profileResult" class="result"></div>
+                </div>
+                
+                <div id="profileEdit" style="display: none;">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">Edit Profile</h3>
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="editName">
+                    </div>
+                    <div class="form-group">
+                        <label>Location Address</label>
+                        <input type="text" id="editAddress">
+                    </div>
+                    <div class="form-group">
+                        <label>Latitude</label>
+                        <input type="number" id="editLat" step="0.0001">
+                    </div>
+                    <div class="form-group">
+                        <label>Longitude</label>
+                        <input type="number" id="editLng" step="0.0001">
+                    </div>
+                    
+                    <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;">
+                    <p style="color: #666; margin-bottom: 10px; font-size: 14px;">
+                        <strong>G��n+� Sensitive Data</strong> - Requires OTP verification
+                    </p>
+                    
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" id="editPhone" placeholder="Leave empty to keep current">
+                    </div>
+                    <div class="form-group">
+                        <label>Bank Account Number</label>
+                        <input type="text" id="editBankAccount" placeholder="Leave empty to keep current">
+                    </div>
+                    <div class="form-group">
+                        <label>IFSC Code</label>
+                        <input type="text" id="editBankIFSC" placeholder="Leave empty to keep current">
+                    </div>
+                    <div class="form-group">
+                        <label>Account Holder Name</label>
+                        <input type="text" id="editBankHolder" placeholder="Leave empty to keep current">
+                    </div>
+                    
+                    <button onclick="updateProfile()" style="background: #28a745; margin-right: 10px;">Save Changes</button>
+                    <button onclick="cancelEditProfile()" style="background: #6c757d;">Cancel</button>
+                    <div id="editProfileResult" class="result"></div>
+                </div>
+            </div>
+
+            <!-- Profile Management Card -->
+            <div class="card" id="profileCard" style="display: none;">
+                <h2><span class="step-number">=���</span> Profile Management</h2>
+                
+                <!-- Profile View -->
+                <div id="profileCardView">
+                    <div id="profileCardDisplay" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <p style="color: #999; text-align: center;">Loading profile...</p>
+                    </div>
+                    <button onclick="showEditProfileCard()" style="background: #667eea; margin-right: 10px;">Edit Profile</button>
+                    <button onclick="hideProfileCard()" style="background: #6c757d;">Close</button>
+                    <div id="profileCardResult" class="result"></div>
+                </div>
+                
+                <!-- Profile Edit -->
+                <div id="profileCardEdit" style="display: none;">
+                    <h3 style="margin-bottom: 15px; color: #667eea; font-size: 1.2em;">Edit Profile</h3>
+                    
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196f3;">
+                        <strong style="color: #1976d2;">=��� Basic Information</strong>
+                        <p style="color: #666; font-size: 14px; margin-top: 5px;">Update without verification</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="editNameCard" placeholder="Your full name">
+                    </div>
+                    <div class="form-group">
+                        <label>Location Address</label>
+                        <input type="text" id="editAddressCard" placeholder="City, State">
+                    </div>
+                    <div class="form-group">
+                        <label>Latitude</label>
+                        <input type="number" id="editLatCard" step="0.0001" placeholder="19.0760">
+                    </div>
+                    <div class="form-group">
+                        <label>Longitude</label>
+                        <input type="number" id="editLngCard" step="0.0001" placeholder="72.8777">
+                    </div>
+                    
+                    <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff9800;">
+                        <strong style="color: #f57c00;">=��� Sensitive Information</strong>
+                        <p style="color: #666; font-size: 14px; margin-top: 5px;">Requires OTP verification to update</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" id="editPhoneCard" placeholder="Leave empty to keep current">
+                        <small style="color: #999; display: block; margin-top: 5px;">10-digit number starting with 6-9</small>
+                    </div>
+                    
+                    <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                        <strong style="color: #666; display: block; margin-bottom: 10px;">Bank Account Details</strong>
+                        <div class="form-group">
+                            <label>Account Number</label>
+                            <input type="text" id="editBankAccountCard" placeholder="Leave empty to keep current">
+                        </div>
+                        <div class="form-group">
+                            <label>IFSC Code</label>
+                            <input type="text" id="editBankIFSCCard" placeholder="e.g., SBIN0001234">
+                        </div>
+                        <div class="form-group">
+                            <label>Account Holder Name</label>
+                            <input type="text" id="editBankHolderCard" placeholder="As per bank records">
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <button onclick="updateProfileCard()" style="background: #28a745; margin-right: 10px;">=��+ Save Changes</button>
+                        <button onclick="cancelEditProfileCard()" style="background: #6c757d;">G�� Cancel</button>
+                    </div>
+                    <div id="editProfileCardResult" class="result"></div>
+                </div>
+            </div>
+
+            <!-- Step 1: Create Users -->
+            <div class="card">
+                <h2><span class="step-number">1</span> Create Users</h2>
+                <div class="form-group">
+                    <label>Farmer Name</label>
+                    <input type="text" id="farmerName" value="Ramesh Kumar">
+                </div>
+                <div class="form-group">
+                    <label>Farmer Phone</label>
+                    <input type="text" id="farmerPhone" value="+919876543210">
+                </div>
+                <div class="form-group">
+                    <label>Farmer Location</label>
+                    <input type="text" id="farmerLocation" value="Punjab">
+                </div>
+                <button onclick="createFarmer()">Create Farmer</button>
+                <div id="farmerResult" class="result"></div>
+                
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;">
+                
+                <div class="form-group">
+                    <label>Buyer Name</label>
+                    <input type="text" id="buyerName" value="Suresh Traders">
+                </div>
+                <div class="form-group">
+                    <label>Buyer Phone</label>
+                    <input type="text" id="buyerPhone" value="+919876543211">
+                </div>
+                <div class="form-group">
+                    <label>Buyer Location</label>
+                    <input type="text" id="buyerLocation" value="Delhi">
+                </div>
+                <button onclick="createBuyer()">Create Buyer</button>
+                <div id="buyerResult" class="result"></div>
+            </div>
+
+            <!-- Step 2: Grade Produce -->
+            <div class="card">
+                <h2><span class="step-number">2</span> Grade Produce</h2>
+                <div class="form-group">
+                    <label>Upload Produce Image</label>
+                    <input type="file" id="produceImage" accept="image/*" style="padding: 5px;">
+                    <small style="color: #666; display: block; margin-top: 5px;">
+                        Upload a photo of your produce for AI analysis
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="autoDetect" checked style="width: auto; cursor: pointer;">
+                        <span>Auto-detect crop type using AI</span>
+                    </label>
+                </div>
+                <div class="form-group" id="produceTypeGroup">
+                    <label>Produce Type</label>
+                    <select id="produceType">
+                        <option value="" disabled selected>Auto-detect (AI will identify)</option>
+                        <option value="Tomato">Tomato</option>
+                        <option value="Wheat">Wheat</option>
+                        <option value="Rice">Rice</option>
+                        <option value="Potato">Potato</option>
+                        <option value="Onion">Onion</option>
+                        <option value="Corn">Corn</option>
+                        <option value="Apple">Apple</option>
+                        <option value="Banana">Banana</option>
+                        <option value="Carrot">Carrot</option>
+                        <option value="Cabbage">Cabbage</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Latitude</label>
+                    <input type="number" id="lat" value="30.7333" step="0.0001">
+                </div>
+                <div class="form-group">
+                    <label>Longitude</label>
+                    <input type="number" id="lng" value="76.7794" step="0.0001">
+                </div>
+                <button onclick="gradeProduce()" id="gradeBtn" disabled>Grade Produce with AI</button>
+                <div id="gradeResult" class="result"></div>
+            </div>
+
+            <!-- Step 3: Create Listing -->
+            <div class="card">
+                <h2><span class="step-number">3</span> Create Listing</h2>
+                <div class="form-group">
+                    <label>Quantity (kg)</label>
+                    <input type="number" id="quantity" value="1000">
+                </div>
+                <div class="form-group">
+                    <label>Price per kg (G�)</label>
+                    <input type="number" id="pricePerKg" value="25">
+                </div>
+                <button onclick="createListing()" id="listingBtn" disabled>Create Listing</button>
+                <div id="listingResult" class="result"></div>
+            </div>
+
+            <!-- Step 4: Initiate Transaction -->
+            <div class="card">
+                <h2><span class="step-number">4</span> Buyer Purchase</h2>
+                <div class="form-group">
+                    <label>Amount (G�)</label>
+                    <input type="number" id="amount" value="25000" readonly>
+                </div>
+                <button onclick="initiatePurchase()" id="purchaseBtn" disabled>Initiate Purchase</button>
+                <div id="purchaseResult" class="result"></div>
+            </div>
+
+            <!-- Step 5: Transaction Workflow -->
+            <div class="card">
+                <h2><span class="step-number">5</span> Transaction Flow</h2>
+                
+                <!-- Transaction Status Display -->
+                <div id="transactionStatus" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: none;">
+                    <div style="font-weight: 600; color: #667eea; margin-bottom: 10px;">Current Status:</div>
+                    <div id="currentStatus" style="font-size: 18px; font-weight: 600; color: #333;"></div>
+                </div>
+                
+                <!-- Visual Transaction Diagram -->
+                <div id="transactionDiagram" style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; display: none;">
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div id="step1" class="flow-step" style="display: flex; align-items: center; padding: 12px; border-radius: 6px; background: #f0f0f0; transition: all 0.3s;">
+                            <div class="step-icon" style="width: 30px; height: 30px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: 600; color: white;">1</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #333;">Farmer Accepts Order</div>
+                                <div style="font-size: 12px; color: #666;">Transaction initiated</div>
+                            </div>
+                        </div>
+                        <div style="width: 2px; height: 15px; background: #ddd; margin-left: 15px;"></div>
+                        <div id="step2" class="flow-step" style="display: flex; align-items: center; padding: 12px; border-radius: 6px; background: #f0f0f0; transition: all 0.3s;">
+                            <div class="step-icon" style="width: 30px; height: 30px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: 600; color: white;">2</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #333;">Buyer Locks Payment</div>
+                                <div style="font-size: 12px; color: #666;">Funds secured in escrow</div>
+                            </div>
+                        </div>
+                        <div style="width: 2px; height: 15px; background: #ddd; margin-left: 15px;"></div>
+                        <div id="step3" class="flow-step" style="display: flex; align-items: center; padding: 12px; border-radius: 6px; background: #f0f0f0; transition: all 0.3s;">
+                            <div class="step-icon" style="width: 30px; height: 30px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: 600; color: white;">3</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #333;">Farmer Dispatches</div>
+                                <div style="font-size: 12px; color: #666;">Goods in transit</div>
+                            </div>
+                        </div>
+                        <div style="width: 2px; height: 15px; background: #ddd; margin-left: 15px;"></div>
+                        <div id="step4" class="flow-step" style="display: flex; align-items: center; padding: 12px; border-radius: 6px; background: #f0f0f0; transition: all 0.3s;">
+                            <div class="step-icon" style="width: 30px; height: 30px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: 600; color: white;">4</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #333;">Buyer Confirms Delivery</div>
+                                <div style="font-size: 12px; color: #666;">Goods received</div>
+                            </div>
+                        </div>
+                        <div style="width: 2px; height: 15px; background: #ddd; margin-left: 15px;"></div>
+                        <div id="step5" class="flow-step" style="display: flex; align-items: center; padding: 12px; border-radius: 6px; background: #f0f0f0; transition: all 0.3s;">
+                            <div class="step-icon" style="width: 30px; height: 30px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: 600; color: white;">5</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #333;">Release Funds</div>
+                                <div style="font-size: 12px; color: #666;">Payment completed</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button onclick="acceptOrder()" id="acceptBtn" disabled style="margin-bottom: 10px;">
+                    Farmer Accepts Order
+                </button>
+                <button onclick="lockPayment()" id="lockBtn" disabled style="margin-bottom: 10px;">
+                    Buyer Locks Payment
+                </button>
+                <button onclick="dispatch()" id="dispatchBtn" disabled style="margin-bottom: 10px;">
+                    Farmer Dispatches
+                </button>
+                <button onclick="deliver()" id="deliverBtn" disabled style="margin-bottom: 10px;">
+                    Buyer Confirms Delivery
+                </button>
+                <button onclick="releaseFunds()" id="releaseBtn" disabled>
+                    Release Funds
+                </button>
+                <div id="workflowResult" class="result"></div>
+            </div>
+
+            <!-- Step 6: View Data -->
+            <div class="card">
+                <h2><span class="step-number">6</span> View Data</h2>
+                <button onclick="viewAllUsers()" style="margin-bottom: 10px;">View All Users</button>
+                <button onclick="viewAllListings()" style="margin-bottom: 10px;">View All Listings</button>
+                <button onclick="viewTransaction()">View Transaction Details</button>
+                
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;">
+                
+                <button onclick="getStats()" style="background: #2196f3;">
+                    =��� View Database Stats
+                </button>
+                
+                <div id="viewResult" class="result"></div>
+                <div id="dataManagementResult" class="result"></div>
+            </div>
+
+            <!-- Step 7: Profile Management -->
+            <div class="card" id="profileManagementCard" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;"><span class="step-number">7</span> Profile Management</h2>
+                    <button onclick="closeProfileManagement()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #999; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;" title="Close">G��</button>
+                </div>
+                
+                <!-- Profile Form -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div id="profileAvatar" style="width: 60px; height: 60px; border-radius: 50%; background: #667eea; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 600;"></div>
+                            <div>
+                                <div id="profileTypeBadge" style="background: #667eea; color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: 600; display: inline-block;"></div>
+                            </div>
+                        </div>
+                        <button onclick="toggleEditMode()" id="editToggleBtn" style="background: #667eea; padding: 8px 16px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 600;">Edit</button>
+                    </div>
+                    
+                    <div style="display: grid; gap: 15px;">
+                        <div class="form-group">
+                            <label style="font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Name</label>
+                            <input type="text" id="profileName" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px;" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Phone Number</label>
+                            <input type="tel" id="profilePhone" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; background: #f0f0f0;" readonly>
+                            <small style="color: #999; font-size: 12px;">Phone number cannot be changed</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="font-weight: 600; color: #666; margin-bottom: 5px; display: block;">User Type</label>
+                            <input type="text" id="profileUserType" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; background: #f0f0f0;" readonly>
+                            <small style="color: #999; font-size: 12px;">User type cannot be changed</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Location</label>
+                            <input type="text" id="profileLocation" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px;" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="font-weight: 600; color: #666; margin-bottom: 5px; display: block;">User ID</label>
+                            <input type="text" id="profileUserId" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 12px; font-family: monospace; background: #f0f0f0;" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Member Since</label>
+                            <input type="text" id="profileMemberSince" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; background: #f0f0f0;" readonly>
+                        </div>
+                    </div>
+                    
+                    <div id="editActions" style="display: none; margin-top: 20px; display: flex; gap: 10px;">
+                        <button onclick="saveProfileChanges()" style="background: #4caf50; padding: 10px 20px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 600; flex: 1;">Save Changes</button>
+                        <button onclick="cancelEdit()" style="background: #666; padding: 10px 20px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 600; flex: 1;">Cancel</button>
+                    </div>
+                </div>
+                
+                <div id="profileResult" class="result"></div>
+            </div>
+
+
+        </div>
+
+        <!-- Separator for Testing & Tools Section -->
+    </div>
+""
+
+    <script>
+        // Auto-detect API base URL from current location
+        const API_BASE = `${window.location.protocol}//${window.location.hostname}:${window.location.port}/api/v1/profiles`;
+        const API_AUTH = `${API_BASE}/auth`;
+        let state = {
+            farmerId: null,
+            buyerId: null,
+            certificateId: null,
+            listingId: null,
+            transactionId: null,
+            currentUser: null,
+            authPhone: null,
+            authToken: null,
+            produceType: null  // Store AI-detected or user-selected produce type
+        };
+
+        // Load token from localStorage on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedToken = localStorage.getItem('authToken');
+            if (savedToken) {
+                // Verify token is still valid
+                verifyStoredToken(savedToken);
+            }
+            
+            // Setup auto-detect toggle
+            const autoDetect = document.getElementById('autoDetect');
+            const produceTypeGroup = document.getElementById('produceTypeGroup');
+            const produceTypeSelect = document.getElementById('produceType');
+            
+            autoDetect.addEventListener('change', function() {
+                if (this.checked) {
+                    produceTypeGroup.style.opacity = '0.5';
+                    produceTypeGroup.style.pointerEvents = 'none';
+                    produceTypeSelect.selectedIndex = 0;
+                } else {
+                    produceTypeGroup.style.opacity = '1';
+                    produceTypeGroup.style.pointerEvents = 'auto';
+                    produceTypeSelect.selectedIndex = 1;
+                }
+            });
+            
+            if (autoDetect.checked) {
+                produceTypeGroup.style.opacity = '0.5';
+                produceTypeGroup.style.pointerEvents = 'none';
+                produceTypeSelect.selectedIndex = 0;
+            }
+        });
+
+        async function verifyStoredToken(token) {
+            try {
+                const response = await fetch(`${API_AUTH}/verify-token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    state.authToken = token;
+                    state.authPhone = data.phoneNumber;
+                    
+                    // Get full user details
+                    const userResponse = await fetch(`${API_BASE}/${data.payload.userId}`);
+                    if (userResponse.ok) {
+                        const userData = await userResponse.json();
+                        state.currentUser = userData.user;
+                        showAuthenticatedState();
+                    }
+                } else {
+                    // Token invalid, clear it
+                    localStorage.removeItem('authToken');
+                }
+            } catch (error) {
+                console.error('Token verification failed:', error);
+                localStorage.removeItem('authToken');
+            }
+        }
+
+        function showAuthenticatedState() {
+            document.getElementById('authStep1').style.display = 'none';
+            document.getElementById('authStep2').style.display = 'none';
+            document.getElementById('authStep3').style.display = 'none';
+            document.getElementById('authStep3b').style.display = 'none';
+            document.getElementById('authStepLogin').style.display = 'none';
+            document.getElementById('authStep4').style.display = 'block';
+            
+            document.getElementById('authenticatedUser').innerHTML = 
+                `<strong>${state.currentUser.name}</strong><br>
+                ${state.currentUser.userType}<br>
+                ${state.currentUser.phoneNumber}`;
+            
+            document.getElementById('tokenStatus').textContent = 
+                state.authToken ? '=��� Secure session active' : '';
+            
+            // Auto-fill user data based on type
+            if (state.currentUser.userType === 'FARMER') {
+                state.farmerId = state.currentUser.id;
+                document.getElementById('farmerName').value = state.currentUser.name;
+                document.getElementById('farmerPhone').value = state.currentUser.phoneNumber;
+                document.getElementById('gradeBtn').disabled = false;
+            } else if (state.currentUser.userType === 'BUYER') {
+                state.buyerId = state.currentUser.id;
+                document.getElementById('buyerName').value = state.currentUser.name;
+                document.getElementById('buyerPhone').value = state.currentUser.phoneNumber;
+            }
+            updateStatus();
+        }
+
+        // Authentication Functions
+        // Helper function to normalize phone number (remove +91 prefix if present)
+        function normalizePhoneNumber(phone) {
+            phone = phone.trim();
+            // Remove +91 prefix if present
+            if (phone.startsWith('+91')) {
+                phone = phone.substring(3);
+            } else if (phone.startsWith('91') && phone.length === 12) {
+                phone = phone.substring(2);
+            }
+            return phone;
+        }
+
+        function showLoginOptions() {
+            const phone = normalizePhoneNumber(document.getElementById('authPhone').value);
+            
+            if (!/^[6-9]\d{9}$/.test(phone)) {
+                showResult('otpRequestResult', 'G�� Invalid phone number. Must be 10 digits starting with 6-9', true);
+                return;
+            }
+            
+            state.authPhone = phone;
+            document.getElementById('authStep1').style.display = 'none';
+            document.getElementById('authStepLogin').style.display = 'block';
+        }
+
+        function backToStart() {
+            document.getElementById('authStep1').style.display = 'block';
+            document.getElementById('authStep2').style.display = 'none';
+            document.getElementById('authStepLogin').style.display = 'none';
+            document.getElementById('loginResult').className = 'result';
+            document.getElementById('loginResult').innerHTML = '';
+        }
+
+        async function requestOTP() {
+            try {
+                const phone = normalizePhoneNumber(document.getElementById('authPhone').value);
+                
+                if (!/^[6-9]\d{9}$/.test(phone)) {
+                    showResult('otpRequestResult', 'G�� Invalid phone number. Must be 10 digits starting with 6-9', true);
+                    return;
+                }
+                
+                state.authPhone = phone;
+                
+                const response = await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mobileNumber: phone })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to send OTP');
+                }
+                
+                document.getElementById('authStep1').style.display = 'none';
+                document.getElementById('authStep2').style.display = 'block';
+                showResult('otpRequestResult', `G�� ${data.message}<br><small>Check browser console for OTP</small>`);
+            } catch (error) {
+                showResult('otpRequestResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function verifyOTP() {
+            try {
+                const otp = document.getElementById('otpCode').value.trim();
+                
+                if (!/^\d{6}$/.test(otp)) {
+                    showResult('otpVerifyResult', 'G�� OTP must be 6 digits', true);
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/verify-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        userId: `+91${state.authPhone}`,
+                        otp: otp
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'OTP verification failed');
+                }
+                
+                // Check if profile exists and is complete
+                if (data.data && data.data.profile) {
+                    // User has a profile - check if it's complete
+                    const profile = data.data.profile;
+                    
+                    if (profile.name && profile.userType) {
+                        // Profile is complete - show login options or authenticate
+                        state.currentUser = profile;
+                        state.authToken = data.data.token;
+                        localStorage.setItem('authToken', data.data.token);
+                        
+                        // Check if PIN is set up
+                        if (profile.pinHash) {
+                            // Has PIN - show authenticated state
+                            showAuthenticatedState();
+                        } else {
+                            // No PIN - offer to set up PIN
+                            document.getElementById('authStep2').style.display = 'none';
+                            document.getElementById('authStep3b').style.display = 'block';
+                            showResult('otpVerifyResult', 'G�� Welcome back! Would you like to set up a PIN for faster login?');
+                        }
+                    } else {
+                        // Profile incomplete - show registration form
+                        document.getElementById('authStep2').style.display = 'none';
+                        document.getElementById('authStep3').style.display = 'block';
+                        showResult('otpVerifyResult', 'G�� OTP verified! Please complete your profile.');
+                    }
+                } else {
+                    // New user - show registration form
+                    document.getElementById('authStep2').style.display = 'none';
+                    document.getElementById('authStep3').style.display = 'block';
+                    showResult('otpVerifyResult', 'G�� OTP verified! Please complete registration.');
+                }
+            } catch (error) {
+                showResult('otpVerifyResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        function toggleRegLocationFields() {
+            const locationType = document.getElementById('regLocationType').value;
+            const manualFields = document.getElementById('regManualLocationFields');
+            const gpsFields = document.getElementById('regGpsLocationFields');
+            
+            if (locationType === 'manual') {
+                manualFields.style.display = 'block';
+                gpsFields.style.display = 'none';
+            } else if (locationType === 'gps') {
+                manualFields.style.display = 'none';
+                gpsFields.style.display = 'block';
+            } else {
+                manualFields.style.display = 'none';
+                gpsFields.style.display = 'none';
+            }
+        }
+
+        function getRegCurrentLocation() {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser');
+                return;
+            }
+
+            showResult('registrationResult', '=��� Getting your location...', false);
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    document.getElementById('regLat').value = position.coords.latitude.toFixed(6);
+                    document.getElementById('regLng').value = position.coords.longitude.toFixed(6);
+                    showResult('registrationResult', 'G�� Location captured successfully!', false);
+                },
+                (error) => {
+                    showResult('registrationResult', `G�� Error getting location: ${error.message}`, true);
+                }
+            );
+        }
+
+        async function completeRegistration() {
+            try {
+                const otp = document.getElementById('otpCode').value.trim();
+                const name = document.getElementById('regName').value.trim();
+                const userType = document.getElementById('regUserType').value;
+                const locationType = document.getElementById('regLocationType').value;
+                
+                // Validate mandatory fields
+                if (!name) {
+                    showResult('registrationResult', 'G�� Please enter your full name', true);
+                    return;
+                }
+                
+                if (name.length < 2 || name.length > 100) {
+                    showResult('registrationResult', 'G�� Name must be between 2 and 100 characters', true);
+                    return;
+                }
+                
+                if (!userType) {
+                    showResult('registrationResult', 'G�� Please select your user type', true);
+                    return;
+                }
+                
+                if (!locationType) {
+                    showResult('registrationResult', 'G�� Please select location type', true);
+                    return;
+                }
+                
+                // Build location object
+                let location;
+                if (locationType === 'manual') {
+                    const address = document.getElementById('regAddress').value.trim();
+                    if (!address) {
+                        showResult('registrationResult', 'G�� Please enter your location', true);
+                        return;
+                    }
+                    if (address.length < 3) {
+                        showResult('registrationResult', 'G�� Location must be at least 3 characters', true);
+                        return;
+                    }
+                    location = {
+                        type: 'manual',
+                        text: address
+                    };
+                } else if (locationType === 'gps') {
+                    const lat = parseFloat(document.getElementById('regLat').value);
+                    const lng = parseFloat(document.getElementById('regLng').value);
+                    
+                    if (isNaN(lat) || isNaN(lng)) {
+                        showResult('registrationResult', 'G�� Please enter valid GPS coordinates', true);
+                        return;
+                    }
+                    
+                    if (lat < -90 || lat > 90) {
+                        showResult('registrationResult', 'G�� Latitude must be between -90 and 90', true);
+                        return;
+                    }
+                    
+                    if (lng < -180 || lng > 180) {
+                        showResult('registrationResult', 'G�� Longitude must be between -180 and 180', true);
+                        return;
+                    }
+                    
+                    location = {
+                        type: 'gps',
+                        latitude: lat,
+                        longitude: lng
+                    };
+                }
+                
+                showResult('registrationResult', '=��� Completing registration...', false);
+                
+                const response = await fetch(`${API_BASE}/verify-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: `+91${state.authPhone}`,
+                        otp: otp,
+                        name: name,
+                        userType: userType,
+                        location: location
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Registration failed');
+                }
+                
+                state.currentUser = data.data.profile;
+                state.authToken = data.data.token;
+                localStorage.setItem('authToken', data.data.token);
+                
+                // Show PIN setup screen
+                document.getElementById('authStep3').style.display = 'none';
+                document.getElementById('authStep3b').style.display = 'block';
+                showResult('registrationResult', `G�� Registration complete! Profile is ${data.data.profile.completionPercentage}% complete. Now setup your PIN for secure login.`);
+            } catch (error) {
+                showResult('registrationResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function setupPIN() {
+            try {
+                const pin = document.getElementById('setupPin').value.trim();
+                const confirmPin = document.getElementById('confirmPin').value.trim();
+                
+                if (!/^\d{4,6}$/.test(pin)) {
+                    showResult('pinSetupResult', 'G�� PIN must be 4-6 digits', true);
+                    return;
+                }
+                
+                if (pin !== confirmPin) {
+                    showResult('pinSetupResult', 'G�� PINs do not match', true);
+                    return;
+                }
+                
+                const response = await fetch(`${API_AUTH}/setup-pin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phoneNumber: state.authPhone,
+                        pin: pin
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'PIN setup failed');
+                }
+                
+                // Now login with the PIN to get token
+                const loginResponse = await fetch(`${API_AUTH}/login/pin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mobileNumber: `+91${state.authPhone}`,
+                        pin: pin
+                    })
+                });
+                
+                const loginData = await loginResponse.json();
+                
+                if (loginResponse.ok) {
+                    state.authToken = loginData.token;
+                    localStorage.setItem('authToken', loginData.token);
+                    showAuthenticatedState();
+                    showResult('pinSetupResult', `G�� PIN setup complete! You're now logged in.`);
+                }
+            } catch (error) {
+                showResult('pinSetupResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function loginWithPIN() {
+            try {
+                const pin = document.getElementById('loginPin').value.trim();
+                
+                if (!/^\d{4,6}$/.test(pin)) {
+                    showResult('loginResult', 'G�� PIN must be 4-6 digits', true);
+                    return;
+                }
+                
+                const response = await fetch(`${API_AUTH}/login/pin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mobileNumber: `+91${state.authPhone}`,
+                        pin: pin
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Login failed');
+                }
+                
+                state.authToken = data.token;
+                state.currentUser = data.user;
+                localStorage.setItem('authToken', data.token);
+                
+                showAuthenticatedState();
+                showResult('loginResult', `G�� Login successful! Welcome back, ${data.user.name}!`);
+            } catch (error) {
+                showResult('loginResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function loginWithBiometric() {
+            try {
+                // In a real mobile app, this would trigger device biometric authentication
+                // For POC, we'll simulate it with a confirmation
+                if (!confirm('Simulate biometric authentication?\n\nIn a real app, this would use fingerprint/face ID.')) {
+                    return;
+                }
+                
+                const response = await fetch(`${API_AUTH}/login/biometric`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mobileNumber: `+91${state.authPhone}`
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Biometric login failed');
+                }
+                
+                state.authToken = data.token;
+                state.currentUser = data.user;
+                localStorage.setItem('authToken', data.token);
+                
+                showAuthenticatedState();
+                showResult('loginResult', `G�� Biometric login successful! Welcome back, ${data.user.name}!`);
+            } catch (error) {
+                showResult('loginResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        function logout() {
+            // Clear token from localStorage
+            localStorage.removeItem('authToken');
+            
+            // Reset state
+            state = {
+                farmerId: null,
+                buyerId: null,
+                certificateId: null,
+                listingId: null,
+                transactionId: null,
+                currentUser: null,
+                authPhone: null,
+                authToken: null
+            };
+            
+            // Reset UI
+            document.getElementById('authStep1').style.display = 'block';
+            document.getElementById('authStep2').style.display = 'none';
+            document.getElementById('authStep3').style.display = 'none';
+            document.getElementById('authStep3b').style.display = 'none';
+            document.getElementById('authStepLogin').style.display = 'none';
+            document.getElementById('authStep4').style.display = 'none';
+            document.getElementById('authPhone').value = '';
+            document.getElementById('otpCode').value = '';
+            updateStatus();
+            location.reload();
+        }
+
+        // Toggle produce type dropdown based on auto-detect checkbox
+        function updateStatus() {
+            document.getElementById('farmerIdDisplay').textContent = state.farmerId || '-';
+            document.getElementById('buyerIdDisplay').textContent = state.buyerId || '-';
+            document.getElementById('certIdDisplay').textContent = state.certificateId || '-';
+            document.getElementById('listingIdDisplay').textContent = state.listingId || '-';
+            document.getElementById('txIdDisplay').textContent = state.transactionId || '-';
+        }
+
+        function showResult(elementId, message, isError = false) {
+            const el = document.getElementById(elementId);
+            el.className = `result ${isError ? 'error' : 'success'}`;
+            el.innerHTML = message;
+        }
+
+        async function createFarmer() {
+            try {
+                // Note: This uses the old /api/users endpoint which is deprecated
+                // In production, use the profile registration flow instead
+                const response = await fetch(`http://'+window.location.host+'/api/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('farmerName').value,
+                        phone: document.getElementById('farmerPhone').value,
+                        type: 'FARMER',
+                        location: document.getElementById('farmerLocation').value
+                    })
+                });
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    // Handle duplicate phone number error
+                    if (response.status === 409 && data.existingUser) {
+                        showResult('farmerResult', 
+                            `G�� Phone number already registered!<br>
+                            <strong>Existing User:</strong><br>
+                            Name: ${data.existingUser.name}<br>
+                            Type: ${data.existingUser.userType}<br>
+                            Phone: ${data.existingUser.phoneNumber}<br>
+                            <br>
+                            Please use a different phone number or login with this number.`, 
+                            true
+                        );
+                    } else {
+                        showResult('farmerResult', `G�� Error: ${data.error}`, true);
+                    }
+                    return;
+                }
+                
+                state.farmerId = data.id;
+                updateStatus();
+                document.getElementById('gradeBtn').disabled = false;
+                showResult('farmerResult', `G�� Farmer created: ${data.name}<br>ID: ${data.id}`);
+            } catch (error) {
+                showResult('farmerResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function createBuyer() {
+            try {
+                // Note: This uses the old /api/users endpoint which is deprecated
+                // In production, use the profile registration flow instead
+                const response = await fetch(`http://'+window.location.host+'/api/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('buyerName').value,
+                        phone: document.getElementById('buyerPhone').value,
+                        type: 'BUYER',
+                        location: document.getElementById('buyerLocation').value
+                    })
+                });
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    // Handle duplicate phone number error
+                    if (response.status === 409 && data.existingUser) {
+                        showResult('buyerResult', 
+                            `G�� Phone number already registered!<br>
+                            <strong>Existing User:</strong><br>
+                            Name: ${data.existingUser.name}<br>
+                            Type: ${data.existingUser.userType}<br>
+                            Phone: ${data.existingUser.phoneNumber}<br>
+                            <br>
+                            Please use a different phone number or login with this number.`, 
+                            true
+                        );
+                    } else {
+                        showResult('buyerResult', `G�� Error: ${data.error}`, true);
+                    }
+                    return;
+                }
+                
+                state.buyerId = data.id;
+                updateStatus();
+                showResult('buyerResult', `G�� Buyer created: ${data.name}<br>ID: ${data.id}`);
+            } catch (error) {
+                showResult('buyerResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function gradeProduce() {
+            try {
+                const fileInput = document.getElementById('produceImage');
+                const file = fileInput.files ? fileInput.files[0] : null;
+                
+                if (!file) {
+                    showResult('gradeResult', 'G�� Please select an image file', true);
+                    return;
+                }
+
+                const autoDetect = document.getElementById('autoDetect').checked;
+                const produceTypeSelect = document.getElementById('produceType');
+                const produceType = autoDetect ? 'unknown' : produceTypeSelect.value;
+                
+                // Validate that a produce type is selected if not auto-detecting
+                if (!autoDetect && !produceType) {
+                    showResult('gradeResult', 'G�� Please select a produce type', true);
+                    return;
+                }
+
+                // Create FormData for file upload
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('farmerId', state.farmerId);
+                formData.append('produceType', produceType);
+                formData.append('lat', document.getElementById('lat').value);
+                formData.append('lng', document.getElementById('lng').value);
+                formData.append('autoDetect', autoDetect.toString());
+
+                showResult('gradeResult', '=��� Analyzing image with AI... Please wait...');
+
+                const response = await fetch(`${API_BASE}/grading/grade-with-image`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Grading failed');
+                }
+                
+                state.certificateId = data.certificate.id;
+                
+                // Store the detected/selected produce type for listing creation
+                const finalCrop = data.certificate.produceType;
+                state.produceType = finalCrop;
+                
+                // Update the produce type dropdown to show the detected crop
+                if (produceTypeSelect) {
+                    // If it's a dropdown, try to select the detected value
+                    const options = Array.from(produceTypeSelect.options);
+                    const matchingOption = options.find(opt => 
+                        opt.value.toLowerCase() === finalCrop.toLowerCase()
+                    );
+                    if (matchingOption) {
+                        produceTypeSelect.value = matchingOption.value;
+                    } else {
+                        // If not in dropdown, set it anyway (for text input)
+                        produceTypeSelect.value = finalCrop;
+                    }
+                }
+                
+                updateStatus();
+                document.getElementById('listingBtn').disabled = false;
+                
+                // Show detected crop or user-selected crop
+                const wasDetected = autoDetect && data.analysis.detectedCrop !== 'unknown';
+                
+                showResult('gradeResult', 
+                    `G�� AI Grading Complete!<br>
+                    <strong>Crop Type:</strong> ${finalCrop} ${wasDetected ? '(AI detected)' : '(User selected)'}<br>
+                    <strong>Grade:</strong> ${data.gradingResult.grade}<br>
+                    <strong>Confidence:</strong> ${(data.gradingResult.confidence * 100).toFixed(1)}%<br>
+                    <strong>Size:</strong> ${data.analysis.details.size}<br>
+                    <strong>Color:</strong> ${data.analysis.details.color}<br>
+                    <strong>Defects:</strong> ${data.analysis.details.defects}<br>
+                    <strong>Certificate ID:</strong> ${data.certificate.id}`
+                );
+            } catch (error) {
+                showResult('gradeResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function createListing() {
+            try {
+                const quantity = parseInt(document.getElementById('quantity').value);
+                const pricePerKg = parseInt(document.getElementById('pricePerKg').value);
+                document.getElementById('amount').value = quantity * pricePerKg;
+                
+                // Get produce type from input field, or fall back to state (from AI grading)
+                const produceType = document.getElementById('produceType').value || state.produceType;
+                
+                if (!produceType) {
+                    showResult('listingResult', 'G�� Produce type is missing. Please grade the produce first.', true);
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/marketplace/listings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        farmerId: state.farmerId,
+                        produceType: produceType,
+                        quantity: quantity,
+                        pricePerKg: pricePerKg,
+                        certificateId: state.certificateId
+                    })
+                });
+                const data = await response.json();
+                state.listingId = data.id;
+                updateStatus();
+                document.getElementById('purchaseBtn').disabled = false;
+                showResult('listingResult', 
+                    `G�� Listing Created!<br>
+                    Listing ID: ${data.id}<br>
+                    Produce: ${data.produceType}<br>
+                    Quantity: ${data.quantity} kg<br>
+                    Price: G�${data.pricePerKg}/kg<br>
+                    Total: G�${quantity * pricePerKg}`
+                );
+            } catch (error) {
+                showResult('listingResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function initiatePurchase() {
+            try {
+                const response = await fetch(`${API_BASE}/transactions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        listingId: state.listingId,
+                        farmerId: state.farmerId,
+                        buyerId: state.buyerId,
+                        amount: parseInt(document.getElementById('amount').value)
+                    })
+                });
+                const data = await response.json();
+                state.transactionId = data.id;
+                updateStatus();
+                updateTxStatus(data.status);
+                document.getElementById('acceptBtn').disabled = false;
+                showResult('purchaseResult', 
+                    `G�� Purchase Initiated!<br>
+                    Transaction ID: ${data.id}<br>
+                    Status: ${data.status}<br>
+                    Amount: G�${data.amount}`
+                );
+            } catch (error) {
+                showResult('purchaseResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        function updateTxStatus(status) {
+            // Show the status display and diagram
+            document.getElementById('transactionStatus').style.display = 'block';
+            document.getElementById('transactionDiagram').style.display = 'block';
+            
+            // Update current status text
+            const statusText = {
+                'PENDING': 'GŦ Pending - Waiting for farmer to accept',
+                'ACCEPTED': 'G�� Accepted - Waiting for payment lock',
+                'PAYMENT_LOCKED': '=��� Payment Locked - Waiting for dispatch',
+                'IN_TRANSIT': '=��� In Transit - Goods being delivered',
+                'DELIVERED': '=��� Delivered - Waiting for fund release',
+                'COMPLETED': 'G�� Completed - Transaction finished'
+            };
+            document.getElementById('currentStatus').textContent = statusText[status] || status;
+            
+            // Update visual diagram
+            const stepMap = {
+                'PENDING': 0,
+                'ACCEPTED': 1,
+                'PAYMENT_LOCKED': 2,
+                'IN_TRANSIT': 3,
+                'DELIVERED': 4,
+                'COMPLETED': 5
+            };
+            
+            const currentStep = stepMap[status] || 0;
+            
+            // Reset all steps
+            for (let i = 1; i <= 5; i++) {
+                const stepEl = document.getElementById(`step${i}`);
+                const iconEl = stepEl.querySelector('.step-icon');
+                
+                if (i <= currentStep) {
+                    // Completed step
+                    stepEl.style.background = '#e8f5e9';
+                    stepEl.style.borderLeft = '4px solid #4caf50';
+                    iconEl.style.background = '#4caf50';
+                    iconEl.innerHTML = 'G��';
+                } else if (i === currentStep + 1) {
+                    // Current step
+                    stepEl.style.background = '#fff3e0';
+                    stepEl.style.borderLeft = '4px solid #ff9800';
+                    iconEl.style.background = '#ff9800';
+                    iconEl.textContent = i;
+                } else {
+                    // Pending step
+                    stepEl.style.background = '#f0f0f0';
+                    stepEl.style.borderLeft = 'none';
+                    iconEl.style.background = '#ccc';
+                    iconEl.textContent = i;
+                }
+            }
+        }
+
+        async function acceptOrder() {
+            try {
+                const response = await fetch(`${API_BASE}/transactions/${state.transactionId}/accept`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                updateTxStatus(data.transaction.status);
+                document.getElementById('acceptBtn').disabled = true;
+                document.getElementById('lockBtn').disabled = false;
+                showResult('workflowResult', 
+                    `G�� Order Accepted!<br>
+                    Status: ${data.transaction.status}<br>
+                    Escrow Created: ${data.escrow.id}`
+                );
+            } catch (error) {
+                showResult('workflowResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function lockPayment() {
+            try {
+                const response = await fetch(`${API_BASE}/transactions/${state.transactionId}/lock-payment`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                updateTxStatus(data.transaction.status);
+                document.getElementById('lockBtn').disabled = true;
+                document.getElementById('dispatchBtn').disabled = false;
+                showResult('workflowResult', 
+                    `G�� Payment Locked!<br>
+                    Status: ${data.transaction.status}<br>
+                    Escrow Locked: ${data.escrow.isLocked}`
+                );
+            } catch (error) {
+                showResult('workflowResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function dispatch() {
+            try {
+                const response = await fetch(`${API_BASE}/transactions/${state.transactionId}/dispatch`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                updateTxStatus(data.status);
+                document.getElementById('dispatchBtn').disabled = true;
+                document.getElementById('deliverBtn').disabled = false;
+                showResult('workflowResult', 
+                    `G�� Dispatched!<br>
+                    Status: ${data.status}`
+                );
+            } catch (error) {
+                showResult('workflowResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function deliver() {
+            try {
+                const response = await fetch(`${API_BASE}/transactions/${state.transactionId}/deliver`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                updateTxStatus(data.status);
+                document.getElementById('deliverBtn').disabled = true;
+                document.getElementById('releaseBtn').disabled = false;
+                showResult('workflowResult', 
+                    `G�� Delivered!<br>
+                    Status: ${data.status}`
+                );
+            } catch (error) {
+                showResult('workflowResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function releaseFunds() {
+            try {
+                const response = await fetch(`${API_BASE}/transactions/${state.transactionId}/release-funds`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                updateTxStatus(data.transaction.status);
+                document.getElementById('releaseBtn').disabled = true;
+                showResult('workflowResult', 
+                    `G�� Funds Released!<br>
+                    Status: ${data.transaction.status}<br>
+                    Escrow Released: ${data.escrow.isReleased}`
+                );
+            } catch (error) {
+                showResult('workflowResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function viewAllUsers() {
+            try {
+                // Note: This uses the old /api/users endpoint which is deprecated
+                const response = await fetch(`http://'+window.location.host+'/api/users`);
+                const data = await response.json();
+                
+                if (data.length === 0) {
+                    showResult('viewResult', '<strong>No users found</strong>', false);
+                    return;
+                }
+                
+                // Create clickable user list
+                let userListHTML = `
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <strong style="color: #667eea; font-size: 18px;">=��� All Users (${data.length})</strong>
+                        <p style="color: #666; font-size: 14px; margin-top: 5px;">Click on a user to view their profile</p>
+                    </div>
+                    <div style="margin-top: 15px; display: grid; gap: 10px;">
+                `;
+                
+                data.forEach(user => {
+                    const userTypeColor = {
+                        'FARMER': '#4caf50',
+                        'BUYER': '#2196f3',
+                        'LOGISTICS_PROVIDER': '#ff9800',
+                        'COLD_STORAGE_PROVIDER': '#9c27b0',
+                        'SUPPLIER': '#f44336'
+                    };
+                    
+                    const color = userTypeColor[user.userType] || '#666';
+                    const locationStr = typeof user.location === 'object' ? user.location.address : user.location;
+                    
+                    userListHTML += `
+                        <div onclick="viewUserProfile('${user.id}')" 
+                             style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid ${color}; 
+                                    cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                             onmouseover="this.style.transform='translateX(5px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
+                             onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)';">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 5px;">
+                                        ${user.name}
+                                    </div>
+                                    <div style="font-size: 14px; color: #666;">
+                                        =��� ${user.phoneNumber}
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="background: ${color}; color: white; padding: 5px 12px; border-radius: 20px; 
+                                                font-size: 12px; font-weight: 600; margin-bottom: 5px;">
+                                        ${user.userType}
+                                    </div>
+                                    <div style="font-size: 12px; color: #999;">
+                                        =��� ${locationStr}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                userListHTML += '</div>';
+                
+                showResult('viewResult', userListHTML, false);
+            } catch (error) {
+                showResult('viewResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        let selectedUserForEdit = null;
+        let isEditMode = false;
+
+        async function viewUserProfile(userId) {
+            try {
+                const response = await fetch(`${API_BASE}/${userId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load profile');
+                }
+
+                // Store the selected user
+                selectedUserForEdit = data.user;
+                
+                // Show profile in Tile 7
+                showProfileInManagementTile(data.user);
+
+            } catch (error) {
+                showResult('viewResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        function showProfileInManagementTile(user) {
+            // Show Tile 7
+            document.getElementById('profileManagementCard').style.display = 'block';
+            
+            // Scroll to Tile 7
+            document.getElementById('profileManagementCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // Get location string
+            const locationStr = typeof user.location === 'object' ? user.location.address : user.location;
+            
+            // Set user type color
+            const userTypeColor = {
+                'FARMER': '#4caf50',
+                'BUYER': '#2196f3',
+                'LOGISTICS_PROVIDER': '#ff9800',
+                'COLD_STORAGE_PROVIDER': '#9c27b0',
+                'SUPPLIER': '#f44336'
+            };
+            
+            const color = userTypeColor[user.userType] || '#666';
+            
+            // Update avatar and badge
+            document.getElementById('profileAvatar').textContent = user.name.charAt(0).toUpperCase();
+            document.getElementById('profileAvatar').style.background = color;
+            document.getElementById('profileTypeBadge').textContent = user.userType;
+            document.getElementById('profileTypeBadge').style.background = color;
+            
+            // Populate form fields
+            document.getElementById('profileName').value = user.name;
+            document.getElementById('profilePhone').value = user.phoneNumber;
+            document.getElementById('profileUserType').value = user.userType;
+            document.getElementById('profileLocation').value = locationStr;
+            document.getElementById('profileUserId').value = user.id;
+            document.getElementById('profileMemberSince').value = new Date(user.createdAt).toLocaleDateString();
+            
+            // Reset to view mode
+            isEditMode = false;
+            setEditMode(false);
+        }
+
+        function closeProfileManagement() {
+            document.getElementById('profileManagementCard').style.display = 'none';
+            selectedUserForEdit = null;
+            isEditMode = false;
+            setEditMode(false);
+        }
+
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            setEditMode(isEditMode);
+        }
+
+        function setEditMode(enabled) {
+            const nameField = document.getElementById('profileName');
+            const locationField = document.getElementById('profileLocation');
+            const editToggleBtn = document.getElementById('editToggleBtn');
+            const editActions = document.getElementById('editActions');
+            
+            if (enabled) {
+                // Enable editing
+                nameField.removeAttribute('readonly');
+                nameField.style.background = 'white';
+                nameField.style.borderColor = '#667eea';
+                
+                locationField.removeAttribute('readonly');
+                locationField.style.background = 'white';
+                locationField.style.borderColor = '#667eea';
+                
+                editToggleBtn.style.display = 'none';
+                editActions.style.display = 'flex';
+            } else {
+                // Disable editing
+                nameField.setAttribute('readonly', 'readonly');
+                nameField.style.background = '#f8f9fa';
+                nameField.style.borderColor = '#ddd';
+                
+                locationField.setAttribute('readonly', 'readonly');
+                locationField.style.background = '#f8f9fa';
+                locationField.style.borderColor = '#ddd';
+                
+                editToggleBtn.style.display = 'block';
+                editActions.style.display = 'none';
+            }
+        }
+
+        function cancelEdit() {
+            if (!selectedUserForEdit) return;
+            
+            // Restore original values
+            const locationStr = typeof selectedUserForEdit.location === 'object' 
+                ? selectedUserForEdit.location.address 
+                : selectedUserForEdit.location;
+            
+            document.getElementById('profileName').value = selectedUserForEdit.name;
+            document.getElementById('profileLocation').value = locationStr;
+            
+            // Exit edit mode
+            isEditMode = false;
+            setEditMode(false);
+            
+            // Clear any messages
+            document.getElementById('profileResult').innerHTML = '';
+        }
+
+        async function saveProfileChanges() {
+            if (!selectedUserForEdit) return;
+            
+            try {
+                const updatedName = document.getElementById('profileName').value;
+                const updatedLocation = document.getElementById('profileLocation').value;
+                
+                if (!updatedName || !updatedLocation) {
+                    showResult('profileResult', 'G�� Please fill in all fields', true);
+                    return;
+                }
+                
+                showResult('profileResult', '=��� Saving changes...', false);
+                
+                // Create location object
+                const locationObj = typeof selectedUserForEdit.location === 'object'
+                    ? { ...selectedUserForEdit.location, address: updatedLocation }
+                    : { address: updatedLocation, latitude: 0, longitude: 0 };
+                
+                // Call API to update user profile
+                const response = await fetch(`${API_BASE}/${selectedUserForEdit.id}/fields`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: updatedName,
+                        location: locationObj
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    // If profile update endpoint returns not implemented, try direct database update
+                    if (data.message && data.message.includes('not yet fully implemented')) {
+                        // For now, just update the display
+                        selectedUserForEdit.name = updatedName;
+                        selectedUserForEdit.location = locationObj;
+                        
+                        // Update avatar with new name
+                        document.getElementById('profileAvatar').textContent = updatedName.charAt(0).toUpperCase();
+                        
+                        // Exit edit mode
+                        isEditMode = false;
+                        setEditMode(false);
+                        
+                        showResult('profileResult', 'G��n+� Profile updated in display only<br><small>Database persistence not yet implemented. Changes will be lost on refresh.</small>', false);
+                        return;
+                    }
+                    
+                    throw new Error(data.error || 'Failed to update profile');
+                }
+                
+                // Update successful
+                selectedUserForEdit.name = updatedName;
+                selectedUserForEdit.location = locationObj;
+                
+                // Update avatar with new name
+                document.getElementById('profileAvatar').textContent = updatedName.charAt(0).toUpperCase();
+                
+                // Exit edit mode
+                isEditMode = false;
+                setEditMode(false);
+                
+                showResult('profileResult', 'G�� Profile updated successfully!', false);
+                
+            } catch (error) {
+                showResult('profileResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+
+        async function viewAllListings() {
+            try {
+                const response = await fetch(`${API_BASE}/marketplace/listings`);
+                const data = await response.json();
+                showResult('viewResult', 
+                    `<strong>All Listings (${data.length}):</strong><br>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>`
+                );
+            } catch (error) {
+                showResult('viewResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function viewTransaction() {
+            if (!state.transactionId) {
+                showResult('viewResult', 'G�� No transaction created yet', true);
+                return;
+            }
+            try {
+                const response = await fetch(`${API_BASE}/transactions/${state.transactionId}`);
+                const data = await response.json();
+                showResult('viewResult', 
+                    `<strong>Transaction Details:</strong><br>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>`
+                );
+            } catch (error) {
+                showResult('viewResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        // Profile Management Functions
+        async function showProfile() {
+            if (!state.currentUser || !state.currentUser.id) {
+                showResult('profileResult', 'G�� No user logged in', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/${state.currentUser.userId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load profile');
+                }
+
+                // Display profile data
+                const user = data.data;
+                document.getElementById('profileDisplay').innerHTML = `
+                    <div style="margin-bottom: 10px;">
+                        <strong>Name:</strong> ${user.name}
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <strong>Phone:</strong> ${user.phoneNumber}
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <strong>User Type:</strong> ${user.userType}
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <strong>Location:</strong> ${user.location.address}
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <strong>Coordinates:</strong> ${user.location.latitude}, ${user.location.longitude}
+                    </div>
+                    ${user.bankAccount ? `
+                    <div style="margin-bottom: 10px;">
+                        <strong>Bank Account:</strong> ${user.bankAccount.accountNumber}
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <strong>IFSC Code:</strong> ${user.bankAccount.ifscCode}
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <strong>Account Holder:</strong> ${user.bankAccount.accountHolderName}
+                    </div>
+                    ` : ''}
+                    <div style="margin-top: 10px; color: #999; font-size: 12px;">
+                        Member since: ${new Date(user.createdAt).toLocaleDateString()}
+                    </div>
+                `;
+
+                // Hide authenticated state, show profile
+                document.getElementById('authStep4').style.display = 'none';
+                document.getElementById('profileView').style.display = 'block';
+                document.getElementById('profileEdit').style.display = 'none';
+
+            } catch (error) {
+                showResult('profileResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        function hideProfile() {
+            document.getElementById('profileView').style.display = 'none';
+            document.getElementById('authStep4').style.display = 'block';
+        }
+
+        function showEditProfile() {
+            if (!state.currentUser) {
+                return;
+            }
+
+            // Pre-fill form with current data
+            document.getElementById('editName').value = state.currentUser.name || '';
+            document.getElementById('editAddress').value = state.currentUser.location?.address || '';
+            document.getElementById('editLat').value = state.currentUser.location?.latitude || 0;
+            document.getElementById('editLng').value = state.currentUser.location?.longitude || 0;
+
+            // Clear sensitive fields
+            document.getElementById('editPhone').value = '';
+            document.getElementById('editBankAccount').value = '';
+            document.getElementById('editBankIFSC').value = '';
+            document.getElementById('editBankHolder').value = '';
+
+            // Show edit form
+            document.getElementById('profileView').style.display = 'none';
+            document.getElementById('profileEdit').style.display = 'block';
+        }
+
+        function cancelEditProfile() {
+            document.getElementById('profileEdit').style.display = 'none';
+            document.getElementById('profileView').style.display = 'block';
+            document.getElementById('editProfileResult').innerHTML = '';
+        }
+
+        async function updateProfile() {
+            if (!state.currentUser || !state.currentUser.id) {
+                showResult('editProfileResult', 'G�� No user logged in', true);
+                return;
+            }
+
+            const name = document.getElementById('editName').value.trim();
+            const address = document.getElementById('editAddress').value.trim();
+            const lat = parseFloat(document.getElementById('editLat').value);
+            const lng = parseFloat(document.getElementById('editLng').value);
+            const phone = document.getElementById('editPhone').value.trim();
+            const bankAccount = document.getElementById('editBankAccount').value.trim();
+            const bankIFSC = document.getElementById('editBankIFSC').value.trim();
+            const bankHolder = document.getElementById('editBankHolder').value.trim();
+
+            // Build update payload
+            const updates = {};
+            
+            if (name) updates.name = name;
+            if (address) {
+                updates.location = {
+                    latitude: lat,
+                    longitude: lng,
+                    address: address
+                };
+            }
+
+            // Check if sensitive data is being updated
+            const hasSensitiveUpdate = phone || bankAccount || bankIFSC || bankHolder;
+            
+            if (phone) updates.phoneNumber = phone;
+            if (bankAccount && bankIFSC && bankHolder) {
+                updates.bankAccount = {
+                    accountNumber: bankAccount,
+                    ifscCode: bankIFSC,
+                    accountHolderName: bankHolder
+                };
+            }
+
+            try {
+                // First attempt without verification
+                const response = await fetch(`${API_BASE}/${state.currentUser.userId}/fields`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updates)
+                });
+
+                const data = await response.json();
+
+                if (response.status === 403 && data.requiresVerification) {
+                    // Sensitive data requires OTP verification
+                    showResult('editProfileResult', 
+                        `G��n+� Updating sensitive data requires OTP verification.<br>
+                        <button onclick="startSensitiveDataUpdate(${JSON.stringify(updates).replace(/"/g, '&quot;')})" 
+                                style="margin-top: 10px; background: #667eea;">
+                            Verify with OTP
+                        </button>`,
+                        false
+                    );
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to update profile');
+                }
+
+                // Update successful
+                state.currentUser = data.data;
+                showResult('editProfileResult', `G�� ${data.message}`);
+                
+                // Refresh profile view after 1 second
+                setTimeout(() => {
+                    cancelEditProfile();
+                    showProfile();
+                }, 1000);
+
+            } catch (error) {
+                showResult('editProfileResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function startSensitiveDataUpdate(updates) {
+            // Request OTP for verification
+            const phoneToVerify = updates.phoneNumber || state.currentUser.phoneNumber;
+            
+            try {
+                const response = await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ mobileNumber: phoneToVerify })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to send OTP');
+                }
+
+                // Show OTP input
+                showResult('editProfileResult', 
+                    `G�� OTP sent to ${phoneToVerify}<br>
+                    <div style="margin-top: 15px;">
+                        <input type="text" id="verifyOTP" placeholder="Enter OTP" 
+                               style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 150px;">
+                        <button onclick="completeSensitiveDataUpdate(${JSON.stringify(updates).replace(/"/g, '&quot;')})" 
+                                style="margin-left: 10px; background: #28a745;">
+                            Verify & Update
+                        </button>
+                    </div>`,
+                    false
+                );
+
+            } catch (error) {
+                showResult('editProfileResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function completeSensitiveDataUpdate(updates) {
+            const otp = document.getElementById('verifyOTP').value.trim();
+            const phoneToVerify = updates.phoneNumber || state.currentUser.phoneNumber;
+
+            if (!otp) {
+                showResult('editProfileResult', 'G�� Please enter OTP', true);
+                return;
+            }
+
+            try {
+                // Verify OTP
+                const verifyResponse = await fetch(`${API_BASE}/verify-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: phoneToVerify,
+                        otp: otp
+                    })
+                });
+
+                const verifyData = await verifyResponse.json();
+
+                if (!verifyResponse.ok) {
+                    throw new Error(verifyData.error || 'OTP verification failed');
+                }
+
+                // Now update with verification flag
+                updates.isPhoneVerified = true;
+
+                const updateResponse = await fetch(`${API_BASE}/${state.currentUser.userId}/fields`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updates)
+                });
+
+                const updateData = await updateResponse.json();
+
+                if (!updateResponse.ok) {
+                    throw new Error(updateData.error || 'Failed to update profile');
+                }
+
+                // Update successful
+                state.currentUser = updateData.data;
+                showResult('editProfileResult', `G�� ${updateData.message}`);
+                
+                // Refresh profile view after 1 second
+                setTimeout(() => {
+                    cancelEditProfile();
+                    showProfile();
+                }, 1000);
+
+            } catch (error) {
+                showResult('editProfileResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        // Profile Card Functions (Separate Section)
+        async function showProfileCard(isAdminView = false) {
+            if (!state.currentUser || !state.currentUser.id) {
+                alert('No user logged in');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/${state.currentUser.userId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load profile');
+                }
+
+                // Display profile data in card
+                const user = data.data;
+                
+                // Add admin view indicator if viewing another user's profile
+                const adminBadge = isAdminView ? `
+                    <div style="background: #ff9800; color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                        <strong>=���n+� Admin View</strong> - Viewing another user's profile
+                    </div>
+                ` : '';
+                
+                document.getElementById('profileCardDisplay').innerHTML = `
+                    ${adminBadge}
+                    <div style="display: grid; gap: 15px;">
+                        <div style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+                            <div style="color: #999; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">Name</div>
+                            <div style="font-size: 18px; font-weight: 600; color: #333;">${user.name}</div>
+                        </div>
+                        <div style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+                            <div style="color: #999; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">Phone Number</div>
+                            <div style="font-size: 16px; color: #333;">=��� ${user.phoneNumber}</div>
+                        </div>
+                        <div style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+                            <div style="color: #999; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">User Type</div>
+                            <div style="font-size: 16px; color: #667eea; font-weight: 600;">${user.userType}</div>
+                        </div>
+                        <div style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+                            <div style="color: #999; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">User ID</div>
+                            <div style="font-size: 12px; color: #999; font-family: monospace;">${user.id}</div>
+                        </div>
+                        <div style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+                            <div style="color: #999; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">Location</div>
+                            <div style="font-size: 14px; color: #333;">=��� ${user.location.address}</div>
+                            <div style="font-size: 12px; color: #999; margin-top: 5px;">
+                                Coordinates: ${user.location.latitude}, ${user.location.longitude}
+                            </div>
+                        </div>
+                        ${user.bankAccount ? `
+                        <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; border-left: 4px solid #4caf50;">
+                            <div style="color: #2e7d32; font-size: 12px; text-transform: uppercase; margin-bottom: 10px; font-weight: 600;">
+                                =�Ū Bank Account Details
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <span style="color: #666; font-size: 12px;">Account Number:</span>
+                                <div style="font-size: 14px; color: #333; font-weight: 500;">${user.bankAccount.accountNumber}</div>
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <span style="color: #666; font-size: 12px;">IFSC Code:</span>
+                                <div style="font-size: 14px; color: #333; font-weight: 500;">${user.bankAccount.ifscCode}</div>
+                            </div>
+                            <div>
+                                <span style="color: #666; font-size: 12px;">Account Holder:</span>
+                                <div style="font-size: 14px; color: #333; font-weight: 500;">${user.bankAccount.accountHolderName}</div>
+                            </div>
+                        </div>
+                        ` : '<div style="color: #999; font-style: italic; text-align: center; padding: 20px;">No bank account details added</div>'}
+                        <div style="text-align: center; padding-top: 10px; border-top: 1px solid #ddd;">
+                            <div style="color: #999; font-size: 12px;">Member since</div>
+                            <div style="color: #667eea; font-weight: 600; margin-top: 5px;">
+                                ${new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Update buttons based on admin view
+                const buttonsContainer = document.querySelector('#profileCardView');
+                const existingButtons = buttonsContainer.querySelectorAll('button');
+                existingButtons.forEach(btn => btn.remove());
+                
+                const buttonHTML = isAdminView ? 
+                    '<button onclick="hideProfileCard()" style="background: #6c757d;">Close</button>' :
+                    '<button onclick="showEditProfileCard()" style="background: #667eea; margin-right: 10px;">Edit Profile</button><button onclick="hideProfileCard()" style="background: #6c757d;">Close</button>';
+                
+                const resultDiv = document.getElementById('profileCardResult');
+                resultDiv.insertAdjacentHTML('beforebegin', buttonHTML);
+
+                // Show profile card
+                document.getElementById('profileCard').style.display = 'block';
+                document.getElementById('profileCardView').style.display = 'block';
+                document.getElementById('profileCardEdit').style.display = 'none';
+                
+                // Scroll to profile card
+                document.getElementById('profileCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            } catch (error) {
+                showResult('profileCardResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        function hideProfileCard() {
+            document.getElementById('profileCard').style.display = 'none';
+            document.getElementById('profileCardResult').innerHTML = '';
+        }
+
+        function showEditProfileCard() {
+            if (!state.currentUser) {
+                return;
+            }
+
+            // Pre-fill form with current data
+            document.getElementById('editNameCard').value = state.currentUser.name || '';
+            document.getElementById('editAddressCard').value = state.currentUser.location?.address || '';
+            document.getElementById('editLatCard').value = state.currentUser.location?.latitude || 0;
+            document.getElementById('editLngCard').value = state.currentUser.location?.longitude || 0;
+
+            // Clear sensitive fields
+            document.getElementById('editPhoneCard').value = '';
+            document.getElementById('editBankAccountCard').value = '';
+            document.getElementById('editBankIFSCCard').value = '';
+            document.getElementById('editBankHolderCard').value = '';
+
+            // Show edit form
+            document.getElementById('profileCardView').style.display = 'none';
+            document.getElementById('profileCardEdit').style.display = 'block';
+            document.getElementById('editProfileCardResult').innerHTML = '';
+        }
+
+        function cancelEditProfileCard() {
+            document.getElementById('profileCardEdit').style.display = 'none';
+            document.getElementById('profileCardView').style.display = 'block';
+            document.getElementById('editProfileCardResult').innerHTML = '';
+        }
+
+        async function updateProfileCard() {
+            if (!state.currentUser || !state.currentUser.id) {
+                showResult('editProfileCardResult', 'G�� No user logged in', true);
+                return;
+            }
+
+            const name = document.getElementById('editNameCard').value.trim();
+            const address = document.getElementById('editAddressCard').value.trim();
+            const lat = parseFloat(document.getElementById('editLatCard').value);
+            const lng = parseFloat(document.getElementById('editLngCard').value);
+            const phone = document.getElementById('editPhoneCard').value.trim();
+            const bankAccount = document.getElementById('editBankAccountCard').value.trim();
+            const bankIFSC = document.getElementById('editBankIFSCCard').value.trim();
+            const bankHolder = document.getElementById('editBankHolderCard').value.trim();
+
+            // Build update payload
+            const updates = {};
+            
+            if (name) updates.name = name;
+            if (address) {
+                updates.location = {
+                    latitude: lat,
+                    longitude: lng,
+                    address: address
+                };
+            }
+
+            // Check if sensitive data is being updated
+            const hasSensitiveUpdate = phone || bankAccount || bankIFSC || bankHolder;
+            
+            if (phone) updates.phoneNumber = phone;
+            if (bankAccount && bankIFSC && bankHolder) {
+                updates.bankAccount = {
+                    accountNumber: bankAccount,
+                    ifscCode: bankIFSC,
+                    accountHolderName: bankHolder
+                };
+            }
+
+            try {
+                // First attempt without verification
+                const response = await fetch(`${API_BASE}/${state.currentUser.userId}/fields`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updates)
+                });
+
+                const data = await response.json();
+
+                if (response.status === 403 && data.requiresVerification) {
+                    // Sensitive data requires OTP verification
+                    showResult('editProfileCardResult', 
+                        `G��n+� Updating sensitive data requires OTP verification.<br>
+                        <button onclick="startSensitiveDataUpdateCard(${JSON.stringify(updates).replace(/"/g, '&quot;')})" 
+                                style="margin-top: 10px; background: #667eea;">
+                            =��� Verify with OTP
+                        </button>`,
+                        false
+                    );
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to update profile');
+                }
+
+                // Update successful
+                state.currentUser = data.user;
+                showResult('editProfileCardResult', `G�� ${data.message}`);
+                
+                // Refresh profile view after 1 second
+                setTimeout(() => {
+                    cancelEditProfileCard();
+                    showProfileCard();
+                }, 1000);
+
+            } catch (error) {
+                showResult('editProfileCardResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function startSensitiveDataUpdateCard(updates) {
+            const phoneToVerify = updates.phoneNumber || state.currentUser.phoneNumber;
+            
+            try {
+                const response = await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ mobileNumber: phoneToVerify })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to send OTP');
+                }
+
+                // Show OTP input
+                showResult('editProfileCardResult', 
+                    `G�� OTP sent to ${phoneToVerify}<br>
+                    <div style="margin-top: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <input type="text" id="verifyOTPCard" placeholder="Enter 6-digit OTP" 
+                               maxlength="6"
+                               style="padding: 12px; border: 2px solid #667eea; border-radius: 5px; width: 150px; font-size: 16px; text-align: center;">
+                        <button onclick="completeSensitiveDataUpdateCard(${JSON.stringify(updates).replace(/"/g, '&quot;')})" 
+                                style="margin-left: 10px; background: #28a745; padding: 12px 20px;">
+                            G�� Verify & Update
+                        </button>
+                    </div>`,
+                    false
+                );
+
+            } catch (error) {
+                showResult('editProfileCardResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function completeSensitiveDataUpdateCard(updates) {
+            const otp = document.getElementById('verifyOTPCard').value.trim();
+            const phoneToVerify = updates.phoneNumber || state.currentUser.phoneNumber;
+
+            if (!otp) {
+                showResult('editProfileCardResult', 'G�� Please enter OTP', true);
+                return;
+            }
+
+            try {
+                // Verify OTP
+                const verifyResponse = await fetch(`${API_BASE}/verify-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: phoneToVerify,
+                        otp: otp
+                    })
+                });
+
+                const verifyData = await verifyResponse.json();
+
+                if (!verifyResponse.ok) {
+                    throw new Error(verifyData.error || 'OTP verification failed');
+                }
+
+                // Now update with verification flag
+                updates.isPhoneVerified = true;
+
+                const updateResponse = await fetch(`${API_BASE}/${state.currentUser.userId}/fields`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updates)
+                });
+
+                const updateData = await updateResponse.json();
+
+                if (!updateResponse.ok) {
+                    throw new Error(updateData.error || 'Failed to update profile');
+                }
+
+                // Update successful
+                state.currentUser = updateData.data;
+                showResult('editProfileCardResult', `G�� ${updateData.message}`);
+                
+                // Refresh profile view after 1 second
+                setTimeout(() => {
+                    cancelEditProfileCard();
+                    showProfileCard();
+                }, 1000);
+
+            } catch (error) {
+                showResult('editProfileCardResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        // Data Management Functions
+        async function deleteAllMedia() {
+            if (!confirm('G��n+� Delete ALL media files and records?\n\nThis will permanently delete all photos, videos, and PDFs from the system.\n\nThis action cannot be undone!')) {
+                return;
+            }
+
+            try {
+                showResult('dataManagementResult', '=��� Deleting all media...', false);
+
+                const response = await fetch(`${API_BASE}/dev/delete-media`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to delete media');
+                }
+
+                // Clear the view result display
+                document.getElementById('viewResult').className = 'result';
+                document.getElementById('viewResult').innerHTML = '';
+
+                showResult('dataManagementResult', `G�� ${data.message}<br><small>All media files and database records have been removed.</small>`);
+            } catch (error) {
+                showResult('dataManagementResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function deleteAllListings() {
+            if (!confirm('G��n+� Delete ALL listings?\n\nThis will permanently delete:\nG�� All marketplace listings\nG�� All associated media files\n\nThis action cannot be undone!')) {
+                return;
+            }
+
+            try {
+                showResult('dataManagementResult', '=��� Deleting all listings...', false);
+
+                const response = await fetch(`${API_BASE}/dev/delete-listings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to delete listings');
+                }
+
+                // Clear listing state
+                state.listingId = null;
+                updateStatus();
+
+                // Clear the view result display
+                document.getElementById('viewResult').className = 'result';
+                document.getElementById('viewResult').innerHTML = '';
+
+                showResult('dataManagementResult', `G�� ${data.message}<br><small>All listings and their media have been removed.</small>`);
+            } catch (error) {
+                showResult('dataManagementResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function deleteAllData() {
+            if (!confirm('=�ܿ DELETE ALL DATA?\n\nThis will permanently delete:\nG�� All users\nG�� All listings\nG�� All media files\nG�� All transactions\nG�� All escrow accounts\nG�� All authentication data\n\nTHIS WILL RESET THE ENTIRE SYSTEM!\n\nThis action cannot be undone!')) {
+                return;
+            }
+
+            // Double confirmation for safety
+            if (!confirm('Are you absolutely sure?\n\nType YES in the next prompt to confirm.')) {
+                return;
+            }
+
+            const confirmation = prompt('Type YES to confirm deletion of all data:');
+            if (confirmation !== 'YES') {
+                showResult('dataManagementResult', 'G�� Deletion cancelled. Confirmation text did not match.', true);
+                return;
+            }
+
+            try {
+                showResult('dataManagementResult', '=��� Deleting all data... This may take a moment...', false);
+
+                const response = await fetch(`${API_BASE}/dev/clean-all-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to clean data');
+                }
+
+                // Reset all state
+                state = {
+                    farmerId: null,
+                    buyerId: null,
+                    certificateId: null,
+                    listingId: null,
+                    transactionId: null,
+                    currentUser: null,
+                    authPhone: null,
+                    authToken: null
+                };
+                updateStatus();
+
+                // Clear the view result display
+                document.getElementById('viewResult').className = 'result';
+                document.getElementById('viewResult').innerHTML = '';
+
+                showResult('dataManagementResult', 
+                    `G�� ${data.message}<br>
+                    <div style="margin-top: 10px; padding: 10px; background: #e8f5e9; border-radius: 5px;">
+                        <strong>Cleaned:</strong><br>
+                        <small>
+                        G�� PostgreSQL: ${data.cleaned.postgresql.join(', ')}<br>
+                        G�� SQLite: ${data.cleaned.sqlite.join(', ')}<br>
+                        G�� Files: ${data.cleaned.filesystem.join(', ')}
+                        </small>
+                    </div>
+                    <div style="margin-top: 10px; padding: 10px; background: #fff3e0; border-radius: 5px;">
+                        <strong>G��n+� Page reload recommended</strong><br>
+                        <button onclick="location.reload()" style="margin-top: 10px; background: #667eea;">
+                            =��� Reload Page
+                        </button>
+                    </div>`
+                );
+            } catch (error) {
+                showResult('dataManagementResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+
+        async function getStats() {
+            try {
+                showResult('dataManagementResult', '=��� Loading database statistics...', false);
+
+                const response = await fetch(`${API_BASE}/dev/stats`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to get stats');
+                }
+
+                showResult('dataManagementResult', 
+                    `<div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <strong style="color: #667eea; font-size: 16px;">=��� Database Statistics</strong>
+                        
+                        <div style="margin-top: 15px; padding: 10px; background: white; border-radius: 5px; border-left: 4px solid #2196f3;">
+                            <strong style="color: #2196f3;">PostgreSQL (Primary)</strong>
+                            <div style="margin-top: 10px; display: grid; gap: 5px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Users:</span>
+                                    <strong>${data.postgresql.users}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Listings:</span>
+                                    <strong>${data.postgresql.listings}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Media:</span>
+                                    <strong>${data.postgresql.media}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Transactions:</span>
+                                    <strong>${data.postgresql.transactions}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 5px; border-left: 4px solid #4caf50;">
+                            <strong style="color: #4caf50;">SQLite (Cache)</strong>
+                            <div style="margin-top: 10px; display: grid; gap: 5px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Users:</span>
+                                    <strong>${data.sqlite.users}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Listings:</span>
+                                    <strong>${data.sqlite.listings}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Media Cache:</span>
+                                    <strong>${data.sqlite.mediaCache}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Sync Queue:</span>
+                                    <strong>${data.sqlite.syncQueue}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`,
+                    false
+                );
+            } catch (error) {
+                showResult('dataManagementResult', `G�� Error: ${error.message}`, true);
+            }
+        }
+    </script>
+</body>
+</html>

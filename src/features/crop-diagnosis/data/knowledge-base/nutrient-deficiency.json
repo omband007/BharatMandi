@@ -1,0 +1,531 @@
+{
+  "diseases": [
+    {
+      "name": "Nitrogen Deficiency",
+      "scientificName": "N deficiency",
+      "affectedCrops": ["rice", "wheat", "maize", "tomato", "cotton", "sugarcane"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Urea",
+          "brandNames": ["Urea 46%", "Neem coated urea"],
+          "dosage": "100-150 kg per acre for cereals, 50-75 kg per acre for vegetables",
+          "applicationMethod": "soil application and top dressing",
+          "frequency": "Split application - 2-3 times during crop growth",
+          "preHarvestInterval": 0,
+          "safetyPrecautions": [
+            "Apply in moist soil for better absorption",
+            "Do not apply on dry soil",
+            "Avoid over-application to prevent lodging",
+            "Store in dry place away from moisture"
+          ],
+          "costEstimate": "₹600-800 per acre"
+        },
+        {
+          "genericName": "Ammonium sulfate",
+          "brandNames": ["Ammonium sulfate 20.6% N"],
+          "dosage": "150-200 kg per acre",
+          "applicationMethod": "soil application",
+          "frequency": "Split application - 2-3 times",
+          "preHarvestInterval": 0,
+          "safetyPrecautions": [
+            "Suitable for alkaline soils",
+            "Apply with irrigation",
+            "Do not mix with lime",
+            "Store in dry conditions"
+          ],
+          "costEstimate": "₹700-900 per acre"
+        },
+        {
+          "genericName": "Foliar nitrogen spray",
+          "brandNames": ["Urea spray 2%"],
+          "dosage": "20g urea per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10-15 days for quick correction",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Spray in evening to avoid leaf burn",
+            "Do not exceed 2% concentration",
+            "Ensure good coverage",
+            "Do not spray during hot weather"
+          ],
+          "costEstimate": "₹100-150 per acre per application"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Farmyard manure (FYM)",
+          "ingredients": ["Well-decomposed FYM 5-10 tons per acre"],
+          "preparation": [
+            "Use well-rotted manure (3-6 months old)",
+            "Mix with soil before planting",
+            "Can also apply as top dressing"
+          ],
+          "applicationMethod": "soil application",
+          "frequency": "Once before planting, top dress after 30 days",
+          "effectiveness": "Slow release, improves soil structure, 70-80% effective over time"
+        },
+        {
+          "name": "Vermicompost",
+          "ingredients": ["Vermicompost 2-3 tons per acre"],
+          "preparation": [
+            "Apply quality vermicompost",
+            "Mix in top 6 inches of soil",
+            "Can be applied in furrows"
+          ],
+          "applicationMethod": "soil application",
+          "frequency": "Once before planting",
+          "effectiveness": "Rich in nitrogen and micronutrients, 75-85% effective"
+        },
+        {
+          "name": "Green manure",
+          "ingredients": ["Dhaincha, Sunhemp seeds 20-25 kg per acre"],
+          "preparation": [
+            "Sow green manure crop 45-60 days before main crop",
+            "Incorporate into soil at flowering stage",
+            "Allow 2 weeks for decomposition"
+          ],
+          "applicationMethod": "soil incorporation",
+          "frequency": "Once per season",
+          "effectiveness": "Adds 40-60 kg N per acre, improves soil health"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "soil_health",
+          "description": "Conduct soil testing before planting to determine nitrogen levels",
+          "timing": "Before planting",
+          "frequency": "Each season or yearly"
+        },
+        {
+          "category": "soil_health",
+          "description": "Apply balanced fertilization based on soil test results",
+          "timing": "As per crop requirement",
+          "frequency": "Split application during crop growth"
+        },
+        {
+          "category": "crop_rotation",
+          "description": "Include legume crops in rotation to fix atmospheric nitrogen",
+          "timing": "Season planning",
+          "frequency": "Yearly"
+        },
+        {
+          "category": "soil_health",
+          "description": "Maintain soil organic matter through regular compost application",
+          "timing": "Before each crop",
+          "frequency": "Seasonal"
+        }
+      ]
+    },
+    {
+      "name": "Phosphorus Deficiency",
+      "scientificName": "P deficiency",
+      "affectedCrops": ["rice", "wheat", "maize", "tomato", "potato", "cotton"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Single Super Phosphate (SSP)",
+          "brandNames": ["SSP 16% P2O5"],
+          "dosage": "150-200 kg per acre",
+          "applicationMethod": "soil application at planting",
+          "frequency": "Once at planting time",
+          "preHarvestInterval": 0,
+          "safetyPrecautions": [
+            "Apply at the time of sowing or planting",
+            "Place near root zone for better uptake",
+            "Can be mixed with FYM",
+            "Store in dry place"
+          ],
+          "costEstimate": "₹500-700 per acre"
+        },
+        {
+          "genericName": "Di-Ammonium Phosphate (DAP)",
+          "brandNames": ["DAP 18-46-0"],
+          "dosage": "50-75 kg per acre",
+          "applicationMethod": "soil application at planting",
+          "frequency": "Once at planting",
+          "preHarvestInterval": 0,
+          "safetyPrecautions": [
+            "Apply as basal dose",
+            "Do not apply in direct contact with seeds",
+            "Suitable for all soil types",
+            "Store in moisture-free area"
+          ],
+          "costEstimate": "₹800-1000 per acre"
+        },
+        {
+          "genericName": "Foliar phosphorus spray",
+          "brandNames": ["Mono-potassium phosphate (MKP) 0-52-34"],
+          "dosage": "5g per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 15 days for quick correction",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Spray in evening hours",
+            "Ensure complete leaf coverage",
+            "Do not exceed recommended concentration",
+            "Compatible with most pesticides"
+          ],
+          "costEstimate": "₹150-200 per acre per application"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Rock phosphate",
+          "ingredients": ["Rock phosphate 200-300 kg per acre"],
+          "preparation": [
+            "Apply finely ground rock phosphate",
+            "Mix with soil before planting",
+            "More effective in acidic soils"
+          ],
+          "applicationMethod": "soil application",
+          "frequency": "Once per season",
+          "effectiveness": "Slow release, 50-60% effective, long-lasting"
+        },
+        {
+          "name": "Bone meal",
+          "ingredients": ["Bone meal 100-150 kg per acre"],
+          "preparation": [
+            "Use sterilized bone meal",
+            "Mix with compost or apply directly",
+            "Incorporate into soil"
+          ],
+          "applicationMethod": "soil application",
+          "frequency": "Once before planting",
+          "effectiveness": "Slow release, 60-70% effective, organic source"
+        },
+        {
+          "name": "Phosphate solubilizing bacteria (PSB)",
+          "ingredients": ["PSB culture 2-3 kg per acre"],
+          "preparation": [
+            "Mix PSB with FYM or compost",
+            "Apply to soil or use as seed treatment",
+            "Keep in shade before application"
+          ],
+          "applicationMethod": "soil application or seed treatment",
+          "frequency": "Once at planting",
+          "effectiveness": "Mobilizes soil phosphorus, 40-50% increase in P availability",
+          "commercialProducts": ["Phosphobacteria", "PSB culture"]
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "soil_health",
+          "description": "Test soil pH and maintain between 6.0-7.5 for optimal P availability",
+          "timing": "Before planting",
+          "frequency": "Yearly"
+        },
+        {
+          "category": "soil_health",
+          "description": "Apply phosphorus fertilizers at planting for better root development",
+          "timing": "At planting",
+          "frequency": "Each season"
+        },
+        {
+          "category": "soil_health",
+          "description": "Avoid over-liming which can reduce P availability",
+          "timing": "During soil amendment",
+          "frequency": "As needed"
+        },
+        {
+          "category": "soil_health",
+          "description": "Maintain adequate soil moisture for P uptake",
+          "timing": "Throughout season",
+          "frequency": "Regular irrigation"
+        }
+      ]
+    },
+    {
+      "name": "Potassium Deficiency",
+      "scientificName": "K deficiency",
+      "affectedCrops": ["rice", "wheat", "cotton", "sugarcane", "potato", "tomato"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Muriate of Potash (MOP)",
+          "brandNames": ["MOP 60% K2O"],
+          "dosage": "40-60 kg per acre",
+          "applicationMethod": "soil application",
+          "frequency": "Split application - at planting and flowering",
+          "preHarvestInterval": 0,
+          "safetyPrecautions": [
+            "Apply with irrigation for better absorption",
+            "Can be applied as top dressing",
+            "Do not apply on very dry soil",
+            "Store in moisture-free place"
+          ],
+          "costEstimate": "₹600-800 per acre"
+        },
+        {
+          "genericName": "Sulphate of Potash (SOP)",
+          "brandNames": ["SOP 50% K2O"],
+          "dosage": "50-75 kg per acre",
+          "applicationMethod": "soil application",
+          "frequency": "Split application during crop growth",
+          "preHarvestInterval": 0,
+          "safetyPrecautions": [
+            "Preferred for chloride-sensitive crops",
+            "Apply with adequate moisture",
+            "Can be mixed with other fertilizers",
+            "Store in dry conditions"
+          ],
+          "costEstimate": "₹1000-1200 per acre"
+        },
+        {
+          "genericName": "Foliar potassium spray",
+          "brandNames": ["Potassium nitrate 13-0-45"],
+          "dosage": "5g per liter of water",
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10-15 days for quick correction",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Spray in evening to avoid leaf burn",
+            "Ensure good coverage",
+            "Do not exceed recommended dose",
+            "Compatible with most pesticides"
+          ],
+          "costEstimate": "₹150-200 per acre per application"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Wood ash",
+          "ingredients": ["Wood ash 200-300 kg per acre"],
+          "preparation": [
+            "Use ash from hardwood burning",
+            "Spread evenly on soil",
+            "Mix with top soil"
+          ],
+          "applicationMethod": "soil application",
+          "frequency": "Once before planting",
+          "effectiveness": "Contains 5-10% K, 50-60% effective, also adds micronutrients"
+        },
+        {
+          "name": "Banana pseudostem sap",
+          "ingredients": ["Banana pseudostem 10 kg", "Water 10 liters"],
+          "preparation": [
+            "Chop banana stem into small pieces",
+            "Soak in water for 24 hours",
+            "Strain and use the extract"
+          ],
+          "applicationMethod": "soil drench or foliar spray",
+          "frequency": "Every 15 days",
+          "effectiveness": "Rich in potassium, 40-50% effective, readily available"
+        },
+        {
+          "name": "Compost enriched with potassium",
+          "ingredients": ["Compost 3-5 tons per acre", "Wood ash 100 kg"],
+          "preparation": [
+            "Mix wood ash with compost",
+            "Allow to mature for 2 weeks",
+            "Apply to soil before planting"
+          ],
+          "applicationMethod": "soil application",
+          "frequency": "Once per season",
+          "effectiveness": "Slow release, 55-65% effective, improves soil structure"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "soil_health",
+          "description": "Conduct soil testing to determine K levels",
+          "timing": "Before planting",
+          "frequency": "Yearly"
+        },
+        {
+          "category": "soil_health",
+          "description": "Apply potassium in split doses for better utilization",
+          "timing": "At planting and critical growth stages",
+          "frequency": "2-3 times per season"
+        },
+        {
+          "category": "soil_health",
+          "description": "Maintain balanced NPK ratio based on crop requirement",
+          "timing": "Throughout crop growth",
+          "frequency": "As per schedule"
+        },
+        {
+          "category": "soil_health",
+          "description": "Avoid excessive nitrogen which can induce K deficiency",
+          "timing": "During fertilizer application",
+          "frequency": "Continuous monitoring"
+        }
+      ]
+    },
+    {
+      "name": "Iron Deficiency",
+      "scientificName": "Fe deficiency (Iron chlorosis)",
+      "affectedCrops": ["rice", "wheat", "maize", "tomato", "sugarcane", "citrus"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Ferrous sulfate",
+          "brandNames": ["FeSO4.7H2O"],
+          "dosage": "25-50 kg per acre for soil application, 5g per liter for foliar",
+          "applicationMethod": "soil application or foliar spray",
+          "frequency": "Soil: once per season, Foliar: every 10-15 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "For foliar spray, add citric acid for better absorption",
+            "Spray in evening to avoid leaf burn",
+            "Do not apply on alkaline soil without acidification",
+            "Store in airtight container"
+          ],
+          "costEstimate": "₹300-400 per acre for soil, ₹100-150 per acre for foliar"
+        },
+        {
+          "genericName": "Iron chelate (Fe-EDTA)",
+          "brandNames": ["Sequestrene", "Fe-EDTA 12%"],
+          "dosage": "2-3 kg per acre for soil, 1g per liter for foliar",
+          "applicationMethod": "soil application or foliar spray",
+          "frequency": "Every 15-20 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "More effective in alkaline soils",
+            "Expensive but highly efficient",
+            "Follow recommended dosage",
+            "Store in cool, dry place"
+          ],
+          "costEstimate": "₹800-1000 per acre for soil, ₹200-250 per acre for foliar"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Compost with iron-rich materials",
+          "ingredients": ["Compost 3-5 tons per acre", "Rusty iron pieces or iron filings"],
+          "preparation": [
+            "Add rusty iron pieces to compost pile",
+            "Allow to decompose for 2-3 months",
+            "Apply to soil before planting"
+          ],
+          "applicationMethod": "soil application",
+          "frequency": "Once per season",
+          "effectiveness": "Slow release, 40-50% effective, improves soil health"
+        },
+        {
+          "name": "Ferrous sulfate with organic acids",
+          "ingredients": ["Ferrous sulfate 5g", "Citric acid 2g", "Water 1 liter"],
+          "preparation": [
+            "Dissolve ferrous sulfate in water",
+            "Add citric acid to improve absorption",
+            "Use immediately after preparation"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10-15 days",
+          "effectiveness": "60-70% effective, quick correction"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "soil_health",
+          "description": "Correct soil pH to 6.0-7.0 for better iron availability",
+          "timing": "Before planting",
+          "frequency": "Yearly"
+        },
+        {
+          "category": "soil_health",
+          "description": "Improve soil drainage to prevent waterlogging",
+          "timing": "Before planting",
+          "frequency": "Seasonal"
+        },
+        {
+          "category": "soil_health",
+          "description": "Apply organic matter to improve iron availability",
+          "timing": "Before planting",
+          "frequency": "Each season"
+        },
+        {
+          "category": "soil_health",
+          "description": "Avoid excessive phosphorus which can induce Fe deficiency",
+          "timing": "During fertilization",
+          "frequency": "Continuous"
+        }
+      ]
+    },
+    {
+      "name": "Magnesium Deficiency",
+      "scientificName": "Mg deficiency",
+      "affectedCrops": ["rice", "tomato", "potato", "cotton", "chili"],
+      "chemicalRemedies": [
+        {
+          "genericName": "Magnesium sulfate (Epsom salt)",
+          "brandNames": ["MgSO4.7H2O", "Epsom salt"],
+          "dosage": "25-50 kg per acre for soil, 10g per liter for foliar",
+          "applicationMethod": "soil application or foliar spray",
+          "frequency": "Soil: once per season, Foliar: every 10-15 days",
+          "preHarvestInterval": 7,
+          "safetyPrecautions": [
+            "Can be applied through drip irrigation",
+            "For foliar, spray in evening",
+            "Do not exceed recommended dose",
+            "Store in dry place"
+          ],
+          "costEstimate": "₹400-500 per acre for soil, ₹100-150 per acre for foliar"
+        },
+        {
+          "genericName": "Dolomite lime",
+          "brandNames": ["Dolomite (CaMg(CO3)2)"],
+          "dosage": "200-400 kg per acre",
+          "applicationMethod": "soil application",
+          "frequency": "Once per season or as needed",
+          "preHarvestInterval": 0,
+          "safetyPrecautions": [
+            "Apply 2-3 weeks before planting",
+            "Mix thoroughly with soil",
+            "Also corrects soil acidity",
+            "Do not apply on alkaline soils"
+          ],
+          "costEstimate": "₹300-400 per acre"
+        }
+      ],
+      "organicRemedies": [
+        {
+          "name": "Compost with magnesium-rich materials",
+          "ingredients": ["Compost 3-5 tons per acre", "Dolomite powder 50 kg"],
+          "preparation": [
+            "Mix dolomite powder with compost",
+            "Allow to mature for 2 weeks",
+            "Apply to soil before planting"
+          ],
+          "applicationMethod": "soil application",
+          "frequency": "Once per season",
+          "effectiveness": "Slow release, 50-60% effective, improves soil structure"
+        },
+        {
+          "name": "Epsom salt foliar spray",
+          "ingredients": ["Epsom salt 10g", "Water 1 liter"],
+          "preparation": [
+            "Dissolve Epsom salt in water",
+            "Stir until completely dissolved",
+            "Spray on leaves"
+          ],
+          "applicationMethod": "foliar spray",
+          "frequency": "Every 10-15 days",
+          "effectiveness": "65-75% effective, quick correction"
+        }
+      ],
+      "preventiveMeasures": [
+        {
+          "category": "soil_health",
+          "description": "Test soil for Mg levels before planting",
+          "timing": "Before planting",
+          "frequency": "Yearly"
+        },
+        {
+          "category": "soil_health",
+          "description": "Maintain balanced Ca:Mg ratio (3:1 to 5:1)",
+          "timing": "During soil amendment",
+          "frequency": "As needed"
+        },
+        {
+          "category": "soil_health",
+          "description": "Avoid excessive potassium which can induce Mg deficiency",
+          "timing": "During fertilization",
+          "frequency": "Continuous"
+        },
+        {
+          "category": "soil_health",
+          "description": "Apply dolomite lime in acidic soils",
+          "timing": "Before planting",
+          "frequency": "Every 2-3 years"
+        }
+      ]
+    }
+  ]
+}

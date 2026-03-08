@@ -7,117 +7,8 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <link rel="stylesheet" href="/css/common-styles.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        .brand-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .brand-logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .brand-logo {
-            max-width: 100%;
-            height: auto;
-            max-height: 80px;
-            object-fit: contain;
-        }
-
-        .nav-bar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 12px 20px;
-            margin-bottom: 20px;
-            border-radius: 50px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-
-        .nav-link {
-            padding: 8px 20px;
-            color: #666;
-            text-decoration: none;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-
-        .nav-link:hover {
-            background: #f0f0f0;
-            color: #667eea;
-        }
-
-        .nav-link.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .info-card {
-            background: #e3f2fd;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-
-        .info-card p {
-            color: #666;
-            font-size: 14px;
-            margin: 0 0 3px 0;
-        }
-
-        .login-status {
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .login-status.logged-out {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .login-status.logged-in {
-            background: #d4edda;
-            color: #155724;
-        }
-
         .media-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -573,6 +464,35 @@
             padding: 10px 20px;
             border-radius: 20px;
         }
+
+        /* Mark as Sold Dropdown Styling */
+        #markAsSoldDropdown {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 16px;
+            padding-right: 35px !important;
+            transition: all 0.3s;
+        }
+
+        #markAsSoldDropdown:hover:not(:disabled) {
+            background-color: #218838 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        #markAsSoldDropdown option {
+            background: white;
+            color: #333;
+            padding: 10px;
+        }
+
+        #markAsSoldDropdown option:first-child {
+            color: #999;
+        }
     </style>
 </head>
 <body>
@@ -581,30 +501,19 @@
             <div class="brand-logo-container">
                 <img src="/assets/bharat-mandi-logo.png" alt="Bharat Mandi Logo" class="brand-logo">
             </div>
-        </div>
 
-        <nav class="nav-bar">
-            <a href="/" class="nav-link">Main</a>
-            <a href="/profile.html" class="nav-link">Profile</a>
-            <a href="/listing.html" class="nav-link active">Listings</a>
-            <a href="/buyer.html" class="nav-link">Marketplace</a>
-            <a href="/language-test.html" class="nav-link">Localization</a>
-            <a href="/translation-test.html" class="nav-link">Translation</a>
-            <a href="/voice-test.html" class="nav-link">Voice</a>
-            <a href="/voice-integration-demo.html" class="nav-link">Voice Integration</a>
-            <a href="/kisan-mitra-test.html" class="nav-link">Kisan Mitra</a>
-            <a href="/data-purge.html" class="nav-link">Data</a>
-        </nav>
+            <nav class="nav-bar">
+                <a href="/" class="nav-link">Main</a>
+                <a href="/profile.html" class="nav-link">Profile</a>
+                <a href="/listing.html" class="nav-link active">Listings</a>
+                <a href="/marketplace.html" class="nav-link">Marketplace</a>
+                <a href="/transactions.html" class="nav-link">Transactions</a>
+                <a href="/kisan-mitra.html" class="nav-link">Kisan Mitra</a>
+                <a href="/crop-diagnosis.html" class="nav-link">Dr. Fasal</a>
+                <a href="/data.html" class="nav-link">Data</a>
+            </nav>
 
-        <!-- Global Login Status -->
-        <div id="globalLoginStatus" class="login-status logged-out" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 20px;">🔒</span>
-                <span><strong>Not logged in</strong> - Please <a href="/profile.html" style="color: inherit; text-decoration: underline;">login on Profile page</a> first</span>
-            </div>
-            <button id="logoutBtn" onclick="logout()" style="display: none; width: auto; padding: 8px 20px; background: #6c757d; margin: 0;">
-                🚪 Logout
-            </button>
+            <div id="userWelcome" style="display: none;"></div>
         </div>
 
         <div class="info-card">
@@ -616,11 +525,16 @@
             <p>✓ Edit listing details anytime</p>
             <p>✓ Track listing status: ACTIVE, SOLD, EXPIRED, CANCELLED</p>
             <p>✓ Automatic expiration based on harvest dates</p>
+            <p style="margin-top: 10px;"><strong>🚀 Coming Next:</strong></p>
+            <p>• Bulk listing creation and CSV import</p>
+            <p>• Advanced media editing and filters</p>
+            <p>• Listing templates for common crops</p>
+            <p>• Price recommendations based on market trends</p>
         </div>
 
-        <div class="tile-grid">
+        <div class="tile-grid" id="mainContent">
             <!-- Tile 1: Grade Produce (formerly Quality Grading) -->
-            <div class="tile" id="tile1">
+            <div class="tile" id="tile1" style="position: relative; padding-bottom: 60px;">
                 <h2><span class="tile-number">1</span> Grade Produce</h2>
                 <p class="info-text">Get an AI quality grade and certificate for your produce</p>
                 
@@ -636,6 +550,13 @@
                 <div id="gradingDisplay" style="display: none; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
                     <h4 style="color: #667eea; margin-bottom: 10px;">Grade Certificate</h4>
                     <div id="gradingDetails"></div>
+                </div>
+                
+                <!-- Nova Pro Attribution - Fixed at bottom -->
+                <div style="position: absolute; bottom: 15px; left: 0; right: 0; padding: 10px 25px 0; border-top: 1px solid #e0e0e0; text-align: center; background: white;">
+                    <p style="font-size: 11px; color: #666; margin: 0;">
+                        <span style="opacity: 0.7;">🤖</span> AI powered by Amazon Nova Pro
+                    </p>
                 </div>
             </div>
 
@@ -665,7 +586,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Upload Media (Optional)</label>
+                    <label>Upload Media</label>
                     <div class="file-input-wrapper">
                         <input type="file" id="createMediaFiles" accept="image/*,video/*,.pdf" multiple onchange="previewCreateFiles()">
                         <label for="createMediaFiles" class="file-input-label">
@@ -674,6 +595,18 @@
                         </label>
                     </div>
                     <div id="createMediaPreview" class="media-preview hidden"></div>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="alreadyHarvested" checked onchange="toggleHarvestDate()" style="width: auto; cursor: pointer;">
+                        <span>Already harvested</span>
+                    </label>
+                    <div id="harvestDateGroup" class="form-group" style="display: none; margin-top: 10px;">
+                        <label>Harvest Date <span style="color: red;">*</span></label>
+                        <input type="date" id="harvestDate" min="" max="" onchange="validateHarvestDate()">
+                        <p class="info-text">Select a harvest date up to 7 days in the future</p>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -688,12 +621,16 @@
 
                 <button id="createListingBtn" onclick="createListing()" disabled>Create Listing</button>
                 <div id="createResult" class="result"></div>
+                
+                <p class="info-text" style="margin-top: 15px; font-size: 11px; color: #888; padding-top: 10px;">
+                    ℹ️ The listing will auto-expire in 7 days
+                </p>
             </div>
 
-            <!-- Tile 3: My Listings -->
+            <!-- Tile 3: My Active Listings -->
             <div class="tile" id="tile3">
-                <h2><span class="tile-number">3</span> My Listings</h2>
-                <p class="info-text">View and manage all your produce listings</p>
+                <h2><span class="tile-number">3</span> <span id="tile3Header">My Active Listings (0)</span></h2>
+                <p class="info-text">View and manage your active produce listings</p>
                 
                 <div id="myListingsContainer"></div>
                 <div id="loadListingsResult" class="result"></div>
@@ -715,6 +652,13 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                     <div style="display: flex; gap: 10px;">
                         <button onclick="enterEditMode()" style="width: auto; padding: 8px 20px;">✏️ Edit</button>
+                        <div style="position: relative; display: inline-block;">
+                            <select id="markAsSoldDropdown" onchange="handleMarkAsSold(this.value)" style="width: auto; padding: 8px 20px; background: #28a745; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                                <option value="">✅ Mark as Sold</option>
+                                <option value="PLATFORM">Through Bharat Mandi</option>
+                                <option value="EXTERNAL">Outside Bharat Mandi</option>
+                            </select>
+                        </div>
                         <button onclick="deleteListing()" style="width: auto; padding: 8px 20px; background: #dc3545;">🗑️ Delete</button>
                     </div>
                 </div>
@@ -726,20 +670,16 @@
                     <p><strong>Price per kg:</strong> ₹<span id="viewPricePerKg">-</span></p>
                     <p><strong>Status:</strong> <span id="viewStatus">-</span></p>
                     <p><strong>Listing Type:</strong> <span id="viewListingType">-</span></p>
-                    <p><strong>Category:</strong> <span id="viewCategory">-</span></p>
-                    <p><strong>Expiry Date:</strong> <span id="viewExpiryDate">-</span></p>
+                    <p id="viewHarvestDateRow" style="display: none;"><strong>Harvest Date:</strong> <span id="viewHarvestDate">-</span></p>
+                    <p><strong>Payment Preference:</strong> <span id="viewPaymentPreference">-</span></p>
+                    <p id="viewSaleChannelRow" style="display: none;"><strong>Sale Channel:</strong> <span id="viewSaleChannel">-</span></p>
                     <p><strong>Certificate:</strong> <span id="viewCertificate">-</span></p>
-                    <p><strong>Created:</strong> <span id="viewCreatedAt">-</span></p>
+                    <p><strong>Created On:</strong> <span id="viewCreatedAt">-</span></p>
+                    <p><strong>Valid Upto:</strong> <span id="viewExpiryDate">-</span></p>
                 </div>
 
                 <!-- Media Grid -->
                 <div id="viewMediaGrid" class="media-grid" style="margin-top: 25px;"></div>
-                
-                <!-- Upload New Media -->
-                <div class="form-group" style="margin-top: 20px;">
-                    <input type="file" id="viewMediaFiles" accept="image/*,video/*,.pdf" multiple>
-                    <button onclick="uploadAdditionalMedia()" style="margin-top: 10px;">📤 Add More Photos</button>
-                </div>
             </div>
 
             <!-- Edit Mode -->
@@ -777,10 +717,36 @@
                     <p class="info-text">Note: SOLD and EXPIRED statuses are set automatically by the system</p>
                 </div>
 
-                <div class="button-group">
-                    <button onclick="saveListingChanges()">Save Changes</button>
-                    <button onclick="cancelEdit()" class="button-secondary">Cancel</button>
+                <div class="form-group">
+                    <label>Payment Preference</label>
+                    <select id="editPaymentPreference">
+                        <option value="BOTH">Both (Platform & Direct)</option>
+                        <option value="PLATFORM_ONLY">Platform Only</option>
+                        <option value="DIRECT_ONLY">Direct Only</option>
+                    </select>
+                    <p class="info-text">Choose how buyers can pay for this listing</p>
                 </div>
+
+                <div class="form-group" id="editHarvestDateGroup" style="display: none;">
+                    <label>Harvest Date <span style="color: red;">*</span></label>
+                    <input type="date" id="editHarvestDate" min="" max="">
+                    <p class="info-text">For PRE_HARVEST listings: Select a harvest date up to 7 days in the future</p>
+                </div>
+
+                <!-- Media Grid in Edit Mode (same as view mode but with controls) -->
+                <div id="editMediaGrid" class="media-grid" style="margin-top: 25px;"></div>
+
+                <!-- Upload New Media in Edit Mode -->
+                <div class="form-group" style="margin-top: 20px;">
+                    <label>Attach Media to Listing</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                        <input type="file" id="viewMediaFiles" accept="image/*,video/*,.pdf" multiple>
+                        <button onclick="uploadAdditionalMedia()">📎 Attach</button>
+                        <button onclick="saveListingChanges()">Save Changes</button>
+                        <button onclick="cancelEdit()" class="button-secondary">Cancel</button>
+                    </div>
+                </div>
+
                 <div id="editResult" class="result"></div>
             </div>
         </div>
@@ -799,8 +765,10 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:3000/api';
-        const API_GRADING = 'http://localhost:3000/api/grading';
+        // Use current host for API calls (works in both local and deployed environments)
+        const BASE_URL = `${window.location.protocol}//${window.location.host}`;
+        const API_BASE = `${BASE_URL}/api`;
+        const API_GRADING = `${BASE_URL}/api/grading`;
         
         let state = {
             farmerId: null,
@@ -821,44 +789,35 @@
             const storedUserName = localStorage.getItem('bharatMandiUserName');
             const storedUserType = localStorage.getItem('bharatMandiUserType');
             
-            if (storedUserId && storedUserType && storedUserType.toUpperCase() === 'FARMER') {
-                state.farmerId = storedUserId;
-                state.loggedInUserName = storedUserName || 'Farmer';
-                state.isLoggedIn = true;
-                updateAllLoginStatus(true, state.loggedInUserName);
+            const overlay = document.getElementById('roleAccessOverlay');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (storedUserId && storedUserType) {
+                const userType = storedUserType.toLowerCase();
+                if (userType === 'farmer' || userType === 'both') {
+                    // Correct role - show content
+                    state.farmerId = storedUserId;
+                    state.loggedInUserName = storedUserName || 'Farmer';
+                    state.isLoggedIn = true;
+                    updateAllLoginStatus(true, state.loggedInUserName);
+                    if (mainContent) mainContent.style.pointerEvents = 'auto';
+                } else {
+                    // Wrong role - disable interactions
+                    state.isLoggedIn = false;
+                    state.farmerId = null;
+                    updateAllLoginStatus(true, storedUserName || 'User', storedUserType, true);
+                    if (mainContent) mainContent.style.pointerEvents = 'none';
+                }
             } else {
+                // Not logged in
                 state.isLoggedIn = false;
                 updateAllLoginStatus(false);
+                if (mainContent) mainContent.style.pointerEvents = 'auto';
             }
         }
 
         // Update all login status indicators
-        function updateAllLoginStatus(isLoggedIn, userName = '') {
-            const globalStatus = document.getElementById('globalLoginStatus');
-            
-            if (globalStatus) {
-                if (isLoggedIn) {
-                    globalStatus.className = 'login-status logged-in';
-                    globalStatus.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 20px;">✅</span>
-                            <span><strong>Logged in as:</strong> ${userName}</span>
-                        </div>
-                        <button id="logoutBtn" onclick="logout()" style="width: auto; padding: 8px 20px; background: #6c757d; margin: 0;">
-                            🚪 Logout
-                        </button>
-                    `;
-                } else {
-                    globalStatus.className = 'login-status logged-out';
-                    globalStatus.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 20px;">🔒</span>
-                            <span><strong>Not logged in</strong> - Please <a href="/profile.html" style="color: inherit; text-decoration: underline;">login on Profile page</a> first</span>
-                        </div>
-                    `;
-                }
-            }
-            
+        function updateAllLoginStatus(isLoggedIn, userName = '', userType = '', wrongRole = false) {
             // Update farmer ID field
             const farmerIdField = document.getElementById('createFarmerId');
             if (farmerIdField) {
@@ -897,10 +856,8 @@
             document.getElementById('noSelectionMessage').style.display = 'block';
             document.getElementById('viewMode').classList.remove('active');
             
-            alert('Logged out successfully! Redirecting to profile page...');
-            setTimeout(() => {
-                window.location.href = '/profile.html';
-            }, 1000);
+            // Redirect without alert
+            window.location.href = '/profile.html';
         }
 
         // Auto-load farmer ID on page load
@@ -963,8 +920,14 @@
 
         function showResult(elementId, message, isError = false) {
             const el = document.getElementById(elementId);
-            el.className = `result ${isError ? 'error' : 'success'}`;
-            el.innerHTML = message;
+            if (!message || message.trim() === '') {
+                el.style.display = 'none';
+                el.innerHTML = '';
+            } else {
+                el.style.display = 'block';
+                el.className = `result ${isError ? 'error' : 'success'}`;
+                el.innerHTML = message;
+            }
         }
 
         function previewCreateFiles() {
@@ -1008,9 +971,22 @@
                 const pricePerKg = parseInt(document.getElementById('createPricePerKg').value);
                 const mediaFiles = document.getElementById('createMediaFiles').files;
                 const attachCert = document.getElementById('attachCertificate').checked;
+                const alreadyHarvested = document.getElementById('alreadyHarvested').checked;
+                const harvestDateInput = document.getElementById('harvestDate');
 
                 if (!state.farmerId || !produceType || !quantity || !pricePerKg) {
                     showResult('createResult', '❌ Please fill all required fields', true);
+                    return;
+                }
+
+                // Validate harvest date if not already harvested
+                if (!alreadyHarvested && !harvestDateInput.value) {
+                    showResult('createResult', '❌ Please select a harvest date', true);
+                    return;
+                }
+
+                // Validate harvest date is within 7 days
+                if (!validateHarvestDate()) {
                     return;
                 }
 
@@ -1022,6 +998,16 @@
                 formData.append('quantity', quantity.toString());
                 formData.append('pricePerKg', pricePerKg.toString());
                 formData.append('certificateId', 'cert-demo-' + Date.now());
+
+                // Add harvest date and listing type
+                if (alreadyHarvested) {
+                    // POST_HARVEST - use current date as harvest date
+                    formData.append('listingType', 'POST_HARVEST');
+                } else {
+                    // PRE_HARVEST - use selected future date
+                    formData.append('listingType', 'PRE_HARVEST');
+                    formData.append('expectedHarvestDate', harvestDateInput.value);
+                }
 
                 // Add certificate as image if checkbox is checked
                 if (attachCert && state.currentCertificate) {
@@ -1044,15 +1030,24 @@
                     ? `${API_BASE}/marketplace/listings/with-media`
                     : `${API_BASE}/marketplace/listings`;
 
+                // Prepare JSON body for non-media endpoint
+                const jsonBody = {
+                    farmerId: state.farmerId,
+                    produceType,
+                    quantity,
+                    pricePerKg,
+                    certificateId: 'cert-demo-' + Date.now(),
+                    listingType: alreadyHarvested ? 'POST_HARVEST' : 'PRE_HARVEST'
+                };
+
+                // Add expectedHarvestDate for PRE_HARVEST
+                if (!alreadyHarvested) {
+                    jsonBody.expectedHarvestDate = harvestDateInput.value;
+                }
+
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    body: (mediaFiles.length > 0 || (attachCert && state.currentCertificate)) ? formData : JSON.stringify({
-                        farmerId: state.farmerId,
-                        produceType,
-                        quantity,
-                        pricePerKg,
-                        certificateId: 'cert-demo-' + Date.now()
-                    }),
+                    body: (mediaFiles.length > 0 || (attachCert && state.currentCertificate)) ? formData : JSON.stringify(jsonBody),
                     headers: (mediaFiles.length === 0 && !(attachCert && state.currentCertificate)) ? { 'Content-Type': 'application/json' } : undefined
                 });
 
@@ -1090,6 +1085,8 @@
                 document.getElementById('createMediaFiles').value = '';
                 document.getElementById('createMediaPreview').classList.add('hidden');
                 document.getElementById('attachCertificate').checked = false;
+                document.getElementById('alreadyHarvested').checked = true;
+                toggleHarvestDate();
                 toggleCertificateAttachment();
                 enableCreateButton();
 
@@ -1112,17 +1109,20 @@
 
                 const listings = await response.json();
                 
-                // Filter listings by current farmer
-                state.myListings = listings.filter(l => l.farmerId === state.farmerId);
+                // Filter listings by current farmer AND only ACTIVE status
+                state.myListings = listings.filter(l => l.farmerId === state.farmerId && l.status === 'ACTIVE');
                 
                 // Sort by timestamp, newest first
                 state.myListings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+                // Update header with count
+                document.getElementById('tile3Header').textContent = `My Active Listings (${state.myListings.length})`;
 
                 const container = document.getElementById('myListingsContainer');
                 container.innerHTML = '';
 
                 if (state.myListings.length === 0) {
-                    showResult('loadListingsResult', '📝 No listings found. Create your first listing!', false);
+                    showResult('loadListingsResult', '📝 No active listings found. Create your first listing!', false);
                     // Clear selection
                     state.selectedListingId = null;
                     document.getElementById('noSelectionMessage').style.display = 'block';
@@ -1146,9 +1146,7 @@
                             const primaryMedia = mediaList.find(m => m.isPrimary) || mediaList[0];
                             if (primaryMedia && primaryMedia.mediaType === 'photo') {
                                 primaryImageHtml = `
-                                    <div style="margin-top: 10px;">
-                                        <img src="${primaryMedia.url}" alt="Primary image" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; border: 2px solid #e0e0e0;">
-                                    </div>
+                                    <img src="${primaryMedia.storageUrl}" alt="Primary image" style="position: absolute; top: 10px; right: 10px; width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 2px solid #e0e0e0;">
                                 `;
                             }
                         }
@@ -1157,24 +1155,21 @@
                     }
                     
                     card.innerHTML = `
-                        <div class="listing-header">
+                        <div style="position: relative;">
+                            ${primaryImageHtml}
                             <div class="listing-title">${listing.produceType}</div>
-                            <div class="listing-status ${listing.status.toLowerCase()}">
-                                ${listing.status}
+                            <div class="listing-details">
+                                <p>Quantity: ${listing.quantity} kg</p>
+                                <p>Price: ₹${listing.pricePerKg}/kg</p>
+                                <p>Total Value: ₹${listing.quantity * listing.pricePerKg}</p>
                             </div>
                         </div>
-                        <div class="listing-details">
-                            <p>Quantity: ${listing.quantity} kg</p>
-                            <p>Price: ₹${listing.pricePerKg}/kg</p>
-                            <p>Total Value: ₹${listing.quantity * listing.pricePerKg}</p>
-                        </div>
-                        ${primaryImageHtml}
                     `;
                     
                     container.appendChild(card);
                 });
 
-                showResult('loadListingsResult', `✅ Loaded ${state.myListings.length} listing(s)`, false);
+                showResult('loadListingsResult', '', false);
                 
                 // Auto-select listing
                 if (selectListingId) {
@@ -1226,10 +1221,41 @@
                 document.getElementById('viewPricePerKg').textContent = listing.pricePerKg;
                 document.getElementById('viewStatus').textContent = listing.status;
                 document.getElementById('viewListingType').textContent = listing.listingType || 'POST_HARVEST';
-                document.getElementById('viewCategory').textContent = listing.produceCategoryName || listing.produceCategoryId || 'N/A';
-                document.getElementById('viewExpiryDate').textContent = listing.expiryDate ? new Date(listing.expiryDate).toLocaleString() : 'N/A';
+                
+                // Show/hide harvest date based on listing type
+                const viewHarvestDateRow = document.getElementById('viewHarvestDateRow');
+                if (listing.listingType === 'PRE_HARVEST' && listing.expectedHarvestDate) {
+                    viewHarvestDateRow.style.display = 'block';
+                    document.getElementById('viewHarvestDate').textContent = new Date(listing.expectedHarvestDate).toLocaleDateString();
+                } else {
+                    viewHarvestDateRow.style.display = 'none';
+                }
+                
+                // Payment preference
+                const paymentPrefMap = {
+                    'BOTH': 'Both (Platform & Direct)',
+                    'PLATFORM_ONLY': 'Platform Only',
+                    'DIRECT_ONLY': 'Direct Only'
+                };
+                document.getElementById('viewPaymentPreference').textContent = paymentPrefMap[listing.paymentMethodPreference] || listing.paymentMethodPreference || 'Both';
+                
+                // Show sale channel if listing is sold
+                const viewSaleChannelRow = document.getElementById('viewSaleChannelRow');
+                if (listing.status === 'SOLD' && listing.saleChannel) {
+                    viewSaleChannelRow.style.display = 'block';
+                    const saleChannelMap = {
+                        'PLATFORM_ESCROW': 'Bharat Mandi (Escrow)',
+                        'PLATFORM_DIRECT': 'Bharat Mandi (Direct)',
+                        'EXTERNAL': 'Outside Bharat Mandi'
+                    };
+                    document.getElementById('viewSaleChannel').textContent = saleChannelMap[listing.saleChannel] || listing.saleChannel;
+                } else {
+                    viewSaleChannelRow.style.display = 'none';
+                }
+                
                 document.getElementById('viewCertificate').textContent = listing.certificateId || 'None';
                 document.getElementById('viewCreatedAt').textContent = new Date(listing.createdAt).toLocaleString();
+                document.getElementById('viewExpiryDate').textContent = listing.expiryDate ? new Date(listing.expiryDate).toLocaleString() : 'N/A';
 
                 // Load media
                 await loadListingMedia(listingId);
@@ -1240,7 +1266,7 @@
                 }
 
             } catch (error) {
-                alert(`Error loading listing: ${error.message}`);
+                console.error('Error loading listing:', error);
             }
         }
 
@@ -1248,7 +1274,7 @@
             try {
                 const response = await fetch(`${API_BASE}/marketplace/listings/${listingId}/media`);
                 if (!response.ok) {
-                    document.getElementById('viewMediaGrid').innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No media uploaded yet</p>';
+                    document.getElementById('viewMediaGrid').innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No attachments</p>';
                     state.mediaList = [];
                     return;
                 }
@@ -1256,7 +1282,7 @@
                 const data = await response.json();
                 
                 if (!data.media || data.media.length === 0) {
-                    document.getElementById('viewMediaGrid').innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No media uploaded yet</p>';
+                    document.getElementById('viewMediaGrid').innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No attachments</p>';
                     state.mediaList = [];
                     return;
                 }
@@ -1270,19 +1296,49 @@
         }
 
         function renderMediaGrid() {
-            const mediaGrid = document.getElementById('viewMediaGrid');
+            const viewMediaGrid = document.getElementById('viewMediaGrid');
+            const editMediaGrid = document.getElementById('editMediaGrid');
+            const isEditMode = document.getElementById('editMode').classList.contains('active');
             
             if (!state.mediaList || state.mediaList.length === 0) {
-                mediaGrid.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No media uploaded yet</p>';
+                const emptyMessage = '<p style="color: #999; text-align: center; padding: 20px;">No attachments</p>';
+                viewMediaGrid.innerHTML = emptyMessage;
+                editMediaGrid.innerHTML = emptyMessage;
                 return;
             }
 
-            mediaGrid.innerHTML = state.mediaList.map((media, index) => {
-                let imageUrl = media.url;
+            // Render for view mode (no controls)
+            const viewModeHtml = state.mediaList.map((media, index) => {
+                let imageUrl = media.storageUrl;
                 if (imageUrl.startsWith('/')) {
-                    imageUrl = 'http://localhost:3000' + imageUrl;
+                    imageUrl = '${BASE_URL}' + imageUrl;
                 } else if (!imageUrl.startsWith('http')) {
-                    imageUrl = 'http://localhost:3000/' + imageUrl;
+                    imageUrl = '${BASE_URL}/' + imageUrl;
+                }
+                
+                return `
+                <div class="media-item">
+                    ${media.isPrimary ? '<div class="primary-badge">PRIMARY</div>' : ''}
+                    ${media.mediaType === 'photo' ? 
+                        `<img src="${imageUrl}" alt="${media.fileName}" onclick="openMediaLightbox(${index})" style="cursor: pointer;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'150\\'%3E%3Crect fill=\\'%23ddd\\' width=\\'200\\' height=\\'150\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%23999\\'%3EImage Error%3C/text%3E%3C/svg%3E';">` :
+                        `<div style="width: 100%; height: 150px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 5px;">
+                            <span style="font-size: 48px;">${media.mediaType === 'video' ? '🎥' : '📄'}</span>
+                        </div>`
+                    }
+                    <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                        <strong>${media.fileName}</strong><br>
+                        Order: ${media.displayOrder}
+                    </div>
+                </div>
+            `}).join('');
+            
+            // Render for edit mode (with controls)
+            const editModeHtml = state.mediaList.map((media, index) => {
+                let imageUrl = media.storageUrl;
+                if (imageUrl.startsWith('/')) {
+                    imageUrl = '${BASE_URL}' + imageUrl;
+                } else if (!imageUrl.startsWith('http')) {
+                    imageUrl = '${BASE_URL}/' + imageUrl;
                 }
                 
                 return `
@@ -1306,6 +1362,9 @@
                     </div>
                 </div>
             `}).join('');
+            
+            viewMediaGrid.innerHTML = viewModeHtml;
+            editMediaGrid.innerHTML = editModeHtml;
         }
 
         function openMediaLightbox(startIndex) {
@@ -1313,11 +1372,11 @@
             const photoUrls = state.mediaList
                 .filter(media => media.mediaType === 'photo')
                 .map(media => {
-                    let imageUrl = media.url;
+                    let imageUrl = media.storageUrl;
                     if (imageUrl.startsWith('/')) {
-                        return 'http://localhost:3000' + imageUrl;
+                        return '${BASE_URL}' + imageUrl;
                     } else if (!imageUrl.startsWith('http')) {
-                        return 'http://localhost:3000/' + imageUrl;
+                        return '${BASE_URL}/' + imageUrl;
                     }
                     return imageUrl;
                 });
@@ -1332,12 +1391,10 @@
 
         async function uploadAdditionalMedia() {
             if (!state.isLoggedIn) {
-                alert('Please login first');
                 return;
             }
 
             if (!state.selectedListingId) {
-                alert('Please select a listing first');
                 return;
             }
 
@@ -1345,7 +1402,6 @@
             const files = fileInput.files;
 
             if (!files || files.length === 0) {
-                alert('Please select files to upload');
                 return;
             }
 
@@ -1367,9 +1423,8 @@
 
                 fileInput.value = '';
                 await loadListingMedia(state.selectedListingId);
-                alert('Media uploaded successfully!');
             } catch (error) {
-                alert('Failed to upload media');
+                console.error('Failed to upload media:', error);
             }
         }
 
@@ -1387,7 +1442,7 @@
 
                 await loadListingMedia(state.selectedListingId);
             } catch (error) {
-                alert('Failed to set primary media');
+                console.error('Failed to set primary media:', error);
             }
         }
 
@@ -1407,7 +1462,7 @@
 
                 await loadListingMedia(state.selectedListingId);
             } catch (error) {
-                alert('Failed to delete media');
+                console.error('Failed to delete media:', error);
             }
         }
 
@@ -1445,15 +1500,14 @@
 
         async function deleteListing() {
             if (!state.isLoggedIn) {
-                alert('Please login first');
                 return;
             }
 
             if (!state.selectedListingId) {
-                alert('Please select a listing first');
                 return;
             }
 
+            // KEEP delete confirmation
             if (!confirm('Delete this listing?\n\nThis will permanently remove the listing and all associated media. This action cannot be undone.')) {
                 return;
             }
@@ -1473,8 +1527,6 @@
                     throw new Error(errorData.error || 'Failed to delete listing');
                 }
 
-                alert('Listing deleted successfully');
-                
                 // Clear selection
                 state.selectedListingId = null;
                 state.originalListing = null;
@@ -1496,13 +1548,57 @@
                 }
 
             } catch (error) {
-                alert(`Failed to delete listing: ${error.message}`);
+                console.error('Failed to delete listing:', error);
+            }
+        }
+
+        // Mark as Sold Dropdown Handler
+        async function handleMarkAsSold(saleChannel) {
+            if (!saleChannel || !state.isLoggedIn || !state.selectedListingId) {
+                // Reset dropdown to default
+                document.getElementById('markAsSoldDropdown').value = '';
+                return;
+            }
+            
+            try {
+                const requestBody = {
+                    userId: state.farmerId,
+                    saleChannel
+                };
+                
+                const response = await fetch(`${API_BASE}/marketplace/listings/${state.selectedListingId}/mark-sold`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to mark as sold');
+                }
+                
+                // Reset dropdown
+                document.getElementById('markAsSoldDropdown').value = '';
+                
+                // Reload the listing to show updated status
+                await selectListing(state.selectedListingId, false);
+                
+                // Reload listings list
+                await loadMyListings();
+                
+                // Show success message
+                showResult('editResult', '✅ Listing marked as sold successfully!', false);
+                
+            } catch (error) {
+                // Reset dropdown
+                document.getElementById('markAsSoldDropdown').value = '';
+                showResult('editResult', `❌ Error: ${error.message}`, true);
             }
         }
 
         async function gradeProduceProduce() {
             if (!state.isLoggedIn) {
-                alert('Please login first');
                 return;
             }
 
@@ -1649,9 +1745,68 @@
             }
         }
 
+        function toggleHarvestDate() {
+            const checkbox = document.getElementById('alreadyHarvested');
+            const harvestDateGroup = document.getElementById('harvestDateGroup');
+            const harvestDateInput = document.getElementById('harvestDate');
+            
+            if (checkbox.checked) {
+                // Already harvested - hide date picker
+                harvestDateGroup.style.display = 'none';
+                harvestDateInput.value = '';
+                harvestDateInput.removeAttribute('required');
+            } else {
+                // Not harvested yet - show date picker for future harvest
+                harvestDateGroup.style.display = 'block';
+                harvestDateInput.setAttribute('required', 'required');
+                
+                // Set min date to today
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                harvestDateInput.min = today.toISOString().split('T')[0];
+                
+                // Set max date to 7 days from now
+                const maxDate = new Date();
+                maxDate.setDate(maxDate.getDate() + 7);
+                harvestDateInput.max = maxDate.toISOString().split('T')[0];
+            }
+            
+            // Re-validate create button
+            enableCreateButton();
+        }
+        
+        // Validate harvest date is within 7 days
+        function validateHarvestDate() {
+            const checkbox = document.getElementById('alreadyHarvested');
+            const harvestDateInput = document.getElementById('harvestDate');
+            
+            if (!checkbox.checked && harvestDateInput.value) {
+                const selectedDate = new Date(harvestDateInput.value);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const maxDate = new Date();
+                maxDate.setDate(maxDate.getDate() + 7);
+                maxDate.setHours(23, 59, 59, 999);
+                
+                if (selectedDate < today) {
+                    showResult('createResult', '❌ Harvest date cannot be in the past. Please check "Already harvested" if the produce is already harvested.', true);
+                    harvestDateInput.value = '';
+                    return false;
+                }
+                
+                if (selectedDate > maxDate) {
+                    showResult('createResult', '❌ Harvest date cannot be more than 7 days in the future.', true);
+                    harvestDateInput.value = '';
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
         async function addCertificateToListing(certificateId) {
             if (!state.selectedListingId) {
-                alert('Please select a listing first from "My Listings"');
                 return;
             }
 
@@ -1668,14 +1823,12 @@
                 if (!response.ok) {
                     throw new Error('Failed to add certificate to listing');
                 }
-
-                alert('Certificate added to listing successfully!');
                 
                 // Refresh listing view
                 await selectListing(state.selectedListingId);
 
             } catch (error) {
-                alert(`Failed to add certificate: ${error.message}`);
+                console.error('Failed to add certificate:', error);
             }
         }
 
@@ -1802,7 +1955,6 @@
 
         async function downloadCertificate() {
             if (!state.currentCertificate) {
-                alert('No certificate available');
                 return;
             }
             
@@ -1819,7 +1971,7 @@
                     URL.revokeObjectURL(url);
                 });
             } catch (error) {
-                alert('Failed to download certificate');
+                console.error('Failed to download certificate:', error);
             }
         }
 
@@ -1905,12 +2057,43 @@
             document.getElementById('editQuantity').value = listing.quantity;
             document.getElementById('editPricePerKg').value = listing.pricePerKg;
             document.getElementById('editStatus').value = listing.status;
+            document.getElementById('editPaymentPreference').value = listing.paymentMethodPreference || 'BOTH';
+            
+            // Show/hide and populate harvest date for PRE_HARVEST listings
+            const editHarvestDateGroup = document.getElementById('editHarvestDateGroup');
+            const editHarvestDateInput = document.getElementById('editHarvestDate');
+            
+            if (listing.listingType === 'PRE_HARVEST' && listing.expectedHarvestDate) {
+                editHarvestDateGroup.style.display = 'block';
+                
+                // Set the value to the existing harvest date
+                const harvestDate = new Date(listing.expectedHarvestDate);
+                editHarvestDateInput.value = harvestDate.toISOString().split('T')[0];
+                
+                // Set min date to today
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                editHarvestDateInput.min = today.toISOString().split('T')[0];
+                
+                // Set max date to 7 days from now
+                const maxDate = new Date();
+                maxDate.setDate(maxDate.getDate() + 7);
+                editHarvestDateInput.max = maxDate.toISOString().split('T')[0];
+            } else {
+                editHarvestDateGroup.style.display = 'none';
+            }
+            
+            // Re-render media grid to show edit controls
+            renderMediaGrid();
         }
 
         function cancelEdit() {
             document.getElementById('editMode').classList.remove('active');
             document.getElementById('viewMode').classList.add('active');
             document.getElementById('editResult').style.display = 'none';
+            
+            // Re-render media grid to hide edit controls
+            renderMediaGrid();
         }
 
         async function saveListingChanges() {
@@ -1920,23 +2103,60 @@
                 const quantity = parseInt(document.getElementById('editQuantity').value);
                 const pricePerKg = parseInt(document.getElementById('editPricePerKg').value);
                 const status = document.getElementById('editStatus').value;
+                const listing = state.originalListing;
 
                 if (!produceType || !quantity || !pricePerKg) {
                     showResult('editResult', '❌ Please fill all required fields', true);
                     return;
                 }
 
+                // Validate harvest date for PRE_HARVEST listings
+                if (listing.listingType === 'PRE_HARVEST') {
+                    const harvestDateInput = document.getElementById('editHarvestDate');
+                    if (!harvestDateInput.value) {
+                        showResult('editResult', '❌ Harvest date is required for PRE_HARVEST listings', true);
+                        return;
+                    }
+                    
+                    // Validate harvest date is within 7 days
+                    const selectedDate = new Date(harvestDateInput.value);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    const maxDate = new Date();
+                    maxDate.setDate(maxDate.getDate() + 7);
+                    maxDate.setHours(23, 59, 59, 999);
+                    
+                    if (selectedDate < today) {
+                        showResult('editResult', '❌ Harvest date cannot be in the past', true);
+                        return;
+                    }
+                    
+                    if (selectedDate > maxDate) {
+                        showResult('editResult', '❌ Harvest date cannot be more than 7 days in the future', true);
+                        return;
+                    }
+                }
+
                 showResult('editResult', '🔄 Saving changes...', false);
+
+                const updateData = {
+                    produceType,
+                    quantity,
+                    pricePerKg,
+                    status,
+                    paymentMethodPreference: document.getElementById('editPaymentPreference').value
+                };
+
+                // Include harvest date for PRE_HARVEST listings
+                if (listing.listingType === 'PRE_HARVEST') {
+                    updateData.expectedHarvestDate = document.getElementById('editHarvestDate').value;
+                }
 
                 const response = await fetch(`${API_BASE}/marketplace/listings/${listingId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        produceType,
-                        quantity,
-                        pricePerKg,
-                        status
-                    })
+                    body: JSON.stringify(updateData)
                 });
 
                 const data = await response.json();
@@ -1955,6 +2175,7 @@
                 document.getElementById('viewQuantity').textContent = data.quantity;
                 document.getElementById('viewPricePerKg').textContent = data.pricePerKg;
                 document.getElementById('viewStatus').textContent = data.status;
+                document.getElementById('viewPaymentPreference').textContent = data.paymentMethodPreference || 'Not specified';
 
                 // Switch back to view mode after 1 second
                 setTimeout(() => {
@@ -2027,7 +2248,6 @@
         // View certificate in lightbox
         async function viewCertificate() {
             if (!state.currentCertificate) {
-                alert('No certificate available');
                 return;
             }
             
@@ -2036,9 +2256,11 @@
                 const imageUrl = canvas.toDataURL('image/png');
                 openLightbox([imageUrl], 0);
             } catch (error) {
-                alert('Failed to view certificate');
+                console.error('Failed to view certificate:', error);
             }
         }
     </script>
+    <script src="/js/user-session.js"></script>
 </body>
 </html>
+
