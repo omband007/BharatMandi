@@ -4,7 +4,7 @@
 # Configuration
 $EC2_HOST = "ubuntu@13.236.3.139"
 $EC2_KEY = "test-key.pem"
-$EC2_PATH = "/home/ubuntu/bharat-mandi-app"
+$EC2_PATH = "/home/ubuntu"
 $APP_NAME = "bharat-mandi"
 
 Write-Host "Deploying Bharat Mandi to AWS EC2..." -ForegroundColor Blue
