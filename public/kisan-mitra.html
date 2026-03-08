@@ -27,6 +27,8 @@
             flex-direction: column;
             height: 600px;
             overflow: hidden;
+            position: relative;
+            padding-bottom: 50px;
         }
 
         .chat-header {
@@ -342,6 +344,20 @@
             background: white;
             color: #333;
         }
+
+        .ai-attribution {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            z-index: 10;
+        }
     </style>
 </head>
 <body>
@@ -358,17 +374,25 @@
                 <a href="/marketplace.html" class="nav-link">Marketplace</a>
                 <a href="/transactions.html" class="nav-link">Transactions</a>
                 <a href="/kisan-mitra.html" class="nav-link active">Kisan Mitra</a>
+                <a href="/crop-diagnosis.html" class="nav-link">Dr. Fasal</a>
                 <a href="/data.html" class="nav-link">Data</a>
             </nav>
+
+            <div id="userWelcome" style="display: none;"></div>
         </div>
 
         <div class="info-card">
             <p><strong>🤖 Kisan Mitra - AI Assistant:</strong></p>
-            <p>✓ Conversational AI powered by AWS Lex</p>
+            <p>✓ Conversational AI powered by AWS Bedrock (Nova Lite & Claude)</p>
             <p>✓ Multi-language support (11 Indian languages)</p>
-            <p>✓ Voice input and output</p>
+            <p>✓ Voice input and output with real-time translation</p>
             <p>✓ Crop prices, weather, farming advice, and more</p>
-            <p style="margin-top: 10px;"><strong>⚠️ Note:</strong> Mock mode enabled (AWS Lex not configured). Set LEX_BOT_ID and LEX_BOT_ALIAS_ID to use real AI.</p>
+            <p>✓ Context-aware responses with diagnosis integration</p>
+            <p style="margin-top: 10px;"><strong>🚀 Coming Next:</strong></p>
+            <p>• Personalized farming calendar and reminders</p>
+            <p>• Government scheme recommendations</p>
+            <p>• Market trend analysis and predictions</p>
+            <p>• Community Q&A and expert connections</p>
         </div>
 
         <div class="chat-container">
@@ -445,6 +469,10 @@
                         ➤
                     </button>
                 </div>
+            </div>
+
+            <div class="ai-attribution">
+                🤖 AI powered
             </div>
         </div>
 
@@ -842,5 +870,6 @@
             }
         });
     </script>
+    <script src="/js/user-session.js"></script>
 </body>
 </html>
