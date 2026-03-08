@@ -1,49 +1,15 @@
 ---
 feature: aws-deployment
-status: not_started
+status: in_progress
 created: 2026-02-25
+updated: 2026-03-06
 ---
 
 # AWS Cloud Deployment - Design Document
 
 ## Architecture Overview
 
-### Target Cloud Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        AWS CLOUD                            │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │              Application Load Balancer                │  │
-│  │                  (HTTPS/SSL)                          │  │
-│  └────────────────────┬─────────────────────────────────┘  │
-│                       │                                     │
-│  ┌────────────────────┴─────────────────────────────────┐  │
-│  │         Auto Scaling Group (EC2 Instances)           │  │
-│  │                                                       │  │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐          │  │
-│  │  │ Backend  │  │ Backend  │  │ Backend  │          │  │
-│  │  │ Node.js  │  │ Node.js  │  │ Node.js  │          │  │
-│  │  └────┬─────┘  └────┬─────┘  └────┬─────┘          │  │
-│  └───────┼─────────────┼─────────────┼─────────────────┘  │
-│          │             │             │                     │
-│  ┌───────┴─────────────┴─────────────┴─────────────────┐  │
-│  │                                                       │  │
-│  │  ┌─────────┐  ┌────────────┐  ┌──────────┐         │  │
-│  │  │   RDS   │  │     S3     │  │ Rekogni- │         │  │
-│  │  │Postgres │  │   Media    │  │  tion    │         │  │
-│  │  └─────────┘  └────────────┘  └──────────┘         │  │
-│  │                                                       │  │
-│  │  ┌──────────┐  ┌────────────┐                       │  │
-│  │  │ Pinpoint │  │  Secrets   │                       │  │
-│  │  │   SMS    │  │  Manager   │                       │  │
-│  │  └──────────┘  └────────────┘                       │  │
-│  └───────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Hybrid Development Architecture
+### Current Architecture (Local Development with AWS Services)
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -54,242 +20,227 @@ created: 2026-02-25
 │  │ Browser  │  │ Node.js  │  │  Local   │             │
 │  └──────────┘  └────┬─────┘  └──────────┘             │
 │                     │                                   │
-│                     │ (Environment-based routing)       │
-│                     ↓                                   │
+│                     │ ┌──────────┐  ┌──────────┐      │
+│                     ├→│  Redis   │  │ MongoDB  │      │
+│                     │ │  Local   │  │  Local   │      │
+│                     │ └──────────┘  └──────────┘      │
+│                     │                                   │
+│                     │ ┌──────────────────────┐         │
+│                     ├→│ Local Filesystem     │         │
+│                     │ │ data/media/listings/ │         │
+│                     │ └──────────────────────┘         │
+│                     │                                   │
+│                     ↓ (AWS SDK calls)                  │
 └─────────────────────┼───────────────────────────────────┘
                       │
-        ┌─────────────┴─────────────┐
-        │                           │
-        ↓ (AWS_ENABLED=true)        ↓ (AWS_ENABLED=false)
-┌───────────────────┐       ┌──────────────────┐
-│   AWS SERVICES    │       │  LOCAL SERVICES  │
-│                   │       │                  │
-│  • S3             │       │  • Filesystem    │
-│  • Rekognition    │       │  • Mock AI       │
-│  • Pinpoint       │       │  • Console logs  │
-└───────────────────┘       └──────────────────┘
+        ┌─────────────┴─────────────────────────┐
+        │                                       │
+        ↓                                       ↓
+┌───────────────────┐               ┌──────────────────┐
+│   AWS SERVICES    │               │  AWS S3 BUCKET   │
+│  (ap-southeast-2) │               │ (ap-southeast-2) │
+│                   │               │                  │
+│  • Lex (chatbot)  │               │  • Audio cache   │
+│  • Polly (TTS)    │               │  • Voice files   │
+│  • Transcribe     │               │                  │
+│  • Translate      │               │  Bucket:         │
+│  • Comprehend     │               │  bharat-mandi-   │
+│                   │               │  voice-ap-south-1│
+└───────────────────┘               └──────────────────┘
 ```
+
+### Target POC Architecture (AWS Deployment)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    AWS CLOUD (ap-southeast-2)               │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │              EC2 Instance (t3.small)                  │  │
+│  │                                                       │  │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐          │  │
+│  │  │ Frontend │  │ Backend  │  │  Redis   │          │  │
+│  │  │  Static  │  │ Node.js  │  │  Local   │          │  │
+│  │  │  Files   │  │          │  │          │          │  │
+│  │  └──────────┘  └────┬─────┘  └──────────┘          │  │
+│  │                     │                                │  │
+│  │                     │  ┌──────────┐                 │  │
+│  │                     └─→│ MongoDB  │                 │  │
+│  │                        │  Local   │                 │  │
+│  │                        └──────────┘                 │  │
+│  └─────────────────────────┼──────────────────────────┘  │
+│                            │                              │
+│  ┌─────────────────────────┼──────────────────────────┐  │
+│  │                         ↓                           │  │
+│  │  ┌─────────┐  ┌────────────┐  ┌──────────┐        │  │
+│  │  │   RDS   │  │     S3     │  │   Lex    │        │  │
+│  │  │Postgres │  │   Media    │  │  Polly   │        │  │
+│  │  │         │  │  Listings  │  │Transcribe│        │  │
+│  │  │         │  │   Audio    │  │Translate │        │  │
+│  │  │         │  │   Cache    │  │Comprehend│        │  │
+│  │  └─────────┘  └────────────┘  └──────────┘        │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+Key differences from current state:
+1. Application runs on EC2 instead of local machine
+2. PostgreSQL on RDS instead of local
+3. Listing media files in S3 instead of local filesystem
+4. Redis and MongoDB still local on EC2 (no ElastiCache/DocumentDB for POC)
+5. All AWS services (Lex, Polly, etc.) already working, no changes needed
 
 ## Component Design
 
-### 1. Environment Configuration
+### 1. Storage Service - S3 Integration for Listing Media
 
-**File: `src/config/aws.config.ts`**
+**Current State**: Uses local filesystem at `data/media/listings/`
+**Target State**: Use S3 for listing media storage
 
-```typescript
-export interface AWSConfig {
-  enabled: boolean;
-  region: string;
-  s3: {
-    bucket: string;
-    endpoint?: string; // For local testing with LocalStack
-  };
-  rekognition: {
-    enabled: boolean;
-  };
-  pinpoint: {
-    enabled: boolean;
-    applicationId: string;
-  };
-  rds: {
-    host: string;
-    port: number;
-    database: string;
-    // Credentials from Secrets Manager
-  };
-}
+**File: `src/features/marketplace/storage.service.ts`**
 
-export function getAWSConfig(): AWSConfig {
-  return {
-    enabled: process.env.AWS_ENABLED === 'true',
-    region: process.env.AWS_REGION || 'ap-south-1', // Mumbai
-    s3: {
-      bucket: process.env.AWS_S3_BUCKET || 'bharat-mandi-media',
-      endpoint: process.env.AWS_S3_ENDPOINT, // For LocalStack
-    },
-    rekognition: {
-      enabled: process.env.AWS_REKOGNITION_ENABLED === 'true',
-    },
-    pinpoint: {
-      enabled: process.env.AWS_PINPOINT_ENABLED === 'true',
-      applicationId: process.env.AWS_PINPOINT_APP_ID || '',
-    },
-    rds: {
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '5432'),
-      database: process.env.DB_NAME || 'bharat_mandi',
-    },
-  };
-}
-```
-
-### 2. Storage Service (S3 Integration)
-
-**Updates to: `src/features/marketplace/storage.service.ts`**
+Current implementation has S3 code commented out. Need to:
+1. Uncomment and update S3 integration code
+2. Add environment variable to control S3 vs local filesystem
+3. Implement signed URLs for secure access
+4. Keep local filesystem as fallback for development
 
 ```typescript
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { getAWSConfig } from '../../config/aws.config';
+// Environment configuration
+const USE_S3 = process.env.USE_S3_FOR_LISTINGS === 'true';
+const S3_LISTINGS_BUCKET = process.env.S3_LISTINGS_BUCKET || 'bharat-mandi-listings';
 
-const awsConfig = getAWSConfig();
-const s3Client = awsConfig.enabled ? new S3Client({ region: awsConfig.region }) : null;
-
-export async function uploadToS3(
-  file: Buffer,
-  fileName: string,
-  mimeType: string
-): Promise<string> {
-  if (!awsConfig.enabled || !s3Client) {
-    // Fallback to local storage
-    return uploadToLocal(file, fileName, mimeType);
-  }
-
-  const key = `media/${Date.now()}-${fileName}`;
-  
-  await s3Client.send(new PutObjectCommand({
-    Bucket: awsConfig.s3.bucket,
-    Key: key,
-    Body: file,
-    ContentType: mimeType,
-  }));
-
-  // Return S3 URL
-  return `https://${awsConfig.s3.bucket}.s3.${awsConfig.region}.amazonaws.com/${key}`;
-}
-
-export async function getSignedDownloadUrl(s3Key: string): Promise<string> {
-  if (!awsConfig.enabled || !s3Client) {
-    return s3Key; // Return as-is for local files
-  }
-
-  const command = new GetObjectCommand({
-    Bucket: awsConfig.s3.bucket,
-    Key: s3Key,
-  });
-
-  // Generate signed URL valid for 1 hour
-  return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-}
-```
-
-### 3. AI Grading Service (Rekognition Integration)
-
-**Updates to: `src/features/grading/grading.service.ts`**
-
-```typescript
-import { RekognitionClient, DetectLabelsCommand } from '@aws-sdk/client-rekognition';
-import { getAWSConfig } from '../../config/aws.config';
-
-const awsConfig = getAWSConfig();
-const rekognitionClient = awsConfig.rekognition.enabled 
-  ? new RekognitionClient({ region: awsConfig.region }) 
-  : null;
-
-export async function analyzeProduceImage(imageBuffer: Buffer): Promise<AIAnalysis> {
-  if (!awsConfig.rekognition.enabled || !rekognitionClient) {
-    // Fallback to mock analysis
-    return mockAIAnalysis();
-  }
-
-  const command = new DetectLabelsCommand({
-    Image: { Bytes: imageBuffer },
-    MaxLabels: 10,
-    MinConfidence: 70,
-  });
-
-  const response = await rekognitionClient.send(command);
-  
-  // Map Rekognition labels to produce types
-  const detectedCrop = mapLabelsToProduceType(response.Labels || []);
-  
-  return {
-    detectedCrop,
-    confidence: calculateConfidence(response.Labels),
-    details: extractQualityMetrics(response.Labels),
-  };
-}
-
-function mapLabelsToProduceType(labels: any[]): string {
-  const produceMap: Record<string, string> = {
-    'Tomato': 'Tomato',
-    'Potato': 'Potato',
-    'Onion': 'Onion',
-    // ... more mappings
-  };
-
-  for (const label of labels) {
-    if (produceMap[label.Name]) {
-      return produceMap[label.Name];
+export class StorageService {
+  async uploadListingMedia(file: Buffer, fileName: string, mimeType: string): Promise<string> {
+    if (USE_S3) {
+      return this.uploadToS3(file, fileName, mimeType);
+    } else {
+      return this.uploadToLocal(file, fileName, mimeType);
     }
   }
 
-  return 'unknown';
-}
-```
+  private async uploadToS3(file: Buffer, fileName: string, mimeType: string): Promise<string> {
+    const key = `listings/${Date.now()}-${fileName}`;
+    
+    await s3Client.send(new PutObjectCommand({
+      Bucket: S3_LISTINGS_BUCKET,
+      Key: key,
+      Body: file,
+      ContentType: mimeType,
+    }));
 
-### 4. SMS Service (Pinpoint Integration)
-
-**Updates to: `src/features/auth/auth.service.ts`**
-
-```typescript
-import { PinpointClient, SendMessagesCommand } from '@aws-sdk/client-pinpoint';
-import { getAWSConfig } from '../../config/aws.config';
-
-const awsConfig = getAWSConfig();
-const pinpointClient = awsConfig.pinpoint.enabled
-  ? new PinpointClient({ region: awsConfig.region })
-  : null;
-
-async function sendOTP(phoneNumber: string, otp: string): Promise<void> {
-  if (!awsConfig.pinpoint.enabled || !pinpointClient) {
-    // Fallback to console logging
-    console.log(`[SMS] Sending OTP ${otp} to ${phoneNumber}`);
-    return;
+    // Return S3 URL
+    return `https://${S3_LISTINGS_BUCKET}.s3.${AWS_REGION}.amazonaws.com/${key}`;
   }
 
-  const params = {
-    ApplicationId: awsConfig.pinpoint.applicationId,
-    MessageRequest: {
-      Addresses: {
-        [phoneNumber]: {
-          ChannelType: 'SMS',
-        },
-      },
-      MessageConfiguration: {
-        SMSMessage: {
-          Body: `Your Bharat Mandi OTP is: ${otp}. Valid for 10 minutes.`,
-          MessageType: 'TRANSACTIONAL',
-        },
-      },
-    },
-  };
-
-  await pinpointClient.send(new SendMessagesCommand(params));
+  private async uploadToLocal(file: Buffer, fileName: string, mimeType: string): Promise<string> {
+    // Existing local filesystem implementation
+    // ...
+  }
 }
 ```
 
-### 5. Database Configuration
+### 2. Environment Configuration
 
-**Updates to: `src/shared/database/db-config.ts`**
+**File: `src/config/environment.ts`** (new file)
 
 ```typescript
-export function getDatabaseConfig() {
-  const isProduction = process.env.NODE_ENV === 'production';
-  const awsEnabled = process.env.AWS_ENABLED === 'true';
-
-  return {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432'),
-    database: process.env.DB_NAME || 'bharat_mandi',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
-    ssl: awsEnabled && isProduction ? {
-      rejectUnauthorized: true,
-      ca: process.env.RDS_CA_CERT, // RDS certificate
-    } : false,
-    max: awsEnabled ? 20 : 10, // Connection pool size
+export interface EnvironmentConfig {
+  nodeEnv: 'development' | 'testing' | 'production';
+  
+  // Database
+  database: {
+    host: string;
+    port: number;
+    name: string;
+    user: string;
+    password: string;
+    ssl: boolean;
   };
+  
+  // AWS
+  aws: {
+    region: string;
+    s3: {
+      listingsBucket: string;
+      audioBucket: string;
+      useS3ForListings: boolean;
+    };
+    lex: {
+      botId: string;
+      botAliasId: string;
+      region: string;
+    };
+  };
+  
+  // Local services
+  redis: {
+    host: string;
+    port: number;
+  };
+  
+  mongodb: {
+    uri: string;
+  };
+}
+
+export function getEnvironmentConfig(): EnvironmentConfig {
+  return {
+    nodeEnv: (process.env.NODE_ENV as any) || 'development',
+    
+    database: {
+      host: process.env.POSTGRES_HOST || 'localhost',
+      port: parseInt(process.env.POSTGRES_PORT || '5432'),
+      name: process.env.POSTGRES_DB || 'bharat_mandi',
+      user: process.env.POSTGRES_USER || 'postgres',
+      password: process.env.POSTGRES_PASSWORD || '',
+      ssl: process.env.DB_SSL === 'true',
+    },
+    
+    aws: {
+      region: process.env.AWS_REGION || 'ap-southeast-2',
+      s3: {
+        listingsBucket: process.env.S3_LISTINGS_BUCKET || 'bharat-mandi-listings',
+        audioBucket: process.env.S3_AUDIO_BUCKET || 'bharat-mandi-voice-ap-south-1',
+        useS3ForListings: process.env.USE_S3_FOR_LISTINGS === 'true',
+      },
+      lex: {
+        botId: process.env.LEX_BOT_ID || '',
+        botAliasId: process.env.LEX_BOT_ALIAS_ID || '',
+        region: process.env.LEX_REGION || 'ap-southeast-2',
+      },
+    },
+    
+    redis: {
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+    },
+    
+    mongodb: {
+      uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/bharat_mandi',
+    },
+  };
+}
+
+// Validate configuration on startup
+export function validateConfig(config: EnvironmentConfig): void {
+  const errors: string[] = [];
+  
+  if (!config.database.password && config.nodeEnv !== 'development') {
+    errors.push('Database password is required for non-development environments');
+  }
+  
+  if (config.aws.s3.useS3ForListings && !config.aws.s3.listingsBucket) {
+    errors.push('S3 listings bucket is required when USE_S3_FOR_LISTINGS is true');
+  }
+  
+  if (!config.aws.lex.botId || !config.aws.lex.botAliasId) {
+    errors.push('Lex bot ID and alias ID are required');
+  }
+  
+  if (errors.length > 0) {
+    throw new Error(`Configuration validation failed:\n${errors.join('\n')}`);
+  }
 }
 ```
 
@@ -297,183 +248,394 @@ export function getDatabaseConfig() {
 
 ### Environment Variables
 
-**Local Development (`.env.local`)**:
+**Local Development (`.env` - current)**:
 ```bash
 NODE_ENV=development
-AWS_ENABLED=false
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=bharat_mandi
-DB_USER=postgres
-DB_PASSWORD=postgres
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=bharat_mandi
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=PGSql
+
+# AWS Services (already working)
+AWS_REGION=ap-southeast-2
+AWS_ACCESS_KEY_ID=<your-key>
+AWS_SECRET_ACCESS_KEY=<your-secret>
+
+# S3 Configuration
+S3_AUDIO_BUCKET=bharat-mandi-voice-ap-south-1
+S3_REGION=ap-southeast-2
+USE_S3_FOR_LISTINGS=false  # Use local filesystem for development
+
+# AWS Lex
+LEX_BOT_ID=YYEXVHRJQW
+LEX_BOT_ALIAS_ID=COP9IOYDL0
+LEX_REGION=ap-southeast-2
+
+# Local services
+REDIS_HOST=localhost
+REDIS_PORT=6379
+MONGODB_URI=mongodb://localhost:27017/bharat_mandi
 ```
 
-**AWS Staging (`.env.staging`)**:
+**AWS POC/Testing (`.env.testing` - target)**:
 ```bash
-NODE_ENV=staging
-AWS_ENABLED=true
-AWS_REGION=ap-south-1
-AWS_S3_BUCKET=bharat-mandi-staging-media
-AWS_REKOGNITION_ENABLED=true
-AWS_PINPOINT_ENABLED=true
-AWS_PINPOINT_APP_ID=<staging-app-id>
-DB_HOST=<rds-staging-endpoint>
-DB_PORT=5432
-DB_NAME=bharat_mandi_staging
-# DB credentials from Secrets Manager
-```
+NODE_ENV=testing
+POSTGRES_HOST=<rds-endpoint>.ap-southeast-2.rds.amazonaws.com
+POSTGRES_PORT=5432
+POSTGRES_DB=bharat_mandi
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=<secure-password>
+DB_SSL=true
 
-**AWS Production (`.env.production`)**:
-```bash
-NODE_ENV=production
-AWS_ENABLED=true
-AWS_REGION=ap-south-1
-AWS_S3_BUCKET=bharat-mandi-prod-media
-AWS_REKOGNITION_ENABLED=true
-AWS_PINPOINT_ENABLED=true
-AWS_PINPOINT_APP_ID=<prod-app-id>
-DB_HOST=<rds-prod-endpoint>
-DB_PORT=5432
-DB_NAME=bharat_mandi_prod
-# DB credentials from Secrets Manager
+# AWS Services (already working)
+AWS_REGION=ap-southeast-2
+AWS_ACCESS_KEY_ID=<your-key>
+AWS_SECRET_ACCESS_KEY=<your-secret>
+
+# S3 Configuration
+S3_AUDIO_BUCKET=bharat-mandi-voice-ap-south-1
+S3_LISTINGS_BUCKET=bharat-mandi-listings-testing
+S3_REGION=ap-southeast-2
+USE_S3_FOR_LISTINGS=true  # Use S3 for listings in AWS
+
+# AWS Lex (same as local)
+LEX_BOT_ID=YYEXVHRJQW
+LEX_BOT_ALIAS_ID=COP9IOYDL0
+LEX_REGION=ap-southeast-2
+
+# Local services on EC2
+REDIS_HOST=localhost
+REDIS_PORT=6379
+MONGODB_URI=mongodb://localhost:27017/bharat_mandi
 ```
 
 ## Infrastructure as Code
 
-### AWS Resources (Terraform/CloudFormation)
+### AWS Resources to Provision
 
-**Resources to provision:**
+**For POC/Testing Environment:**
 
-1. **VPC and Networking**
-   - VPC with public/private subnets
-   - Internet Gateway
-   - NAT Gateway (for private subnets)
-   - Security Groups
+1. **VPC and Networking** (Optional - can use default VPC)
+   - Use default VPC for simplicity
+   - Security Groups for EC2 and RDS
 
 2. **Compute**
-   - EC2 instances (t3.small for staging, t3.medium for prod)
-   - Auto Scaling Group (min: 2, max: 10)
-   - Application Load Balancer
-   - Target Groups
+   - EC2 instance (t3.small or t3.micro)
+   - Elastic IP (optional - for stable IP address)
+   - Security Group (allow HTTP/HTTPS, SSH)
 
 3. **Database**
-   - RDS PostgreSQL (db.t3.micro for staging, db.t3.small for prod)
-   - Multi-AZ for production
+   - RDS PostgreSQL (db.t3.micro)
+   - Single-AZ (Multi-AZ not needed for POC)
    - Automated backups (7 days retention)
+   - Security Group (allow PostgreSQL from EC2)
 
 4. **Storage**
-   - S3 bucket for media
-   - Lifecycle policies (archive after 90 days)
-   - Versioning enabled
+   - S3 bucket for listing media (new)
+   - Existing S3 bucket for audio cache (already have)
+   - Bucket policies for access control
 
-5. **AI/ML**
-   - Rekognition (pay-per-use)
+5. **AI/ML Services** (Already Working)
+   - Lex - already configured
+   - Polly - already working
+   - Transcribe - already working
+   - Translate - already working
+   - Comprehend - already working
 
-6. **Messaging**
-   - Pinpoint SMS channel
-   - SNS for notifications
+6. **Security**
+   - IAM role for EC2 (S3, Lex, Polly, Transcribe, Translate, Comprehend access)
+   - Security Groups
+   - Key pair for SSH access
 
-7. **Security**
-   - IAM roles and policies
-   - Secrets Manager for credentials
-   - ACM for SSL certificates
+7. **Monitoring** (Basic)
+   - CloudWatch logs (optional)
+   - CloudWatch alarms for billing (recommended)
 
-8. **Monitoring**
-   - CloudWatch logs
-   - CloudWatch alarms
-   - SNS alerts
+### Manual Setup Steps (No IaC for POC)
+
+For POC, manual setup via AWS Console is acceptable:
+
+1. Create RDS PostgreSQL instance
+2. Create S3 bucket for listings
+3. Create EC2 instance
+4. Configure security groups
+5. Set up IAM role for EC2
+6. Deploy application to EC2
 
 ## Deployment Process
 
-### 1. Build and Package
+### 1. Prepare Application for Deployment
 ```bash
+# Build application
 npm run build
-zip -r app.zip dist/ node_modules/ package.json
+
+# Test build locally
+node .build/index.js
+
+# Create deployment package
+tar -czf bharat-mandi-app.tar.gz .build/ node_modules/ package.json .env.testing
 ```
 
-### 2. Upload to S3
+### 2. Set Up RDS Database
 ```bash
-aws s3 cp app.zip s3://bharat-mandi-deployments/app-v1.0.0.zip
+# Create RDS instance via AWS Console or CLI
+aws rds create-db-instance \
+  --db-instance-identifier bharat-mandi-testing \
+  --db-instance-class db.t3.micro \
+  --engine postgres \
+  --master-username postgres \
+  --master-user-password <secure-password> \
+  --allocated-storage 20 \
+  --vpc-security-group-ids <security-group-id> \
+  --backup-retention-period 7 \
+  --no-multi-az
+
+# Wait for RDS to be available
+aws rds wait db-instance-available --db-instance-identifier bharat-mandi-testing
+
+# Get RDS endpoint
+aws rds describe-db-instances --db-instance-identifier bharat-mandi-testing \
+  --query 'DBInstances[0].Endpoint.Address'
 ```
 
-### 3. Deploy to EC2
+### 3. Migrate Database
 ```bash
-# SSH to EC2 instance
-ssh -i key.pem ec2-user@<instance-ip>
+# From local machine, connect to RDS and run migrations
+export POSTGRES_HOST=<rds-endpoint>
+export POSTGRES_PORT=5432
+export POSTGRES_DB=bharat_mandi
+export POSTGRES_USER=postgres
+export POSTGRES_PASSWORD=<secure-password>
 
-# Download and extract
-aws s3 cp s3://bharat-mandi-deployments/app-v1.0.0.zip .
-unzip app.zip
-
-# Run migrations
 npm run migrate
 
-# Start application (with PM2)
-pm2 start dist/app.js --name bharat-mandi
-pm2 save
+# Dev environment - no need to backup or import data
+# Can create fresh test data after deployment
 ```
 
-### 4. Health Check
+### 4. Create S3 Bucket for Listings
 ```bash
-curl https://api.bharatmandi.com/health
+# Create S3 bucket
+aws s3 mb s3://bharat-mandi-listings-testing --region ap-southeast-2
+
+# Set bucket policy (allow EC2 IAM role to access)
+aws s3api put-bucket-policy --bucket bharat-mandi-listings-testing --policy file://s3-policy.json
+```
+
+### 5. Launch EC2 Instance
+```bash
+# Launch EC2 instance
+aws ec2 run-instances \
+  --image-id ami-<ubuntu-22.04-ami> \
+  --instance-type t3.small \
+  --key-name <your-key-pair> \
+  --security-group-ids <security-group-id> \
+  --iam-instance-profile Name=<ec2-role-name> \
+  --user-data file://user-data.sh \
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=bharat-mandi-testing}]'
+```
+
+### 6. Deploy Application to EC2
+```bash
+# SSH to EC2 instance
+ssh -i <key-pair>.pem ubuntu@<ec2-public-ip>
+
+# Install Node.js
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Install PM2
+sudo npm install -g pm2
+
+# Install Redis
+sudo apt-get install -y redis-server
+sudo systemctl enable redis-server
+sudo systemctl start redis-server
+
+# Install MongoDB
+sudo apt-get install -y mongodb
+sudo systemctl enable mongodb
+sudo systemctl start mongodb
+
+# Upload and extract application
+scp -i <key-pair>.pem bharat-mandi-app.tar.gz ubuntu@<ec2-public-ip>:~
+tar -xzf bharat-mandi-app.tar.gz
+
+# Start application with PM2
+pm2 start .build/index.js --name bharat-mandi
+pm2 save
+pm2 startup
+```
+
+### 7. Verify Deployment
+```bash
+# Check application health
+curl http://<ec2-public-ip>:3000/health
+
+# Check logs
+pm2 logs bharat-mandi
+
+# Test Lex integration
+curl -X POST http://<ec2-public-ip>:3000/api/kisan-mitra/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What is the price of tomatoes?", "language": "en"}'
 ```
 
 ## Cost Estimation
 
-### Staging Environment (Monthly)
-- EC2 (t3.small): $15
-- RDS (db.t3.micro): $15
-- S3 (100GB): $2
-- Data Transfer: $5
-- Rekognition (1000 images): $1
-- Pinpoint (1000 SMS): $10
-- **Total: ~$50/month**
+### POC/Testing Environment (Monthly)
+- EC2 (t3.small, 730 hours): ~$15
+- RDS (db.t3.micro, 730 hours): ~$15
+- S3 (50GB storage): ~$1
+- S3 (data transfer): ~$2
+- Data Transfer (EC2 to internet): ~$5
+- Lex (1000 requests): ~$4
+- Polly (1M characters): ~$4
+- Transcribe (100 minutes): ~$2.40
+- Translate (1M characters): ~$15
+- Comprehend (10K units): ~$1
+- **Total: ~$64/month**
 
-### Production Environment (Monthly)
-- EC2 (2x t3.medium): $60
-- RDS (db.t3.small, Multi-AZ): $50
-- S3 (1TB): $23
-- Data Transfer: $50
-- Rekognition (10,000 images): $10
-- Pinpoint (10,000 SMS): $100
-- Load Balancer: $20
-- **Total: ~$313/month**
+### Cost Optimization Tips
+- Use t3.micro instead of t3.small: Save $7.50/month
+- Shut down EC2 when not testing: Save ~50% of EC2 costs
+- Use Reserved Instances for long-term: Save ~30%
+- Set up billing alerts at $50, $75, $100
+
+### Free Tier Benefits (First 12 Months)
+- EC2: 750 hours/month of t2.micro or t3.micro
+- RDS: 750 hours/month of db.t2.micro or db.t3.micro
+- S3: 5GB storage
+- Data Transfer: 15GB/month
+- Lex: 10,000 text requests/month
+- Polly: 5M characters/month
+- Transcribe: 60 minutes/month
+- Translate: 2M characters/month
+- Comprehend: 50K units/month
+
+**With Free Tier: ~$10-20/month for first year**
 
 ## Rollback Strategy
 
-1. Keep previous version in S3
-2. PM2 can restart previous version
-3. Database migrations are reversible
-4. Load balancer can route to old instances
+### Application Rollback
+```bash
+# Keep previous version on EC2
+cp -r .build .build.backup
+
+# If deployment fails, restore previous version
+rm -rf .build
+mv .build.backup .build
+pm2 restart bharat-mandi
+```
+
+### Database Rollback
+```bash
+# RDS automated backups allow point-in-time recovery
+aws rds restore-db-instance-to-point-in-time \
+  --source-db-instance-identifier bharat-mandi-testing \
+  --target-db-instance-identifier bharat-mandi-testing-restored \
+  --restore-time 2024-03-06T10:00:00Z
+```
+
+### S3 Rollback
+```bash
+# S3 versioning allows recovery of deleted/overwritten files
+aws s3api list-object-versions --bucket bharat-mandi-listings-testing
+aws s3api get-object --bucket bharat-mandi-listings-testing --key <key> --version-id <version-id> <output-file>
+```
 
 ## Monitoring and Alerts
 
-- CPU > 80% for 5 minutes
-- Memory > 80% for 5 minutes
-- Error rate > 5% for 5 minutes
-- Response time > 1s (p95)
-- Database connections > 80%
-- S3 upload failures
-- SMS delivery failures
+### Basic Monitoring (POC Level)
+- CloudWatch metrics for EC2 (CPU, memory, disk)
+- CloudWatch metrics for RDS (connections, CPU, storage)
+- PM2 monitoring for application process
+- Application logs via PM2
+
+### Recommended Alerts
+- Billing alert at $50, $75, $100
+- EC2 CPU > 80% for 10 minutes
+- RDS CPU > 80% for 10 minutes
+- RDS storage < 20% free
+- Application process down (PM2 alert)
+
+### Log Management
+```bash
+# View application logs
+pm2 logs bharat-mandi
+
+# View system logs
+sudo journalctl -u redis-server
+sudo journalctl -u mongodb
+
+# Optional: Send logs to CloudWatch
+pm2 install pm2-cloudwatch
+```
 
 ## Security Considerations
 
-1. **Network Security**
-   - Private subnets for database
-   - Security groups restrict access
-   - HTTPS only (redirect HTTP)
+### Network Security (POC Level)
+- Security group for EC2: Allow HTTP (80), HTTPS (443), SSH (22) from specific IPs
+- Security group for RDS: Allow PostgreSQL (5432) from EC2 security group only
+- Use Elastic IP or domain name (optional)
 
-2. **Data Security**
-   - Encryption at rest (S3, RDS)
-   - Encryption in transit (TLS 1.2+)
-   - Secrets in Secrets Manager
+### Data Security
+- Encryption at rest: S3 (default), RDS (enable)
+- Encryption in transit: HTTPS (recommended but optional for POC)
+- AWS credentials: Use IAM role for EC2 (no hardcoded credentials)
+- Database password: Store in .env file on EC2 (Secrets Manager optional)
 
-3. **Access Control**
-   - IAM roles (no hardcoded credentials)
-   - Least privilege principle
-   - MFA for AWS console
+### Access Control
+- IAM role for EC2 with permissions for:
+  - S3 (read/write to listings and audio buckets)
+  - Lex (invoke bot)
+  - Polly (synthesize speech)
+  - Transcribe (start transcription jobs)
+  - Translate (translate text)
+  - Comprehend (detect language)
+- SSH key pair for EC2 access
+- Restrict SSH access to specific IP addresses
 
-4. **Compliance**
-   - Data residency (India region)
-   - Audit logs enabled
-   - Regular security scans
+### Best Practices
+- Regular security updates: `sudo apt-get update && sudo apt-get upgrade`
+- Disable root SSH login
+- Use strong database password
+- Enable RDS encryption
+- Enable S3 bucket versioning
+- Regular backups (RDS automated backups)
+
+### Security Checklist
+- [ ] EC2 security group configured
+- [ ] RDS security group configured
+- [ ] IAM role for EC2 created
+- [ ] SSH key pair created and secured
+- [ ] Database password is strong and secure
+- [ ] RDS encryption enabled
+- [ ] S3 bucket policies configured
+- [ ] AWS credentials not in code
+- [ ] Regular security updates scheduled
+
+
+### 3. Database Configuration
+
+**Updates to: `src/shared/database/db-config.ts`** (or wherever database config is)
+
+```typescript
+export function getDatabaseConfig() {
+  const config = getEnvironmentConfig();
+
+  return {
+    host: config.database.host,
+    port: config.database.port,
+    database: config.database.name,
+    user: config.database.user,
+    password: config.database.password,
+    ssl: config.database.ssl ? {
+      rejectUnauthorized: true,
+      // RDS certificate will be included in EC2 instance
+    } : false,
+    max: config.nodeEnv === 'development' ? 10 : 20, // Connection pool size
+  };
+}
+```

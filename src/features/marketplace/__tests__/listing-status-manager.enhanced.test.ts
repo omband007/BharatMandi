@@ -42,7 +42,7 @@ describe('ListingStatusManager - markAsSold', () => {
     payment_method_preference: 'BOTH',
   };
 
-  it('should mark ACTIVE listing as SOLD with PLATFORM_DIRECT channel', async () => {
+  it('should mark ACTIVE listing as SOLD with PLATFORM channel', async () => {
     mockDbManager.get
       .mockResolvedValueOnce(mockActiveListing)
       .mockResolvedValueOnce(null);
@@ -51,8 +51,7 @@ describe('ListingStatusManager - markAsSold', () => {
 
     await listingStatusManager.markAsSold({
       listingId,
-      saleChannel: SaleChannel.PLATFORM_DIRECT,
-      transactionId: 'transaction-123',
+      saleChannel: SaleChannel.PLATFORM,
       userId,
     });
 
@@ -61,9 +60,8 @@ describe('ListingStatusManager - markAsSold', () => {
       expect.arrayContaining([
         ListingStatus.SOLD,
         expect.any(String), // sold_at
-        SaleChannel.PLATFORM_DIRECT,
+        SaleChannel.PLATFORM,
         expect.any(String), // updated_at
-        'transaction-123',
         listingId,
       ])
     );
@@ -122,19 +120,7 @@ describe('ListingStatusManager - markAsSold', () => {
         saleChannel: 'INVALID' as any,
         userId,
       })
-    ).rejects.toThrow('Invalid sale channel. Must be PLATFORM_DIRECT or EXTERNAL');
-  });
-
-  it('should require transactionId for PLATFORM_DIRECT sales', async () => {
-    mockDbManager.get.mockResolvedValue(mockActiveListing);
-
-    await expect(
-      listingStatusManager.markAsSold({
-        listingId,
-        saleChannel: SaleChannel.PLATFORM_DIRECT,
-        userId,
-      })
-    ).rejects.toThrow('transactionId is required for PLATFORM_DIRECT sales');
+    ).rejects.toThrow('Invalid sale channel. Must be PLATFORM or EXTERNAL');
   });
 
   it('should reject when active transaction exists (PAYMENT_LOCKED)', async () => {

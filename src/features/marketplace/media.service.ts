@@ -55,19 +55,6 @@ export class MediaService {
       const listing = await pgAdapter.getListing(request.listingId);
       
       if (!listing) {
-        // Check if listing is in SQLite (indicates sync issue)
-        const sqliteAdapter = this.dbManager.getSQLiteAdapter();
-        const sqliteListing = await sqliteAdapter.getListing(request.listingId);
-        
-        if (sqliteListing) {
-          return {
-            mediaId: '',
-            storageUrl: '',
-            success: false,
-            error: `Listing exists in SQLite but not PostgreSQL. This indicates PostgreSQL is not being used for listing creation. Please check server logs and ensure PostgreSQL is connected.`
-          };
-        }
-        
         return {
           mediaId: '',
           storageUrl: '',
@@ -170,15 +157,6 @@ export class MediaService {
 
       const createdMedia = await pgAdapter.createListingMedia(media);
 
-      // 9. Cache in SQLite for offline access (best effort - don't fail if it doesn't work)
-      try {
-        const sqliteAdapter = this.dbManager.getSQLiteAdapter();
-        await sqliteAdapter.cacheListingMedia(createdMedia);
-      } catch (cacheError) {
-        console.warn('[MediaService] Failed to cache media in SQLite (non-fatal):', cacheError);
-        // Continue - caching failure shouldn't prevent the upload from succeeding
-      }
-
       return {
         mediaId: createdMedia.id,
         storageUrl: createdMedia.storageUrl,
@@ -207,31 +185,22 @@ export class MediaService {
    */
   async getListingMedia(listingId: string): Promise<ListingMedia[]> {
     try {
-      // Try PostgreSQL first, fallback to SQLite if unavailable
-      if (this.dbManager.isPostgreSQLConnected()) {
-        const pgAdapter = this.dbManager.getPostgreSQLAdapter();
-        const media = await pgAdapter.getListingMedia(listingId);
-        
-        // Generate signed URLs for storage access (Requirement 7.1)
-        return await Promise.all(
-          media.map(async (m) => ({
-            ...m,
-            storageUrl: await this.storageService.generateSignedUrl(m.storageUrl),
-            thumbnailUrl: m.thumbnailUrl 
-              ? await this.storageService.generateSignedUrl(m.thumbnailUrl)
-              : undefined
-          }))
-        );
-      } else {
-        // Offline mode - serve from SQLite cache
-        const sqliteAdapter = this.dbManager.getSQLiteAdapter();
-        return await sqliteAdapter.getCachedListingMedia(listingId);
-      }
+      const pgAdapter = this.dbManager.getPostgreSQLAdapter();
+      const media = await pgAdapter.getListingMedia(listingId);
+      
+      // Generate signed URLs for storage access (Requirement 7.1)
+      return await Promise.all(
+        media.map(async (m) => ({
+          ...m,
+          storageUrl: await this.storageService.generateSignedUrl(m.storageUrl),
+          thumbnailUrl: m.thumbnailUrl 
+            ? await this.storageService.generateSignedUrl(m.thumbnailUrl)
+            : undefined
+        }))
+      );
     } catch (error) {
       console.error('[MediaService] Get media failed:', error);
-      // Fallback to SQLite on error
-      const sqliteAdapter = this.dbManager.getSQLiteAdapter();
-      return await sqliteAdapter.getCachedListingMedia(listingId);
+      throw error;
     }
   }
 
@@ -280,10 +249,6 @@ export class MediaService {
         }
       }
 
-      // 6. Delete from SQLite cache
-      const sqliteAdapter = this.dbManager.getSQLiteAdapter();
-      await sqliteAdapter.deleteCachedMedia(mediaId);
-
       return true;
     } catch (error) {
       console.error('[MediaService] Delete media failed:', error);
@@ -329,19 +294,6 @@ export class MediaService {
 
       await pgAdapter.updateMediaOrder(listingId, orderUpdates);
 
-      // 4. Update cache in SQLite
-      const sqliteAdapter = this.dbManager.getSQLiteAdapter();
-      for (const media of existingMedia) {
-        const newOrder = mediaOrder.indexOf(media.id);
-        if (newOrder !== -1) {
-          await sqliteAdapter.cacheListingMedia({
-            ...media,
-            displayOrder: newOrder,
-            updatedAt: new Date()
-          });
-        }
-      }
-
       return true;
     } catch (error) {
       console.error('[MediaService] Reorder media failed:', error);
@@ -381,18 +333,6 @@ export class MediaService {
 
       // 3. Set as primary (Requirement 8.4)
       await pgAdapter.setPrimaryMedia(listingId, mediaId);
-
-      // 4. Update cache in SQLite
-      const sqliteAdapter = this.dbManager.getSQLiteAdapter();
-      const allMedia = await pgAdapter.getListingMedia(listingId);
-      
-      for (const m of allMedia) {
-        await sqliteAdapter.cacheListingMedia({
-          ...m,
-          isPrimary: m.id === mediaId,
-          updatedAt: new Date()
-        });
-      }
 
       return true;
     } catch (error) {

@@ -29,18 +29,18 @@ CREATE TABLE IF NOT EXISTS listings (
   
   -- Perishability-based expiration fields
   listing_type TEXT NOT NULL DEFAULT 'POST_HARVEST' CHECK (listing_type IN ('PRE_HARVEST', 'POST_HARVEST')),
-  produce_category_id TEXT NOT NULL,
+  produce_category_id TEXT, -- Made nullable for simplified 7-day default
   expiry_date TEXT NOT NULL,
   
   -- Manual sale confirmation fields
   payment_method_preference TEXT NOT NULL DEFAULT 'BOTH' CHECK (payment_method_preference IN ('PLATFORM_ONLY', 'DIRECT_ONLY', 'BOTH')),
-  sale_channel TEXT CHECK (sale_channel IN ('PLATFORM_ESCROW', 'PLATFORM_DIRECT', 'EXTERNAL')),
+  sale_channel TEXT CHECK (sale_channel IN ('PLATFORM', 'EXTERNAL')),
   sale_price REAL,
   sale_notes TEXT,
   
   -- Foreign keys
   FOREIGN KEY (farmer_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (produce_category_id) REFERENCES produce_categories(id),
+  -- FOREIGN KEY (produce_category_id) REFERENCES produce_categories(id), -- Removed: category is optional
   FOREIGN KEY (transaction_id) REFERENCES transactions(id),
   FOREIGN KEY (cancelled_by) REFERENCES users(id)
 );

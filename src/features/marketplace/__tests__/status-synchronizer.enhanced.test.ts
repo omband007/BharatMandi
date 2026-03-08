@@ -66,7 +66,7 @@ describe('StatusSynchronizer - onTransactionCompletedDirect', () => {
     payment_method_preference: 'BOTH',
   };
 
-  it('should mark ACTIVE listing as SOLD with PLATFORM_DIRECT channel', async () => {
+  it('should mark ACTIVE listing as SOLD with PLATFORM channel (direct payment)', async () => {
     mockDbManager.get
       .mockResolvedValueOnce(mockTransaction)
       .mockResolvedValueOnce(mockActiveListing);
@@ -82,7 +82,7 @@ describe('StatusSynchronizer - onTransactionCompletedDirect', () => {
         ListingStatus.SOLD,
         expect.any(String), // sold_at
         transactionId,
-        SaleChannel.PLATFORM_DIRECT,
+        SaleChannel.PLATFORM,
         expect.any(String), // updated_at
         listingId,
       ])
@@ -96,7 +96,7 @@ describe('StatusSynchronizer - onTransactionCompletedDirect', () => {
       TriggerType.TRANSACTION,
       expect.objectContaining({
         transaction_id: transactionId,
-        sale_channel: SaleChannel.PLATFORM_DIRECT,
+        sale_channel: SaleChannel.PLATFORM,
         reason: 'direct_payment_completed',
       })
     );
@@ -152,7 +152,7 @@ describe('StatusSynchronizer - onTransactionCompletedDirect', () => {
       TriggerType.TRANSACTION,
       {
         transaction_id: transactionId,
-        sale_channel: SaleChannel.PLATFORM_DIRECT,
+        sale_channel: SaleChannel.PLATFORM,
         reason: 'direct_payment_completed',
       }
     );
@@ -231,7 +231,7 @@ describe('StatusSynchronizer - onTransactionCompleted (escrow)', () => {
     payment_method_preference: 'PLATFORM_ONLY',
   };
 
-  it('should mark ACTIVE listing as SOLD with PLATFORM_ESCROW channel', async () => {
+  it('should mark ACTIVE listing as SOLD with PLATFORM channel (escrow)', async () => {
     mockDbManager.get
       .mockResolvedValueOnce(mockTransaction)
       .mockResolvedValueOnce(mockActiveListing);
@@ -247,41 +247,10 @@ describe('StatusSynchronizer - onTransactionCompleted (escrow)', () => {
         ListingStatus.SOLD,
         expect.any(String), // sold_at
         transactionId,
-        SaleChannel.PLATFORM_ESCROW,
+        SaleChannel.PLATFORM,
         expect.any(String), // updated_at
         listingId,
       ])
     );
-  });
-
-  it('should differentiate between PLATFORM_ESCROW and PLATFORM_DIRECT channels', async () => {
-    // Test escrow completion
-    mockDbManager.get
-      .mockResolvedValueOnce(mockTransaction)
-      .mockResolvedValueOnce(mockActiveListing);
-
-    mockDbManager.run.mockResolvedValue(undefined);
-    (listingStatusManager.recordStatusChange as jest.Mock).mockResolvedValue(undefined);
-
-    await statusSynchronizer.onTransactionCompleted(transactionId);
-
-    const escrowCall = mockDbManager.run.mock.calls[0];
-    expect(escrowCall[1]).toContain(SaleChannel.PLATFORM_ESCROW);
-
-    // Clear mocks
-    jest.clearAllMocks();
-
-    // Test direct payment completion
-    const directTransaction = { ...mockTransaction, status: 'COMPLETED_DIRECT' };
-    mockDbManager.get
-      .mockResolvedValueOnce(directTransaction)
-      .mockResolvedValueOnce(mockActiveListing);
-
-    mockDbManager.run.mockResolvedValue(undefined);
-
-    await statusSynchronizer.onTransactionCompletedDirect(transactionId);
-
-    const directCall = mockDbManager.run.mock.calls[0];
-    expect(directCall[1]).toContain(SaleChannel.PLATFORM_DIRECT);
   });
 });

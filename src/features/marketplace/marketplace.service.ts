@@ -23,8 +23,8 @@ export interface CreateListingInput {
   pricePerKg: number;
   certificateId: string;
   expectedHarvestDate?: Date;
-  produceCategoryId: string;
-  listingType: ListingType;
+  produceCategoryId?: string; // Made optional
+  listingType?: ListingType;
   paymentMethodPreference?: PaymentMethodPreference;
 }
 
@@ -36,14 +36,38 @@ export class MarketplaceService {
   async createListing(input: CreateListingInput): Promise<Listing> {
     const dbManager = getDbManager();
 
-    // Validate produce_category_id exists
-    const category = await categoryManager.getCategoryById(input.produceCategoryId);
-    if (!category) {
-      throw new Error(`Produce category with ID "${input.produceCategoryId}" not found`);
+    // Determine listing type based on harvest date
+    let listingType = input.listingType || 'POST_HARVEST';
+    let harvestDate: Date;
+
+    if (input.expectedHarvestDate) {
+      // If harvest date is provided, it's PRE_HARVEST
+      harvestDate = new Date(input.expectedHarvestDate);
+      listingType = 'PRE_HARVEST';
+      
+      // Validate harvest date is in the future (up to 7 days)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const maxDate = new Date();
+      maxDate.setDate(maxDate.getDate() + 7);
+      maxDate.setHours(23, 59, 59, 999);
+      
+      if (harvestDate < today) {
+        throw new Error('Harvest date cannot be in the past');
+      }
+      
+      if (harvestDate > maxDate) {
+        throw new Error('Harvest date cannot be more than 7 days in the future');
+      }
+    } else {
+      // No harvest date provided - POST_HARVEST with current date
+      harvestDate = new Date();
+      listingType = 'POST_HARVEST';
     }
 
     // Validate listing_type
-    if (input.listingType !== 'PRE_HARVEST' && input.listingType !== 'POST_HARVEST') {
+    if (listingType !== 'PRE_HARVEST' && listingType !== 'POST_HARVEST') {
       throw new Error('listing_type must be PRE_HARVEST or POST_HARVEST');
     }
 
@@ -55,9 +79,24 @@ export class MarketplaceService {
       throw new Error('payment_method_preference must be PLATFORM_ONLY, DIRECT_ONLY, or BOTH');
     }
 
-    // Calculate expiry_date
-    const harvestDate = input.expectedHarvestDate || new Date();
-    const expiryDate = await listingStatusManager.calculateExpiryDate(harvestDate, input.produceCategoryId);
+    // Calculate expiry_date - always 7 days (168 hours) after harvest date
+    // For POST_HARVEST: 7 days from today
+    // For PRE_HARVEST: 7 days from future harvest date
+    let expiryDate: Date;
+    let produceCategoryId: string | null = null;
+
+    if (input.produceCategoryId) {
+      // Use category-based expiration if provided
+      const category = await categoryManager.getCategoryById(input.produceCategoryId);
+      if (!category) {
+        throw new Error(`Produce category with ID "${input.produceCategoryId}" not found`);
+      }
+      expiryDate = await listingStatusManager.calculateExpiryDate(harvestDate, input.produceCategoryId);
+      produceCategoryId = input.produceCategoryId;
+    } else {
+      // Default to 7 days (168 hours) after harvest date
+      expiryDate = new Date(harvestDate.getTime() + (168 * 60 * 60 * 1000));
+    }
 
     const listingId = uuidv4();
     const now = new Date();
@@ -75,12 +114,12 @@ export class MarketplaceService {
         input.quantity,
         input.pricePerKg,
         input.certificateId,
-        input.expectedHarvestDate?.toISOString() || null,
+        harvestDate.toISOString(),
         now.toISOString(),
         now.toISOString(),
         ListingStatus.ACTIVE,
-        input.listingType,
-        input.produceCategoryId,
+        listingType,
+        produceCategoryId,
         expiryDate.toISOString(),
         paymentMethodPreference
       ]
@@ -95,13 +134,14 @@ export class MarketplaceService {
       TriggerType.USER,
       {
         reason: 'listing_created',
-        listing_type: input.listingType,
-        produce_category_id: input.produceCategoryId,
+        listing_type: listingType,
+        produce_category_id: produceCategoryId,
+        harvest_date: harvestDate.toISOString(),
         expiry_date: expiryDate.toISOString()
       }
     );
 
-    console.log('[MarketplaceService] Listing created:', listingId);
+    console.log('[MarketplaceService] Listing created:', listingId, 'Type:', listingType, 'Harvest:', harvestDate.toISOString(), 'Expiry:', expiryDate.toISOString());
 
     // Return the created listing
     const listing = await this.getListing(listingId);
@@ -183,18 +223,56 @@ export class MarketplaceService {
   async updateListing(id: string, updates: Partial<Listing>): Promise<Listing | undefined> {
     const dbManager = getDbManager();
     
+    // Get the current listing to check listing type
+    const currentListing = await this.getListing(id);
+    if (!currentListing) {
+      return undefined;
+    }
+    
     // Build update query dynamically
     const updateFields: string[] = [];
     const updateValues: any[] = [];
 
     // Only allow updating certain fields
-    const allowedFields = ['quantity', 'price_per_kg'];
+    const allowedFields = ['quantity', 'price_per_kg', 'payment_method_preference', 'status'];
     
     for (const field of allowedFields) {
       if ((updates as any)[field] !== undefined) {
         updateFields.push(`${field} = ?`);
         updateValues.push((updates as any)[field]);
       }
+    }
+
+    // Handle harvest date update for PRE_HARVEST listings
+    if (currentListing.listingType === 'PRE_HARVEST' && (updates as any).expectedHarvestDate) {
+      const newHarvestDate = new Date((updates as any).expectedHarvestDate);
+      
+      // Validate harvest date is in the future (up to 7 days)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const maxDate = new Date();
+      maxDate.setDate(maxDate.getDate() + 7);
+      maxDate.setHours(23, 59, 59, 999);
+      
+      if (newHarvestDate < today) {
+        throw new Error('Harvest date cannot be in the past');
+      }
+      
+      if (newHarvestDate > maxDate) {
+        throw new Error('Harvest date cannot be more than 7 days in the future');
+      }
+      
+      // Update harvest date
+      updateFields.push('expected_harvest_date = ?');
+      updateValues.push(newHarvestDate.toISOString());
+      
+      // Recalculate expiry date (7 days after new harvest date)
+      const newExpiryDate = new Date(newHarvestDate.getTime() + (168 * 60 * 60 * 1000));
+      updateFields.push('expiry_date = ?');
+      updateValues.push(newExpiryDate.toISOString());
+      
+      console.log('[MarketplaceService] Updated harvest date for PRE_HARVEST listing:', id, 'New harvest:', newHarvestDate.toISOString(), 'New expiry:', newExpiryDate.toISOString());
     }
 
     if (updateFields.length === 0) {

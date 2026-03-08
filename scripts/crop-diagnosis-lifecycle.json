@@ -1,0 +1,32 @@
+{
+  "Rules": [
+    {
+      "ID": "DeleteOldDiagnosisImages",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "diagnoses/"
+      },
+      "Expiration": {
+        "Days": 730
+      }
+    },
+    {
+      "ID": "DeleteOldExpertReviews",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "expert-reviews/"
+      },
+      "Expiration": {
+        "Days": 730
+      }
+    },
+    {
+      "ID": "CleanupIncompleteUploads",
+      "Status": "Enabled",
+      "Filter": {},
+      "AbortIncompleteMultipartUpload": {
+        "DaysAfterInitiation": 7
+      }
+    }
+  ]
+}

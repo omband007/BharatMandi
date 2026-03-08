@@ -1,0 +1,70 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "S3Access",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::bharat-mandi-listings-testing",
+        "arn:aws:s3:::bharat-mandi-listings-testing/*",
+        "arn:aws:s3:::bharat-mandi-voice-ap-south-1",
+        "arn:aws:s3:::bharat-mandi-voice-ap-south-1/*"
+      ]
+    },
+    {
+      "Sid": "LexAccess",
+      "Effect": "Allow",
+      "Action": [
+        "lex:RecognizeText",
+        "lex:RecognizeUtterance",
+        "lex:PutSession",
+        "lex:GetSession",
+        "lex:DeleteSession"
+      ],
+      "Resource": "arn:aws:lex:ap-southeast-2:281627750826:bot-alias/YYEXVHRJQW/COP9IOYDL0"
+    },
+    {
+      "Sid": "PollyAccess",
+      "Effect": "Allow",
+      "Action": [
+        "polly:SynthesizeSpeech",
+        "polly:DescribeVoices"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "TranscribeAccess",
+      "Effect": "Allow",
+      "Action": [
+        "transcribe:StartStreamTranscription",
+        "transcribe:StartTranscriptionJob",
+        "transcribe:GetTranscriptionJob"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "TranslateAccess",
+      "Effect": "Allow",
+      "Action": [
+        "translate:TranslateText",
+        "translate:ListLanguages"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ComprehendAccess",
+      "Effect": "Allow",
+      "Action": [
+        "comprehend:DetectDominantLanguage",
+        "comprehend:DetectSentiment"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

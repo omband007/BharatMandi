@@ -14,6 +14,7 @@ const router = Router();
  * - query: string (required for text input)
  * - language: string (required, e.g., 'hi', 'en', 'ta')
  * - audioInput?: base64 string (optional, for voice input)
+ * - mode?: string (optional, 'mock', 'lex', or 'bedrock' - overrides server default)
  * 
  * Response:
  * - text: string (response text)
@@ -25,7 +26,7 @@ const router = Router();
  */
 router.post('/query', async (req: Request, res: Response) => {
   try {
-    const { userId, sessionId, query, language, audioInput } = req.body;
+    const { userId, sessionId, query, language, audioInput, mode } = req.body;
 
     // Validation
     if (!userId) {
@@ -49,6 +50,14 @@ router.post('/query', async (req: Request, res: Response) => {
       });
     }
 
+    // Validate mode if provided
+    if (mode && !['mock', 'lex', 'bedrock', 'bedrock-nova', 'bedrock-claude'].includes(mode)) {
+      return res.status(400).json({
+        success: false,
+        error: 'mode must be one of: mock, lex, bedrock, bedrock-nova, bedrock-claude',
+      });
+    }
+
     // Generate session ID if not provided
     const effectiveSessionId = sessionId || `session-${userId}-${uuidv4()}`;
 
@@ -65,13 +74,14 @@ router.post('/query', async (req: Request, res: Response) => {
       }
     }
 
-    // Process query
+    // Process query with optional mode override
     const response = await kisanMitraService.processQuery({
       userId,
       sessionId: effectiveSessionId,
       query: query || '',
       language,
       audioInput: audioBuffer,
+      mode, // Pass mode to service
     });
 
     res.json({
@@ -250,16 +260,42 @@ router.post('/generate-audio', async (req: Request, res: Response) => {
  */
 router.get('/health', async (req: Request, res: Response) => {
   try {
-    // Check if Lex bot is configured
-    const botConfigured = !!(process.env.LEX_BOT_ID && process.env.LEX_BOT_ALIAS_ID);
+    // Determine current mode
+    const mode = process.env.KISAN_MITRA_MODE?.toLowerCase() || 'auto';
+    
+    let actualMode = mode;
+    let configured = false;
+    let message = '';
+    
+    if (mode === 'mock' || actualMode === 'mock') {
+      actualMode = 'mock';
+      configured = true;
+      message = 'Kisan Mitra is ready (MOCK mode - for testing)';
+    } else if (mode === 'lex' || (process.env.LEX_BOT_ID && process.env.LEX_BOT_ALIAS_ID)) {
+      actualMode = 'lex';
+      configured = !!(process.env.LEX_BOT_ID && process.env.LEX_BOT_ALIAS_ID);
+      message = configured 
+        ? 'Kisan Mitra is ready (powered by AWS Lex)'
+        : 'Lex not configured. Set LEX_BOT_ID and LEX_BOT_ALIAS_ID environment variables.';
+    } else if (mode === 'bedrock' || process.env.BEDROCK_MODEL_ID) {
+      actualMode = 'bedrock';
+      const { BedrockService } = await import('./bedrock.service');
+      configured = BedrockService.isConfigured();
+      message = configured
+        ? 'Kisan Mitra is ready (powered by AWS Bedrock)'
+        : 'Bedrock not configured. Set AWS_REGION and BEDROCK_MODEL_ID environment variables.';
+    } else {
+      actualMode = 'mock';
+      configured = true;
+      message = 'Kisan Mitra is ready (MOCK mode - no service configured)';
+    }
 
     res.json({
       success: true,
-      status: botConfigured ? 'healthy' : 'not_configured',
-      botConfigured,
-      message: botConfigured
-        ? 'Kisan Mitra is ready'
-        : 'Lex bot not configured. Set LEX_BOT_ID and LEX_BOT_ALIAS_ID environment variables.',
+      status: configured ? 'healthy' : 'not_configured',
+      mode: actualMode,
+      botConfigured: configured,
+      message,
     });
   } catch (error: any) {
     res.status(500).json({

@@ -63,7 +63,7 @@ ON CONFLICT (entity_type) DO NOTHING;
 CREATE TYPE listing_status AS ENUM ('ACTIVE', 'SOLD', 'EXPIRED', 'CANCELLED');
 CREATE TYPE listing_type AS ENUM ('PRE_HARVEST', 'POST_HARVEST');
 CREATE TYPE payment_method_preference AS ENUM ('PLATFORM_ONLY', 'DIRECT_ONLY', 'BOTH');
-CREATE TYPE sale_channel AS ENUM ('PLATFORM_ESCROW', 'PLATFORM_DIRECT', 'EXTERNAL');
+CREATE TYPE sale_channel AS ENUM ('PLATFORM', 'EXTERNAL');
 
 -- Listings table
 CREATE TABLE IF NOT EXISTS listings (
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS listings (
   
   -- Perishability-based expiration fields
   listing_type listing_type NOT NULL DEFAULT 'POST_HARVEST',
-  produce_category_id VARCHAR(36) NOT NULL,
+  produce_category_id VARCHAR(36), -- Made nullable for simplified 7-day default
   expiry_date TIMESTAMP NOT NULL,
   
   -- Manual sale confirmation fields
@@ -124,7 +124,7 @@ COMMENT ON COLUMN listings.status IS 'Current listing status: ACTIVE, SOLD, EXPI
 COMMENT ON COLUMN listings.listing_type IS 'PRE_HARVEST (before harvest) or POST_HARVEST (after harvest)';
 COMMENT ON COLUMN listings.expiry_date IS 'Calculated as harvest_date + category.expiry_period_hours';
 COMMENT ON COLUMN listings.payment_method_preference IS 'Farmer preference: PLATFORM_ONLY, DIRECT_ONLY, or BOTH';
-COMMENT ON COLUMN listings.sale_channel IS 'How listing was sold: PLATFORM_ESCROW, PLATFORM_DIRECT, or EXTERNAL';
+COMMENT ON COLUMN listings.sale_channel IS 'How listing was sold: PLATFORM or EXTERNAL';
 
 -- Transactions table
 CREATE TABLE IF NOT EXISTS transactions (

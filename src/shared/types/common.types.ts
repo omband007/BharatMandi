@@ -44,6 +44,7 @@ export enum EscrowStatus {
 
 export enum ListingStatus {
   ACTIVE = 'ACTIVE',
+  IN_TRANSACTION = 'IN_TRANSACTION',
   SOLD = 'SOLD',
   EXPIRED = 'EXPIRED',
   CANCELLED = 'CANCELLED'

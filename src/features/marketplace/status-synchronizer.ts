@@ -66,7 +66,7 @@ export class StatusSynchronizer {
           ListingStatus.SOLD,
           new Date().toISOString(),
           transactionId,
-          SaleChannel.PLATFORM_ESCROW,
+          SaleChannel.PLATFORM,
           new Date().toISOString(),
           listing.id
         ]
@@ -81,7 +81,7 @@ export class StatusSynchronizer {
         TriggerType.TRANSACTION,
         {
           transaction_id: transactionId,
-          sale_channel: SaleChannel.PLATFORM_ESCROW,
+          sale_channel: SaleChannel.PLATFORM,
           reason: 'transaction_completed'
         }
       );
@@ -133,7 +133,7 @@ export class StatusSynchronizer {
         return;
       }
 
-      // Update listing with transaction details and PLATFORM_DIRECT channel
+      // Update listing with transaction details and PLATFORM channel
       await dbManager.run(
         `UPDATE listings 
          SET status = ?, sold_at = ?, transaction_id = ?, sale_channel = ?, updated_at = ?
@@ -142,7 +142,7 @@ export class StatusSynchronizer {
           ListingStatus.SOLD,
           new Date().toISOString(),
           transactionId,
-          SaleChannel.PLATFORM_DIRECT,
+          SaleChannel.PLATFORM,
           new Date().toISOString(),
           listing.id
         ]
@@ -157,7 +157,7 @@ export class StatusSynchronizer {
         TriggerType.TRANSACTION,
         {
           transaction_id: transactionId,
-          sale_channel: SaleChannel.PLATFORM_DIRECT,
+          sale_channel: SaleChannel.PLATFORM,
           reason: 'direct_payment_completed'
         }
       );

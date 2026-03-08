@@ -119,11 +119,11 @@ router.post('/resend-otp', async (req: Request, res: Response) => {
       });
     }
 
-    const otpSent = await registrationService.resendOTP(mobileNumber);
+    const result = await registrationService.resendOTP(mobileNumber);
 
     res.status(200).json({
       success: true,
-      data: { otpSent }
+      data: result
     });
   } catch (error) {
     console.error('[ProfileRoutes] Resend OTP error:', error);

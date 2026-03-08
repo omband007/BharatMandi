@@ -4,6 +4,7 @@ import { marketplaceService } from './marketplace.service';
 import { MediaService } from './media.service';
 import { StorageService } from './storage.service';
 import { ValidationService } from './validation.service';
+import { categoryManager } from './category-manager';
 import type { DatabaseManager } from '../../shared/database/db-abstraction';
 
 const router = Router();
@@ -49,6 +50,20 @@ function getMediaService(): MediaService {
   }
   return mediaServiceInstance;
 }
+
+/**
+ * GET /api/marketplace/categories
+ * Get all produce categories
+ */
+router.get('/categories', async (req: Request, res: Response) => {
+  try {
+    const categories = await categoryManager.getCategories();
+    res.json(categories);
+  } catch (error) {
+    console.error('[Marketplace] Error fetching categories:', error);
+    res.status(500).json({ error: 'Failed to fetch categories' });
+  }
+});
 
 /**
  * POST /api/marketplace/listings
@@ -214,16 +229,19 @@ router.get('/listings/:id', async (req: Request, res: Response) => {
 router.put('/listings/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { quantity, pricePerKg } = req.body;
+    const { quantity, pricePerKg, paymentMethodPreference, expectedHarvestDate, status } = req.body;
 
     // Validate required fields
-    if (quantity === undefined && pricePerKg === undefined) {
+    if (quantity === undefined && pricePerKg === undefined && paymentMethodPreference === undefined && expectedHarvestDate === undefined && status === undefined) {
       return res.status(400).json({ error: 'At least one field must be provided for update' });
     }
 
     const updates: any = {};
     if (quantity !== undefined) updates.quantity = quantity;
     if (pricePerKg !== undefined) updates.pricePerKg = pricePerKg;
+    if (paymentMethodPreference !== undefined) updates.paymentMethodPreference = paymentMethodPreference;
+    if (expectedHarvestDate !== undefined) updates.expectedHarvestDate = expectedHarvestDate;
+    if (status !== undefined) updates.status = status;
 
     const updatedListing = await marketplaceService.updateListing(id, updates);
     
@@ -266,6 +284,52 @@ router.delete('/listings/:id', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('[Marketplace] Error cancelling listing:', error);
     res.status(500).json({ error: 'Failed to cancel listing' });
+  }
+});
+
+/**
+ * POST /api/marketplace/listings/:id/mark-sold
+ * Mark a listing as sold (manual sale confirmation)
+ * Body: { userId, saleChannel, salePrice?, saleNotes? }
+ */
+router.post('/listings/:id/mark-sold', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { userId, saleChannel, salePrice, saleNotes } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    if (!saleChannel) {
+      return res.status(400).json({ error: 'saleChannel is required' });
+    }
+
+    // Validate saleChannel
+    const validChannels = ['PLATFORM', 'EXTERNAL'];
+    if (!validChannels.includes(saleChannel)) {
+      return res.status(400).json({ error: `Invalid saleChannel. Must be one of: ${validChannels.join(', ')}` });
+    }
+
+    // Import listing-status-manager
+    const { listingStatusManager } = require('./listing-status-manager');
+
+    await listingStatusManager.markAsSold({
+      listingId: id,
+      saleChannel,
+      salePrice,
+      saleNotes,
+      userId
+    });
+
+    // Get updated listing
+    const updatedListing = await marketplaceService.getListing(id);
+    
+    res.json({ success: true, message: 'Listing marked as sold successfully', listing: updatedListing });
+  } catch (error) {
+    console.error('[Marketplace] Error marking listing as sold:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to mark listing as sold';
+    res.status(500).json({ error: errorMessage });
   }
 });
 

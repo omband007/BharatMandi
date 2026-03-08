@@ -40,7 +40,7 @@ CREATE TABLE listings (
     
     -- Manual sale confirmation fields
     payment_method_preference TEXT NOT NULL DEFAULT 'BOTH' CHECK (payment_method_preference IN ('PLATFORM_ONLY', 'DIRECT_ONLY', 'BOTH')),
-    sale_channel TEXT CHECK (sale_channel IN ('PLATFORM_ESCROW', 'PLATFORM_DIRECT', 'EXTERNAL')),
+    sale_channel TEXT CHECK (sale_channel IN ('PLATFORM', 'EXTERNAL')),
     sale_price REAL,
     sale_notes TEXT,
     

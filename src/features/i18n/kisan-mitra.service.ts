@@ -7,6 +7,7 @@ import {
 } from '@aws-sdk/client-lex-runtime-v2';
 import { translationService } from './translation.service';
 import { voiceService } from './voice.service';
+import { bedrockService } from './bedrock.service';
 import { MongoClient, Db } from 'mongodb';
 import { DatabaseManager } from '../../shared/database/db-abstraction';
 import { CropPriceHandler } from './handlers/crop-price.handler';
@@ -19,6 +20,33 @@ const lexClient = new LexRuntimeV2Client({
 
 const BOT_ID = process.env.LEX_BOT_ID || '';
 const BOT_ALIAS_ID = process.env.LEX_BOT_ALIAS_ID || '';
+
+// Kisan Mitra Mode: mock, lex, or bedrock
+// Set via KISAN_MITRA_MODE environment variable
+// Default: bedrock (if BEDROCK_MODEL_ID is set), otherwise lex (if LEX_BOT_ID is set), otherwise mock
+export type KisanMitraMode = 'mock' | 'lex' | 'bedrock';
+
+function getKisanMitraMode(): KisanMitraMode {
+  const mode = process.env.KISAN_MITRA_MODE?.toLowerCase();
+  
+  if (mode === 'mock' || mode === 'lex' || mode === 'bedrock') {
+    return mode;
+  }
+  
+  // Auto-detect mode based on configuration
+  if (process.env.BEDROCK_MODEL_ID) {
+    return 'bedrock';
+  }
+  
+  if (BOT_ID && BOT_ALIAS_ID) {
+    return 'lex';
+  }
+  
+  return 'mock';
+}
+
+const KISAN_MITRA_MODE = getKisanMitraMode();
+console.log(`[KisanMitra] Running in ${KISAN_MITRA_MODE.toUpperCase()} mode`);
 
 // AWS Lex V2 locale configuration
 // Currently only en_IN is configured in the bot
@@ -44,6 +72,8 @@ export interface KisanMitraRequest {
   query: string;
   language: string;
   audioInput?: Buffer;
+  mode?: 'mock' | 'lex' | 'bedrock' | 'bedrock-nova' | 'bedrock-claude'; // Optional mode override
+  modelId?: string; // Optional model ID override for bedrock modes
 }
 
 export interface KisanMitraResponse {
@@ -111,11 +141,14 @@ export class KisanMitraService {
 
   /**
    * Process a user query through Kisan Mitra
-   * Handles voice input, translation, Lex interaction, and response generation
+   * Supports three modes: mock, lex, and bedrock
    */
   async processQuery(request: KisanMitraRequest): Promise<KisanMitraResponse> {
     let queryText = request.query;
     let sourceLanguage = request.language;
+
+    // Determine which mode to use (request mode overrides environment mode)
+    const effectiveMode = request.mode || KISAN_MITRA_MODE;
 
     // Step 1: If audio input provided, transcribe first
     if (request.audioInput) {
@@ -133,102 +166,58 @@ export class KisanMitraService {
       }
     }
 
-    // Step 2: Translate to English if needed (Lex only supports en_IN locale)
-    let lexQuery = queryText;
-    let needsTranslation = sourceLanguage !== 'en';
+    // Step 2: Process query based on mode
+    let responseText: string;
+    let intent: string;
+    let confidence: number;
+    let slots: Record<string, string> = {};
 
-    if (needsTranslation) {
-      try {
-        console.log(`[KisanMitra] Translating from ${sourceLanguage} to English:`, queryText);
-        const translation = await translationService.translateText({
-          text: queryText,
-          sourceLanguage,
-          targetLanguage: 'en',
-        });
-        lexQuery = translation.translatedText;
-        console.log('[KisanMitra] Translated query:', lexQuery);
-      } catch (error) {
-        console.error('[KisanMitra] Translation to English failed:', error);
-        // Continue with original text
-        lexQuery = queryText;
-      }
-    }
+    console.log(`[KisanMitra] Processing query in ${effectiveMode.toUpperCase()} mode`);
 
-    // Step 3: Send to AWS Lex
-    const localeId = LOCALE_ID_MAP[sourceLanguage] || LOCALE_ID_MAP['en'];
-    const command: RecognizeTextCommandInput = {
-      botId: BOT_ID,
-      botAliasId: BOT_ALIAS_ID,
-      localeId,
-      sessionId: request.sessionId,
-      text: lexQuery,
-    };
-
-    let lexResponse: RecognizeTextCommandOutput;
-    try {
-      lexResponse = await lexClient.send(new RecognizeTextCommand(command));
-    } catch (error: any) {
-      console.error('[KisanMitra] Lex query failed:', error);
-      
-      // Handle specific Lex errors
-      if (error.name === 'DependencyFailedException') {
-        throw new Error('Kisan Mitra is temporarily unavailable. Please try again later.');
-      }
-      
-      throw new Error('Failed to process query');
-    }
-
-    // Step 4: Extract intent and slots
-    const intent = lexResponse.sessionState?.intent?.name || 'Unknown';
-    const slots = lexResponse.sessionState?.intent?.slots || {};
-    const intentState = lexResponse.sessionState?.intent?.state;
+    // Determine model ID for bedrock modes
+    let bedrockModelId: string | undefined;
+    let actualMode = effectiveMode;
     
-    // Calculate confidence based on intent state
-    const confidence = intentState === 'Fulfilled' ? 0.95 : 
-                      intentState === 'InProgress' ? 0.75 : 0.5;
-
-    // Step 5: Get response text from Lex
-    let responseText = lexResponse.messages?.[0]?.content || 
-                      'I did not understand that. Can you please rephrase?';
-
-    // Step 6: Check if intent has a handler and call it
-    const handler = this.handlerRegistry.get(intent);
-    if (handler && intentState === 'Fulfilled') {
-      try {
-        console.log(`[KisanMitra] Calling handler for intent: ${intent}`);
-        const handlerResponse = await this.callHandler(intent, handler, slots, sourceLanguage);
-        
-        if (handlerResponse) {
-          // Use handler response instead of Lex response
-          responseText = handlerResponse;
-          console.log('[KisanMitra] Handler response:', responseText);
-        }
-      } catch (error) {
-        console.error(`[KisanMitra] Handler error for ${intent}:`, error);
-        // Fall back to Lex response on handler error
-        // Error handling will provide user-friendly message
-        responseText = this.getHandlerErrorMessage(error, sourceLanguage);
-      }
+    if (effectiveMode === 'bedrock-nova') {
+      actualMode = 'bedrock';
+      bedrockModelId = 'amazon.nova-lite-v1:0';
+    } else if (effectiveMode === 'bedrock-claude') {
+      actualMode = 'bedrock';
+      // Use AU inference profile for Claude Sonnet 4.6 (routes between Sydney and Melbourne)
+      bedrockModelId = 'au.anthropic.claude-sonnet-4-6';
+    } else if (effectiveMode === 'bedrock') {
+      // Use default from environment or request
+      bedrockModelId = request.modelId || process.env.BEDROCK_MODEL_ID;
     }
 
-    // Step 7: Translate response back to user's language (if not already translated by handler)
-    if (needsTranslation && !handler) {
-      try {
-        console.log(`[KisanMitra] Translating response from English to ${sourceLanguage}:`, responseText);
-        const translation = await translationService.translateText({
-          text: responseText,
-          sourceLanguage: 'en',
-          targetLanguage: sourceLanguage,
-        });
-        responseText = translation.translatedText;
-        console.log('[KisanMitra] Translated response:', responseText);
-      } catch (error) {
-        console.error('[KisanMitra] Translation to target language failed:', error);
-        // Continue with English response
-      }
+    switch (actualMode) {
+      case 'mock':
+        ({ responseText, intent, confidence } = await this.processMockQuery(queryText, sourceLanguage));
+        break;
+      
+      case 'lex':
+        ({ responseText, intent, confidence, slots } = await this.processLexQuery(
+          request.sessionId,
+          queryText,
+          sourceLanguage
+        ));
+        break;
+      
+      case 'bedrock':
+        ({ responseText, intent, confidence } = await this.processBedrockQuery(
+          request.userId,
+          request.sessionId,
+          queryText,
+          sourceLanguage,
+          bedrockModelId
+        ));
+        break;
+      
+      default:
+        throw new Error(`Invalid mode: ${effectiveMode}`);
     }
 
-    // Step 7: Generate audio response asynchronously (don't block response)
+    // Step 3: Generate audio response asynchronously (don't block response)
     let audioUrl: string | undefined;
     
     // Start audio generation in background
@@ -246,11 +235,9 @@ export class KisanMitraService {
       return undefined;
     });
 
-    // Don't wait for audio - return response immediately
-    // Audio will be available shortly after
     console.log('[KisanMitra] Returning response immediately, audio generating in background');
 
-    // Step 8: Log conversation (also async, don't block)
+    // Step 4: Log conversation (also async, don't block)
     this.logConversation(
       request.userId,
       request.sessionId,
@@ -269,8 +256,8 @@ export class KisanMitraService {
       audioUrl: undefined, // Will be generated shortly
       intent,
       confidence,
-      slots: this.extractSlotValues(slots),
-      sessionAttributes: lexResponse.sessionState?.sessionAttributes,
+      slots,
+      sessionAttributes: {},
     };
 
     // Wait a bit for audio if it completes quickly (max 2 seconds)
@@ -288,6 +275,185 @@ export class KisanMitraService {
     }
 
     return response;
+  }
+
+  /**
+   * Process query in MOCK mode
+   * Returns predefined responses for testing
+   */
+  private async processMockQuery(
+    query: string,
+    language: string
+  ): Promise<{ responseText: string; intent: string; confidence: number }> {
+    console.log(`[KisanMitra] Processing in MOCK mode:`, query);
+    
+    const lowerQuery = query.toLowerCase();
+    
+    // Simple keyword matching for mock responses
+    if (lowerQuery.includes('price') || lowerQuery.includes('cost') || lowerQuery.includes('कीमत')) {
+      const responseText = language === 'en' 
+        ? 'Mock response: Tomato prices are around ₹25 per kg in your area.'
+        : 'मॉक प्रतिक्रिया: आपके क्षेत्र में टमाटर की कीमत लगभग ₹25 प्रति किलो है।';
+      return { responseText, intent: 'GetCropPrice', confidence: 1.0 };
+    }
+    
+    if (lowerQuery.includes('weather') || lowerQuery.includes('मौसम')) {
+      const responseText = language === 'en'
+        ? 'Mock response: The weather today is sunny with a high of 28°C.'
+        : 'मॉक प्रतिक्रिया: आज का मौसम धूप वाला है और अधिकतम तापमान 28°C है।';
+      return { responseText, intent: 'GetWeather', confidence: 1.0 };
+    }
+    
+    if (lowerQuery.includes('plant') || lowerQuery.includes('grow') || lowerQuery.includes('खेती')) {
+      const responseText = language === 'en'
+        ? 'Mock response: The best time to plant tomatoes is during the cooler months, typically October to February in most parts of India.'
+        : 'मॉक प्रतिक्रिया: टमाटर लगाने का सबसे अच्छा समय ठंडे महीनों में होता है, आमतौर पर भारत के अधिकांश हिस्सों में अक्टूबर से फरवरी तक।';
+      return { responseText, intent: 'GetFarmingAdvice', confidence: 1.0 };
+    }
+    
+    // Default mock response
+    const responseText = language === 'en'
+      ? `Mock response: I'm Kisan Mitra, your farming assistant. I can help with crop prices, weather, and farming advice. (Running in MOCK mode)`
+      : `मॉक प्रतिक्रिया: मैं किसान मित्र हूं, आपका कृषि सहायक। मैं फसल की कीमतों, मौसम और खेती की सलाह में मदद कर सकता हूं। (MOCK मोड में चल रहा है)`;
+    
+    return { responseText, intent: 'Welcome', confidence: 1.0 };
+  }
+
+  /**
+   * Process query through AWS Bedrock (Claude)
+   */
+  private async processBedrockQuery(
+    userId: string,
+    sessionId: string,
+    query: string,
+    language: string,
+    modelId?: string
+  ): Promise<{ responseText: string; intent: string; confidence: number }> {
+    try {
+      console.log(`[KisanMitra] Processing query through Bedrock${modelId ? ` (${modelId})` : ''}:`, query);
+      const bedrockResponse = await bedrockService.processQuery({
+        userId,
+        sessionId,
+        query,
+        language,
+        modelId,
+      });
+      
+      console.log('[KisanMitra] Bedrock response:', bedrockResponse.text);
+      
+      return {
+        responseText: bedrockResponse.text,
+        intent: 'GenericAssistant',
+        confidence: 0.95,
+      };
+    } catch (error: any) {
+      console.error('[KisanMitra] Bedrock query failed:', error);
+      throw new Error(error.message || 'Failed to process query');
+    }
+  }
+
+  /**
+   * Process query through AWS Lex
+   */
+  private async processLexQuery(
+    sessionId: string,
+    query: string,
+    language: string
+  ): Promise<{ responseText: string; intent: string; confidence: number; slots: Record<string, string> }> {
+    // Translate to English if needed (Lex only supports en_IN locale)
+    let lexQuery = query;
+    let needsTranslation = language !== 'en';
+
+    if (needsTranslation) {
+      try {
+        console.log(`[KisanMitra] Translating from ${language} to English:`, query);
+        const translation = await translationService.translateText({
+          text: query,
+          sourceLanguage: language,
+          targetLanguage: 'en',
+        });
+        lexQuery = translation.translatedText;
+        console.log('[KisanMitra] Translated query:', lexQuery);
+      } catch (error) {
+        console.error('[KisanMitra] Translation to English failed:', error);
+        lexQuery = query;
+      }
+    }
+
+    // Send to AWS Lex
+    const localeId = LOCALE_ID_MAP[language] || LOCALE_ID_MAP['en'];
+    const command: RecognizeTextCommandInput = {
+      botId: BOT_ID,
+      botAliasId: BOT_ALIAS_ID,
+      localeId,
+      sessionId,
+      text: lexQuery,
+    };
+
+    let lexResponse: RecognizeTextCommandOutput;
+    try {
+      lexResponse = await lexClient.send(new RecognizeTextCommand(command));
+    } catch (error: any) {
+      console.error('[KisanMitra] Lex query failed:', error);
+      
+      if (error.name === 'DependencyFailedException') {
+        throw new Error('Kisan Mitra is temporarily unavailable. Please try again later.');
+      }
+      
+      throw new Error('Failed to process query');
+    }
+
+    // Extract intent and slots
+    const intent = lexResponse.sessionState?.intent?.name || 'Unknown';
+    const slots = lexResponse.sessionState?.intent?.slots || {};
+    const intentState = lexResponse.sessionState?.intent?.state;
+    
+    const confidence = intentState === 'Fulfilled' ? 0.95 : 
+                      intentState === 'InProgress' ? 0.75 : 0.5;
+
+    // Get response text from Lex
+    let responseText = lexResponse.messages?.[0]?.content || 
+                      'I did not understand that. Can you please rephrase?';
+
+    // Check if intent has a handler and call it
+    const handler = this.handlerRegistry.get(intent);
+    if (handler && intentState === 'Fulfilled') {
+      try {
+        console.log(`[KisanMitra] Calling handler for intent: ${intent}`);
+        const handlerResponse = await this.callHandler(intent, handler, slots, language);
+        
+        if (handlerResponse) {
+          responseText = handlerResponse;
+          console.log('[KisanMitra] Handler response:', responseText);
+        }
+      } catch (error) {
+        console.error(`[KisanMitra] Handler error for ${intent}:`, error);
+        responseText = this.getHandlerErrorMessage(error, language);
+      }
+    }
+
+    // Translate response back to user's language (if not already translated by handler)
+    if (needsTranslation && !handler) {
+      try {
+        console.log(`[KisanMitra] Translating response from English to ${language}:`, responseText);
+        const translation = await translationService.translateText({
+          text: responseText,
+          sourceLanguage: 'en',
+          targetLanguage: language,
+        });
+        responseText = translation.translatedText;
+        console.log('[KisanMitra] Translated response:', responseText);
+      } catch (error) {
+        console.error('[KisanMitra] Translation to target language failed:', error);
+      }
+    }
+
+    return {
+      responseText,
+      intent,
+      confidence,
+      slots: this.extractSlotValues(slots),
+    };
   }
 
   /**

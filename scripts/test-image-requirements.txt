@@ -1,0 +1,3 @@
+# Requirements for downloading test images
+datasets>=2.14.0
+pillow>=10.0.0

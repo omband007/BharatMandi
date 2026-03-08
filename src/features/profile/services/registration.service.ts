@@ -7,7 +7,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
 import { UserProfileModel } from '../models/profile.sequelize.model';
-import * as sqliteHelpers from '../../../shared/database/sqlite-helpers';
+import * as otpHelpers from '../../../shared/database/otp-helpers';
 import { VALIDATION_RULES, TRUST_SCORE_RULES, DEFAULT_PRIVACY_SETTINGS } from '../constants/profile.constants';
 import * as authService from './auth.service';
 import type { UserProfile, RegisterRequest, RegisterResponse, VerifyOTPRequest, VerifyOTPResponse, PrivacyLevel, OTPSession, UserType, Location } from '../types/profile.types';
@@ -17,7 +17,7 @@ export class RegistrationService {
   private maxOTPAttempts = 3;
 
   constructor() {
-    // No initialization needed - using sqliteHelpers directly
+    // No initialization needed - using PostgreSQL OTP helpers
   }
 
   /**
@@ -181,14 +181,16 @@ export class RegistrationService {
       attempts: 0
     };
 
-    await sqliteHelpers.createOTPSession(otpSession);
+    await otpHelpers.createOTPSession(otpSession);
 
     // Send OTP
     const otpSent = await this.sendOTP(normalizedMobile, otp);
 
     return {
       userId: normalizedMobile, // Return normalized mobile number as userId for OTP verification
-      otpSent
+      otpSent,
+      // In development, return OTP for testing
+      ...(process.env.NODE_ENV === 'development' && { otp })
     };
   }
 
@@ -200,27 +202,27 @@ export class RegistrationService {
     const { userId, otp, name, userType, location } = request;
 
     // Get OTP session
-    const session = await sqliteHelpers.getOTPSession(userId);
+    const session = await otpHelpers.getOTPSession(userId);
     if (!session) {
       throw new Error('OTP session not found or expired');
     }
 
     // Check if OTP has expired
     if (new Date() > session.expiresAt) {
-      await sqliteHelpers.deleteOTPSession(session.phoneNumber);
+      await otpHelpers.deleteOTPSession(session.phoneNumber);
       throw new Error('OTP has expired. Please request a new one');
     }
 
     // Check attempts
     if (session.attempts >= this.maxOTPAttempts) {
-      await sqliteHelpers.deleteOTPSession(session.phoneNumber);
+      await otpHelpers.deleteOTPSession(session.phoneNumber);
       throw new Error('Maximum OTP attempts exceeded. Please request a new OTP');
     }
 
     // Verify OTP
     if (session.otp !== otp) {
       // Increment attempts
-      await sqliteHelpers.updateOTPAttempts(session.phoneNumber, session.attempts + 1);
+      await otpHelpers.updateOTPAttempts(session.phoneNumber, session.attempts + 1);
       throw new Error('Invalid OTP');
     }
 
@@ -236,7 +238,7 @@ export class RegistrationService {
     );
 
     // Delete OTP session
-    await sqliteHelpers.deleteOTPSession(session.phoneNumber);
+    await otpHelpers.deleteOTPSession(session.phoneNumber);
 
     // Generate JWT token for authenticated session
     const token = authService.generateToken(profile);
@@ -421,7 +423,7 @@ export class RegistrationService {
   /**
    * Resend OTP
    */
-  async resendOTP(mobileNumber: string): Promise<boolean> {
+  async resendOTP(mobileNumber: string): Promise<{ success: boolean; otp?: string }> {
     // Validate and normalize mobile number
     const validation = this.validateMobileNumber(mobileNumber);
     if (!validation.valid) {
@@ -442,9 +444,15 @@ export class RegistrationService {
       attempts: 0
     };
 
-    await sqliteHelpers.createOTPSession(otpSession);
+    await otpHelpers.createOTPSession(otpSession);
 
     // Send OTP
-    return await this.sendOTP(normalizedMobile, otp);
+    const sent = await this.sendOTP(normalizedMobile, otp);
+    
+    return {
+      success: sent,
+      // In development, return OTP for testing
+      ...(process.env.NODE_ENV === 'development' && { otp })
+    };
   }
 }

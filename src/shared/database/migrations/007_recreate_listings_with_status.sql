@@ -21,7 +21,7 @@ DROP TYPE IF EXISTS sale_channel CASCADE;
 CREATE TYPE listing_status AS ENUM ('ACTIVE', 'SOLD', 'EXPIRED', 'CANCELLED');
 CREATE TYPE listing_type AS ENUM ('PRE_HARVEST', 'POST_HARVEST');
 CREATE TYPE payment_method_preference AS ENUM ('PLATFORM_ONLY', 'DIRECT_ONLY', 'BOTH');
-CREATE TYPE sale_channel AS ENUM ('PLATFORM_ESCROW', 'PLATFORM_DIRECT', 'EXTERNAL');
+CREATE TYPE sale_channel AS ENUM ('PLATFORM', 'EXTERNAL');
 
 -- Create listings table with new schema
 CREATE TABLE listings (
@@ -126,4 +126,4 @@ COMMENT ON COLUMN listings.status IS 'Current listing status: ACTIVE, SOLD, EXPI
 COMMENT ON COLUMN listings.listing_type IS 'PRE_HARVEST (before harvest) or POST_HARVEST (after harvest)';
 COMMENT ON COLUMN listings.expiry_date IS 'Calculated as harvest_date + category.expiry_period_hours';
 COMMENT ON COLUMN listings.payment_method_preference IS 'Farmer preference: PLATFORM_ONLY, DIRECT_ONLY, or BOTH';
-COMMENT ON COLUMN listings.sale_channel IS 'How listing was sold: PLATFORM_ESCROW, PLATFORM_DIRECT, or EXTERNAL';
+COMMENT ON COLUMN listings.sale_channel IS 'How listing was sold: PLATFORM or EXTERNAL';

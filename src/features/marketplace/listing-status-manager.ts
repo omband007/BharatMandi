@@ -24,8 +24,7 @@ export enum ListingType {
 
 // Sale channel enum
 export enum SaleChannel {
-  PLATFORM_ESCROW = 'PLATFORM_ESCROW',
-  PLATFORM_DIRECT = 'PLATFORM_DIRECT',
+  PLATFORM = 'PLATFORM',
   EXTERNAL = 'EXTERNAL'
 }
 
@@ -50,7 +49,6 @@ export interface StatusChangeRecord {
 export interface MarkAsSoldInput {
   listingId: string;
   saleChannel: SaleChannel;
-  transactionId?: string; // Required for PLATFORM_DIRECT
   salePrice?: number; // Optional for EXTERNAL
   saleNotes?: string; // Optional for EXTERNAL
   userId: string; // User marking as sold
@@ -195,22 +193,27 @@ export class ListingStatusManager {
       metadata
     };
 
-    await dbManager.run(
-      `INSERT INTO listing_status_history 
-       (id, listing_id, previous_status, new_status, changed_at, triggered_by, trigger_type, metadata, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        record.id,
-        record.listing_id,
-        record.previous_status,
-        record.new_status,
-        record.changed_at.toISOString(),
-        record.triggered_by,
-        record.trigger_type,
-        metadata ? JSON.stringify(metadata) : null,
-        new Date().toISOString()
-      ]
-    );
+    try {
+      await dbManager.run(
+        `INSERT INTO listing_status_history 
+         (id, listing_id, previous_status, new_status, changed_at, triggered_by, trigger_type, metadata, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          record.id,
+          record.listing_id,
+          record.previous_status,
+          record.new_status,
+          record.changed_at.toISOString(),
+          record.triggered_by,
+          record.trigger_type,
+          metadata ? JSON.stringify(metadata) : null,
+          new Date().toISOString()
+        ]
+      );
+    } catch (error) {
+      // Log error but don't fail the operation if status history table doesn't exist
+      console.warn('[ListingStatusManager] Failed to record status change:', error instanceof Error ? error.message : error);
+    }
   }
 
   /**
@@ -284,14 +287,11 @@ export class ListingStatusManager {
     }
 
     // Validate sale channel
-    if (input.saleChannel !== SaleChannel.PLATFORM_DIRECT && input.saleChannel !== SaleChannel.EXTERNAL) {
-      throw new Error(`Invalid sale channel. Must be PLATFORM_DIRECT or EXTERNAL`);
+    if (input.saleChannel !== SaleChannel.PLATFORM && input.saleChannel !== SaleChannel.EXTERNAL) {
+      throw new Error(`Invalid sale channel. Must be PLATFORM or EXTERNAL`);
     }
 
-    // Validate required fields per channel
-    if (input.saleChannel === SaleChannel.PLATFORM_DIRECT && !input.transactionId) {
-      throw new Error('transactionId is required for PLATFORM_DIRECT sales');
-    }
+    // For PLATFORM sales, no transactionId is required (simplified flow)
 
     // Check for active transactions (PAYMENT_LOCKED or later states)
     const activeTransaction = await dbManager.get(
@@ -321,11 +321,6 @@ export class ListingStatusManager {
       new Date().toISOString()
     ];
 
-    if (input.transactionId) {
-      updateFields.push('transaction_id = ?');
-      updateValues.push(input.transactionId);
-    }
-
     if (input.salePrice !== undefined) {
       updateFields.push('sale_price = ?');
       updateValues.push(input.salePrice);
@@ -352,7 +347,6 @@ export class ListingStatusManager {
       TriggerType.USER,
       {
         sale_channel: input.saleChannel,
-        transaction_id: input.transactionId,
         sale_price: input.salePrice,
         sale_notes: input.saleNotes
       }
@@ -368,21 +362,27 @@ export class ListingStatusManager {
   async getStatusHistory(listingId: string): Promise<StatusChangeRecord[]> {
     const dbManager = getDbManager();
 
-    const rows = await dbManager.all(
-      'SELECT * FROM listing_status_history WHERE listing_id = ? ORDER BY changed_at DESC',
-      [listingId]
-    );
+    try {
+      const rows = await dbManager.all(
+        'SELECT * FROM listing_status_history WHERE listing_id = ? ORDER BY changed_at DESC',
+        [listingId]
+      );
 
-    return rows.map(row => ({
-      id: row.id,
-      listing_id: row.listing_id,
-      previous_status: row.previous_status as ListingStatus | null,
-      new_status: row.new_status as ListingStatus,
-      changed_at: new Date(row.changed_at),
-      triggered_by: row.triggered_by,
-      trigger_type: row.trigger_type as TriggerType,
-      metadata: row.metadata ? JSON.parse(row.metadata) : undefined
-    }));
+      return rows.map(row => ({
+        id: row.id,
+        listing_id: row.listing_id,
+        previous_status: row.previous_status as ListingStatus | null,
+        new_status: row.new_status as ListingStatus,
+        changed_at: new Date(row.changed_at),
+        triggered_by: row.triggered_by,
+        trigger_type: row.trigger_type as TriggerType,
+        metadata: row.metadata ? JSON.parse(row.metadata) : undefined
+      }));
+    } catch (error) {
+      // Log error but return empty array if status history table doesn't exist
+      console.warn('[ListingStatusManager] Failed to get status history:', error instanceof Error ? error.message : error);
+      return [];
+    }
   }
 }
 

@@ -1,0 +1,27 @@
+{
+  "CORSRules": [
+    {
+      "AllowedOrigins": [
+        "https://bharatmandi.com",
+        "https://*.bharatmandi.com",
+        "http://localhost:3000",
+        "http://localhost:8080"
+      ],
+      "AllowedMethods": [
+        "GET",
+        "PUT",
+        "POST",
+        "DELETE"
+      ],
+      "AllowedHeaders": [
+        "*"
+      ],
+      "ExposeHeaders": [
+        "ETag",
+        "x-amz-server-side-encryption",
+        "x-amz-request-id"
+      ],
+      "MaxAgeSeconds": 3000
+    }
+  ]
+}

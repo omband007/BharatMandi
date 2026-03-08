@@ -2,7 +2,6 @@ import express from 'express';
 import path from 'path';
 import cors from 'cors';
 import fs from 'fs';
-import { openSQLiteDB, initializeSQLiteSchema } from './shared/database/sqlite-config';
 import { DatabaseManager } from './shared/database/db-abstraction';
 import { testSequelizeConnection, syncDatabase } from './shared/database/sequelize-config';
 import { i18nextMiddleware } from './features/i18n/i18n-backend.config';
@@ -11,17 +10,18 @@ import { i18nextMiddleware } from './features/i18n/i18n-backend.config';
 import { gradingController } from './features/grading';
 import { marketplaceController, mediaController } from './features/marketplace';
 import { transactionController } from './features/transactions';
-import { usersController } from './features/users';
+// import { usersController } from './features/users'; // DEPRECATED - use user_profiles via /api/v1/profiles
 import { devController } from './features/dev';
 import i18nRoutes from './features/i18n/i18n.routes';
 import { voiceController } from './features/i18n/voice.controller';
 import kisanMitraRoutes from './features/i18n/kisan-mitra.routes';
 import profileRoutes from './features/profile/routes/profile.routes';
 import authRoutes from './features/profile/routes/auth.routes';
+import { diagnosisController } from './features/crop-diagnosis/controllers';
 
 const app = express();
 
-// Initialize DatabaseManager for dual database system
+// Initialize DatabaseManager for PostgreSQL
 const dbManager = new DatabaseManager();
 
 // Make dbManager globally accessible for media controller
@@ -43,12 +43,7 @@ const dbManager = new DatabaseManager();
       console.warn('  To fix: Check PostgreSQL connection settings in .env');
     }
     
-    // Initialize SQLite (required for offline cache)
-    await openSQLiteDB();
-    await initializeSQLiteSchema();
-    console.log('✓ SQLite database initialized');
-    
-    // Start DatabaseManager (connection monitoring and sync engine)
+    // Start DatabaseManager (connection monitoring)
     await dbManager.start();
     console.log('✓ DatabaseManager started - PostgreSQL connectivity confirmed');
   } catch (error) {
@@ -108,8 +103,7 @@ app.get('/api/health', (req, res) => {
       postgresql: {
         ...healthStatus.postgresql,
         isConnected: isConnected
-      },
-      sqlite: { connected: true } // SQLite is always available locally
+      }
     }
   });
 });
@@ -117,11 +111,12 @@ app.get('/api/health', (req, res) => {
 // Feature routes
 app.use('/api/v1/profiles', profileRoutes); // Profile management routes
 app.use('/api/v1/profiles/auth', authRoutes); // Authentication routes
+app.use('/api/diagnosis', diagnosisController); // Crop disease diagnosis routes
 app.use('/api/grading', gradingController);
 app.use('/api/marketplace', marketplaceController);
 app.use('/api/marketplace', mediaController); // Media routes under /api/marketplace
 app.use('/api/transactions', transactionController);
-app.use('/api/users', usersController);
+// app.use('/api/users', usersController); // DEPRECATED - use /api/v1/profiles instead
 app.use('/api/i18n', i18nRoutes); // i18n routes
 app.use('/api/voice', voiceController); // Voice routes
 app.use('/api/kisan-mitra', kisanMitraRoutes); // Kisan Mitra AI assistant routes

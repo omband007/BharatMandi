@@ -15,7 +15,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { UserProfileModel } from '../models/profile.sequelize.model';
-import * as sqliteHelpers from '../../../shared/database/sqlite-helpers';
+import * as otpHelpers from '../../../shared/database/otp-helpers';
 import type { UserProfile } from '../types/profile.types';
 
 // JWT Configuration
@@ -282,7 +282,7 @@ export async function loginWithBiometric(mobileNumber: string): Promise<LoginRes
 export async function loginWithOTP(mobileNumber: string, otp: string): Promise<LoginResponse> {
   try {
     // Get OTP session
-    const session = await sqliteHelpers.getOTPSession(mobileNumber);
+    const session = await otpHelpers.getOTPSession(mobileNumber);
     if (!session) {
       return {
         success: false,
@@ -292,7 +292,7 @@ export async function loginWithOTP(mobileNumber: string, otp: string): Promise<L
 
     // Check if OTP has expired
     if (new Date() > session.expiresAt) {
-      await sqliteHelpers.deleteOTPSession(session.phoneNumber);
+      await otpHelpers.deleteOTPSession(session.phoneNumber);
       return {
         success: false,
         message: 'OTP has expired. Please request a new one'
@@ -301,7 +301,7 @@ export async function loginWithOTP(mobileNumber: string, otp: string): Promise<L
 
     // Check attempts
     if (session.attempts >= 3) {
-      await sqliteHelpers.deleteOTPSession(session.phoneNumber);
+      await otpHelpers.deleteOTPSession(session.phoneNumber);
       return {
         success: false,
         message: 'Maximum OTP attempts exceeded. Please request a new OTP'
@@ -311,7 +311,7 @@ export async function loginWithOTP(mobileNumber: string, otp: string): Promise<L
     // Verify OTP
     if (session.otp !== otp) {
       // Increment attempts
-      await sqliteHelpers.updateOTPAttempts(session.phoneNumber, session.attempts + 1);
+      await otpHelpers.updateOTPAttempts(session.phoneNumber, session.attempts + 1);
       return {
         success: false,
         message: 'Invalid OTP'
@@ -321,7 +321,7 @@ export async function loginWithOTP(mobileNumber: string, otp: string): Promise<L
     // OTP verified - get user profile
     const profile = await UserProfileModel.findOne({ where: { mobileNumber } });
     if (!profile) {
-      await sqliteHelpers.deleteOTPSession(session.phoneNumber);
+      await otpHelpers.deleteOTPSession(session.phoneNumber);
       return {
         success: false,
         message: 'User not found. Please register first'
@@ -329,7 +329,7 @@ export async function loginWithOTP(mobileNumber: string, otp: string): Promise<L
     }
 
     // Delete OTP session
-    await sqliteHelpers.deleteOTPSession(session.phoneNumber);
+    await otpHelpers.deleteOTPSession(session.phoneNumber);
 
     // Reset failed login attempts and unlock account (OTP login bypasses lockout)
     await handleSuccessfulLogin(profile.userId);

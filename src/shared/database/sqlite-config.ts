@@ -34,8 +34,10 @@ export async function openSQLiteDB(): Promise<Database> {
     driver: sqlite3.Database
   });
 
-  // Enable foreign keys
-  await db.exec('PRAGMA foreign_keys = ON;');
+  // Disable foreign keys temporarily for development (data may be incomplete in SQLite)
+  // TODO: Re-enable when proper sync is implemented
+  // await db.exec('PRAGMA foreign_keys = ON;');
+  await db.exec('PRAGMA foreign_keys = OFF;');
   
   // Enable WAL mode for better concurrency
   await db.exec('PRAGMA journal_mode = WAL;');

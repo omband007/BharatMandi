@@ -1042,4 +1042,19 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
     const result = await pool.query(pgSql, params);
     return result.rows;
   }
+
+    /**
+     * Execute a SQL statement (INSERT, UPDATE, DELETE)
+     * Converts SQLite-style ? placeholders to PostgreSQL-style $1, $2, etc.
+     * @param sql - SQL statement to execute
+     * @param params - Parameters for the SQL statement
+     */
+    async run(sql: string, params?: any[]): Promise<void> {
+      // Convert SQLite ? placeholders to PostgreSQL $1, $2, etc.
+      let pgSql = sql;
+      let paramIndex = 1;
+      pgSql = pgSql.replace(/\?/g, () => `$${paramIndex++}`);
+
+      await pool.query(pgSql, params);
+    }
 }

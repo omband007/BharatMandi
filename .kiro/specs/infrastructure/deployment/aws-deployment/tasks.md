@@ -1,285 +1,345 @@
 ---
 feature: aws-deployment
-status: not_started
+status: in_progress
 created: 2026-02-25
+updated: 2026-03-06
 ---
 
 # AWS Cloud Deployment - Implementation Tasks
 
-## Phase 1: AWS Services Integration (Local Development + AWS Services)
+## Current State Summary
 
-### 1. Setup and Configuration
-- [ ] 1.1 Create AWS account and enable billing
-- [ ] 1.2 Install AWS CLI and configure credentials
-- [ ] 1.3 Install AWS SDK packages (`@aws-sdk/client-s3`, `@aws-sdk/client-rekognition`, `@aws-sdk/client-pinpoint`)
-- [ ] 1.4 Create `src/config/aws.config.ts` for environment-based configuration
-- [ ] 1.5 Create `.env.local`, `.env.staging`, `.env.production` templates
-- [ ] 1.6 Add environment validation on app startup
+### ✅ Already Completed
+- AWS account created and billing enabled
+- AWS CLI installed and configured
+- AWS SDK packages installed (@aws-sdk/client-lex-runtime-v2, @aws-sdk/client-polly, @aws-sdk/client-transcribe, @aws-sdk/client-translate, @aws-sdk/client-comprehend, @aws-sdk/client-s3)
+- AWS Lex chatbot configured and working (Bot ID: YYEXVHRJQW)
+- AWS Polly text-to-speech working
+- AWS Transcribe speech-to-text working
+- AWS Translate multi-language translation working
+- AWS Comprehend language detection working
+- S3 bucket for audio cache working (bharat-mandi-voice-ap-south-1)
+- Local development environment fully functional
+- All AWS services accessible from local environment
 
-### 2. S3 Media Storage Integration
-- [ ] 2.1 Create S3 bucket for media storage (staging)
-- [ ] 2.2 Configure S3 bucket policies and CORS
-- [ ] 2.3 Update `storage.service.ts` to support S3 uploads
-- [ ] 2.4 Implement signed URL generation for secure downloads
-- [ ] 2.5 Add fallback to local storage when AWS disabled
-- [ ] 2.6 Test media upload/download with S3
-- [ ] 2.7 Implement thumbnail generation and S3 upload
-- [ ] 2.8 Add S3 lifecycle policies for cost optimization
-
-### 3. Rekognition AI Integration
-- [ ] 3.1 Enable Rekognition API in AWS account
-- [ ] 3.2 Update `grading.service.ts` to use Rekognition
-- [ ] 3.3 Implement label-to-produce-type mapping
-- [ ] 3.4 Add confidence scoring logic
-- [ ] 3.5 Implement fallback to mock AI when disabled
-- [ ] 3.6 Test AI grading with real images
-- [ ] 3.7 Optimize image size before sending to Rekognition
-- [ ] 3.8 Add error handling for Rekognition failures
-
-### 4. Pinpoint SMS Integration
-- [ ] 4.1 Enable Pinpoint SMS channel in AWS account
-- [ ] 4.2 Request SMS production access (if needed)
-- [ ] 4.3 Update `auth.service.ts` to use Pinpoint
-- [ ] 4.4 Implement SMS template for OTP
-- [ ] 4.5 Add fallback to console logging when disabled
-- [ ] 4.6 Test SMS delivery with real phone number
-- [ ] 4.7 Implement SMS delivery status tracking
-- [ ] 4.8 Add rate limiting for SMS to control costs
-
-### 5. Testing and Validation
-- [ ] 5.1 Test all features with AWS_ENABLED=false (local mode)
-- [ ] 5.2 Test all features with AWS_ENABLED=true (hybrid mode)
-- [ ] 5.3 Verify graceful degradation when AWS services unavailable
-- [ ] 5.4 Test environment variable switching
-- [ ] 5.5 Document AWS setup process in README
+### 🔄 In Progress / To Do
+- S3 integration for listing media files (currently using local filesystem)
+- RDS PostgreSQL setup and migration
+- EC2 deployment
+- Environment configuration system
+- Basic monitoring and documentation
 
 ---
 
-## Phase 2: Database Migration to AWS RDS
+## Phase 1: S3 Integration for Listing Media
 
-### 6. RDS Setup
-- [ ] 6.1 Create RDS PostgreSQL instance (staging)
-- [ ] 6.2 Configure security groups for database access
-- [ ] 6.3 Enable automated backups and point-in-time recovery
-- [ ] 6.4 Create database parameter group with optimized settings
-- [ ] 6.5 Set up Secrets Manager for database credentials
-- [ ] 6.6 Update database configuration to support RDS
-- [ ] 6.7 Test connection from local machine to RDS
+### 1. S3 Bucket Setup
+- [x] 1.1 Create S3 bucket for listing media (e.g., bharat-mandi-listings-testing)
+- [x] 1.2 Configure bucket policies (allow EC2 IAM role access)
+- [x] 1.3 Enable versioning for rollback capability
+- [x] 1.4 Configure CORS for browser uploads (if needed)
+- [ ] 1.5 Set up lifecycle policies for cost optimization (optional)
 
-### 7. Data Migration
-- [ ] 7.1 Create full backup of local PostgreSQL database
-- [ ] 7.2 Run schema migration on RDS instance
-- [ ] 7.3 Export data from local database
-- [ ] 7.4 Import data to RDS instance
-- [ ] 7.5 Verify data integrity after migration
-- [ ] 7.6 Test application with RDS database
-- [ ] 7.7 Update connection pooling for cloud database
-- [ ] 7.8 Document rollback procedure
+### 2. Storage Service Updates
+- [x] 2.1 Create environment configuration file (`src/config/environment.ts`)
+- [x] 2.2 Add USE_S3_FOR_LISTINGS environment variable
+- [x] 2.3 Update `storage.service.ts` to uncomment S3 code
+- [x] 2.4 Implement S3 upload for listing media
+- [x] 2.5 Implement signed URL generation for downloads
+- [x] 2.6 Keep local filesystem as fallback for development
+- [x] 2.7 Add error handling for S3 operations
 
-### 8. SQLite Offline Cache
-- [ ] 8.1 Verify SQLite still works for offline mode
-- [ ] 8.2 Test sync engine with RDS as primary
-- [ ] 8.3 Optimize sync queue for cloud latency
-- [ ] 8.4 Add connection retry logic for RDS
-- [ ] 8.5 Test offline-to-online sync with RDS
+### 3. Testing S3 Integration
+- [x] 3.1 Test S3 upload from local machine (USE_S3_FOR_LISTINGS=true)
+- [x] 3.2 Test signed URL generation and access
+- [x] 3.3 Test fallback to local filesystem (USE_S3_FOR_LISTINGS=false)
+- [x] 3.4 Verify existing listings still work
+- [x] 3.5 Test with different file types (images, videos)
+- [ ] 3.6 Document S3 setup process
 
 ---
 
-## Phase 3: Application Deployment to AWS
+## Phase 2: Database Migration to RDS
 
-### 9. Infrastructure Provisioning
-- [ ] 9.1 Create VPC with public/private subnets
-- [ ] 9.2 Set up Internet Gateway and NAT Gateway
-- [ ] 9.3 Configure security groups for EC2 instances
-- [ ] 9.4 Create Application Load Balancer
-- [ ] 9.5 Set up Target Groups and health checks
-- [ ] 9.6 Create Auto Scaling Group
-- [ ] 9.7 Request and configure SSL certificate (ACM)
-- [ ] 9.8 Configure Route 53 for domain (if applicable)
+### 4. RDS Setup
+- [x] 4.1 Create RDS PostgreSQL instance (db.t3.micro)
+  - Engine: PostgreSQL 15 or 16
+  - Instance class: db.t3.micro
+  - Storage: 20GB GP3
+  - Single-AZ (Multi-AZ not needed for POC)
+  - Region: ap-southeast-2
+- [x] 4.2 Create security group for RDS
+  - Allow PostgreSQL (5432) from EC2 security group
+  - Allow PostgreSQL from your local IP (for testing)
+- [x] 4.3 Enable automated backups (7-day retention)
+- [ ] 4.4 Enable encryption at rest
+- [x] 4.5 Note RDS endpoint URL
+- [x] 4.6 Create strong master password
 
-### 10. EC2 Instance Configuration
-- [ ] 10.1 Create EC2 launch template
-- [ ] 10.2 Install Node.js and dependencies on AMI
-- [ ] 10.3 Configure PM2 for process management
-- [ ] 10.4 Set up CloudWatch agent for logs
-- [ ] 10.5 Create IAM role for EC2 with necessary permissions
-- [ ] 10.6 Configure environment variables on EC2
-- [ ] 10.7 Test application startup on EC2
-- [ ] 10.8 Create custom AMI for faster deployment
+### 5. Database Configuration
+- [x] 5.1 Update database configuration to support RDS
+- [x] 5.2 Add DB_SSL environment variable support
+- [x] 5.3 Test connection from local machine to RDS
+- [x] 5.4 Update connection pooling settings for cloud
+- [x] 5.5 Add SSL/TLS configuration to Sequelize
 
-### 11. Deployment Automation
-- [ ] 11.1 Create deployment script (`deploy.sh`)
-- [ ] 11.2 Implement build and package step
-- [ ] 11.3 Upload package to S3 deployment bucket
-- [ ] 11.4 Create deployment automation with AWS Systems Manager
-- [ ] 11.5 Implement zero-downtime deployment strategy
-- [ ] 11.6 Add health check validation after deployment
-- [ ] 11.7 Implement automatic rollback on failure
-- [ ] 11.8 Document deployment process
+### 6. Data Migration
+**Note**: Dev environment - no critical data. Can skip backups and recreate test data as needed.
 
-### 12. Load Balancer and Auto Scaling
-- [ ] 12.1 Configure load balancer health checks
-- [ ] 12.2 Set up auto-scaling policies (CPU, memory)
-- [ ] 12.3 Test scaling up (add instances)
-- [ ] 12.4 Test scaling down (remove instances)
-- [ ] 12.5 Configure sticky sessions if needed
-- [ ] 12.6 Test load distribution across instances
-- [ ] 12.7 Optimize health check intervals
-- [ ] 12.8 Document scaling behavior
-
----
-
-## Phase 4: Production Readiness
-
-### 13. Monitoring and Logging
-- [ ] 13.1 Set up CloudWatch log groups
-- [ ] 13.2 Configure application logging to CloudWatch
-- [ ] 13.3 Create CloudWatch dashboards
-- [ ] 13.4 Set up CloudWatch alarms (CPU, memory, errors)
-- [ ] 13.5 Configure SNS topics for alerts
-- [ ] 13.6 Set up email/SMS notifications for critical alerts
-- [ ] 13.7 Implement custom metrics for business KPIs
-- [ ] 13.8 Test alert delivery
-
-### 14. Security Hardening
-- [ ] 14.1 Enable AWS WAF for load balancer
-- [ ] 14.2 Configure security group rules (least privilege)
-- [ ] 14.3 Enable VPC Flow Logs
-- [ ] 14.4 Set up AWS Config for compliance
-- [ ] 14.5 Enable GuardDuty for threat detection
-- [ ] 14.6 Implement secrets rotation in Secrets Manager
-- [ ] 14.7 Enable MFA for AWS console access
-- [ ] 14.8 Conduct security audit and penetration testing
-
-### 15. Backup and Disaster Recovery
-- [ ] 15.1 Configure RDS automated backups (7-day retention)
-- [ ] 15.2 Set up RDS snapshots schedule
-- [ ] 15.3 Enable S3 versioning for media files
-- [ ] 15.4 Create disaster recovery runbook
-- [ ] 15.5 Test database restore from backup
-- [ ] 15.6 Test application recovery from failure
-- [ ] 15.7 Document RTO and RPO targets
-- [ ] 15.8 Implement cross-region backup (optional)
-
-### 16. CI/CD Pipeline
-- [ ] 16.1 Set up GitHub Actions or AWS CodePipeline
-- [ ] 16.2 Implement automated testing in pipeline
-- [ ] 16.3 Add code quality checks (linting, security scan)
-- [ ] 16.4 Automate build and package step
-- [ ] 16.5 Implement staging deployment on merge to main
-- [ ] 16.6 Add manual approval for production deployment
-- [ ] 16.7 Implement automated rollback on test failure
-- [ ] 16.8 Document CI/CD workflow
-
-### 17. Cost Optimization
-- [ ] 17.1 Set up AWS Cost Explorer
-- [ ] 17.2 Create billing alerts for budget thresholds
-- [ ] 17.3 Implement S3 lifecycle policies
-- [ ] 17.4 Use Reserved Instances for predictable workloads
-- [ ] 17.5 Schedule staging environment shutdown (nights/weekends)
-- [ ] 17.6 Optimize RDS instance size based on usage
-- [ ] 17.7 Review and optimize data transfer costs
-- [ ] 17.8 Document cost optimization strategies
-
-### 18. Documentation and Training
-- [ ] 18.1 Create AWS architecture diagram
-- [ ] 18.2 Document deployment process
-- [ ] 18.3 Create runbook for common operations
-- [ ] 18.4 Document troubleshooting guide
-- [ ] 18.5 Create environment setup guide
-- [ ] 18.6 Document cost breakdown and optimization
-- [ ] 18.7 Create disaster recovery procedures
-- [ ] 18.8 Train team on AWS operations
+- [x] 6.1 Run schema migrations on RDS instance
+  ```bash
+  export POSTGRES_HOST=<rds-endpoint>
+  export POSTGRES_PORT=5432
+  export POSTGRES_DB=bharat_mandi
+  export POSTGRES_USER=postgres
+  export POSTGRES_PASSWORD=<secure-password>
+  npm run migrate
+  ```
+- [ ] 6.2 (Optional) Import existing data if desired
+  ```bash
+  # Only if you want to preserve current test data
+  pg_dump -h localhost -U postgres bharat_mandi > backup.sql
+  psql -h <rds-endpoint> -U postgres -d bharat_mandi < backup.sql
+  ```
+- [x] 6.3 Test application with RDS database from local machine
+- [x] 6.4 Verify Sequelize ORM connects successfully with SSL
 
 ---
 
-## Quick Start Deployment Checklist
+## Phase 3: EC2 Deployment
 
-### For Testing on AWS (Minimal Setup)
-1. ✅ Create AWS account
-2. ✅ Install AWS CLI and configure
-3. ✅ Create S3 bucket
-4. ✅ Enable Rekognition
-5. ✅ Set up Pinpoint SMS
-6. ✅ Update `.env` with AWS credentials
-7. ✅ Set `AWS_ENABLED=true`
-8. ✅ Test locally with AWS services
-9. ✅ Deploy to EC2 (single instance)
-10. ✅ Test end-to-end on cloud
+### 7. IAM Setup
+- [x] 7.1 Create IAM role for EC2 instance
+- [x] 7.2 Attach policies for S3 access (listings and audio buckets)
+- [x] 7.3 Attach policies for Lex access
+- [x] 7.4 Attach policies for Polly access
+- [x] 7.5 Attach policies for Transcribe access
+- [x] 7.6 Attach policies for Translate access
+- [x] 7.7 Attach policies for Comprehend access
+- [x] 7.8 Verify IAM role has all necessary permissions
 
-**Estimated Time: 4-6 hours**
+### 8. EC2 Instance Setup
+- [x] 8.1 Create security group for EC2
+  - Allow HTTP (80) from anywhere
+  - Allow HTTPS (443) from anywhere (optional)
+  - Allow SSH (22) from your IP only
+- [x] 8.2 Launch EC2 instance
+  - AMI: Ubuntu 22.04 LTS
+  - Instance type: t3.small (or t3.micro for cost savings)
+  - Region: ap-southeast-2
+  - Attach IAM role from step 7
+  - Attach security group from step 8.1
+- [ ] 8.3 Allocate Elastic IP (optional - for stable IP)
+- [x] 8.4 Create or use existing key pair for SSH access
 
-### For Production Deployment (Full Setup)
-1. Complete Phase 1 (AWS Services Integration)
-2. Complete Phase 2 (Database Migration)
-3. Complete Phase 3 (Application Deployment)
-4. Complete Phase 4 (Production Readiness)
+### 9. EC2 Configuration
+- [x] 9.1 SSH to EC2 instance
+- [x] 9.2 Update system packages
+  ```bash
+  sudo apt-get update && sudo apt-get upgrade -y
+  ```
+- [x] 9.3 Install Node.js 20.x
+  ```bash
+  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+  sudo apt-get install -y nodejs
+  ```
+- [x] 9.4 Install PM2 for process management
+  ```bash
+  sudo npm install -g pm2
+  ```
+- [x] 9.5 Install Redis
+  ```bash
+  sudo apt-get install -y redis-server
+  sudo systemctl enable redis-server
+  sudo systemctl start redis-server
+  ```
+- [x] 9.6 Install MongoDB
+  ```bash
+  sudo apt-get install -y mongodb
+  sudo systemctl enable mongodb
+  sudo systemctl start mongodb
+  ```
+- [x] 9.7 Install PostgreSQL client (for migrations)
+  ```bash
+  sudo apt-get install -y postgresql-client
+  ```
+- [x] 9.8 Configure firewall (ufw)
+  ```bash
+  sudo ufw allow 22/tcp
+  sudo ufw allow 80/tcp
+  sudo ufw allow 443/tcp
+  sudo ufw enable
+  ```
 
-**Estimated Time: 2-3 weeks**
+### 10. Application Deployment
+- [x] 10.1 Build application locally
+  ```bash
+  npm run build
+  ```
+- [x] 10.2 Create deployment package
+  ```bash
+  tar -czf bharat-mandi-app.tar.gz .build/ node_modules/ package.json
+  ```
+- [x] 10.3 Upload to EC2
+  ```bash
+  scp -i <key>.pem bharat-mandi-app.tar.gz ubuntu@<ec2-ip>:~
+  ```
+- [x] 10.4 Extract on EC2
+  ```bash
+  tar -xzf bharat-mandi-app.tar.gz
+  ```
+- [x] 10.5 Create .env.testing file on EC2 with production values
+- [ ] 10.6 Run database migrations (if not done in Phase 2)
+  ```bash
+  npm run migrate
+  ```
+- [x] 10.7 Start application with PM2
+  ```bash
+  pm2 start .build/index.js --name bharat-mandi
+  pm2 save
+  pm2 startup
+  ```
+- [x] 10.8 Configure PM2 to restart on system reboot
+
+### 11. Testing and Verification
+- [x] 11.1 Test application health endpoint
+  ```bash
+  curl http://<ec2-ip>:3000/health
+  ```
+- [ ] 11.2 Test marketplace features (create listing, view listings)
+- [ ] 11.3 Test Kisan Mitra chatbot (Lex integration)
+- [ ] 11.4 Test voice services (Polly, Transcribe)
+- [ ] 11.5 Test translation services (Translate, Comprehend)
+- [ ] 11.6 Test S3 media uploads and downloads
+- [x] 11.7 Test database operations (RDS)
+- [ ] 11.8 Verify all features work end-to-end
 
 ---
 
-## Development Workflow
+## Phase 4: Monitoring and Documentation
 
-### Daily Development (Local)
-```bash
-# Use local services
-export AWS_ENABLED=false
-npm run dev
-```
+### 12. Basic Monitoring
+- [ ] 12.1 Set up CloudWatch billing alerts
+  - Alert at $50
+  - Alert at $75
+  - Alert at $100
+- [ ] 12.2 Enable CloudWatch metrics for EC2
+- [ ] 12.3 Enable CloudWatch metrics for RDS
+- [ ] 12.4 Set up PM2 monitoring
+  ```bash
+  pm2 monitor
+  ```
+- [ ] 12.5 Configure log rotation for PM2 logs
+- [ ] 12.6 Set up basic health check script (optional)
 
-### Weekly AWS Testing
-```bash
-# Use AWS services from local machine
-export AWS_ENABLED=true
-npm run dev
+### 13. Documentation
+- [ ] 13.1 Document deployment process
+- [ ] 13.2 Document environment variables
+- [ ] 13.3 Document AWS resources created
+- [ ] 13.4 Document rollback procedures
+- [ ] 13.5 Document troubleshooting steps
+- [ ] 13.6 Document cost breakdown
+- [ ] 13.7 Create runbook for common operations
+- [ ] 13.8 Document security best practices
 
-# Or deploy to staging
-npm run deploy:staging
-```
+### 14. Security Review
+- [ ] 14.1 Verify IAM role has minimal permissions
+- [ ] 14.2 Verify security groups are properly configured
+- [ ] 14.3 Verify RDS encryption is enabled
+- [ ] 14.4 Verify S3 bucket policies are secure
+- [ ] 14.5 Verify SSH access is restricted
+- [ ] 14.6 Verify database password is strong
+- [ ] 14.7 Verify no AWS credentials in code
+- [ ] 14.8 Schedule regular security updates
 
-### Production Deployment
-```bash
-# Deploy to production
-npm run deploy:production
-```
+---
+
+## Quick Start Checklist (Minimal POC Deployment)
+
+For fastest deployment to AWS:
+
+1. **S3 Setup** (30 minutes)
+   - [ ] Create S3 bucket for listings
+   - [ ] Update storage.service.ts
+   - [ ] Test from local machine
+
+2. **RDS Setup** (1 hour)
+   - [ ] Create RDS instance
+   - [ ] Run migrations
+   - [ ] Test from local machine
+
+3. **EC2 Setup** (2 hours)
+   - [ ] Launch EC2 instance
+   - [ ] Install dependencies (Node.js, PM2, Redis, MongoDB)
+   - [ ] Deploy application
+   - [ ] Test all features
+
+4. **Monitoring** (30 minutes)
+   - [ ] Set up billing alerts
+   - [ ] Configure PM2 monitoring
+
+**Total Time: ~4 hours**
 
 ---
 
 ## Rollback Procedures
 
-### Application Rollback
+**Note**: Dev environment - rollback is optional. Can simply redeploy or recreate resources.
+
+### Application Rollback (Optional)
 ```bash
-# Revert to previous version
-aws s3 cp s3://deployments/app-v1.0.0.zip .
+# If you want to keep a backup
+cp -r .build .build.backup
+
+# If deployment fails, just redeploy
 pm2 restart bharat-mandi
 ```
 
-### Database Rollback
+### Database Rollback (Optional)
 ```bash
-# Restore from snapshot
-aws rds restore-db-instance-from-db-snapshot \
-  --db-instance-identifier bharat-mandi-prod \
-  --db-snapshot-identifier snapshot-before-migration
+# Dev environment - easier to just drop and recreate
+# Or use RDS automated backups if needed
+aws rds restore-db-instance-to-point-in-time \
+  --source-db-instance-identifier bharat-mandi-testing \
+  --target-db-instance-identifier bharat-mandi-testing-restored \
+  --restore-time <timestamp>
 ```
 
-### Configuration Rollback
+### S3 Rollback (Optional)
 ```bash
-# Revert environment variables
-aws ssm put-parameter --name /bharat-mandi/config --value "$(cat .env.backup)"
+# Dev environment - can delete and re-upload if needed
+# Or use versioning if enabled
+aws s3api list-object-versions --bucket bharat-mandi-listings-testing
 ```
 
 ---
 
 ## Success Criteria
 
-- [ ] Application runs locally without AWS (development mode)
-- [ ] Application runs locally with AWS services (hybrid mode)
-- [ ] Application runs fully on AWS (production mode)
-- [ ] Single command deployment works
-- [ ] Zero-downtime deployment achieved
-- [ ] All monitoring and alerts configured
-- [ ] Disaster recovery tested
-- [ ] Documentation complete
-- [ ] Team trained on AWS operations
-- [ ] Cost within budget ($50 staging, $300 production)
+- [ ] Application accessible via EC2 public IP
+- [ ] All marketplace features working (create, view, update listings)
+- [ ] Kisan Mitra chatbot working (Lex integration)
+- [ ] Voice services working (Polly, Transcribe)
+- [ ] Translation services working (Translate, Comprehend)
+- [ ] Listing media stored in S3 (not local filesystem)
+- [ ] Database on RDS (not local PostgreSQL)
+- [ ] All features tested end-to-end
+- [ ] Deployment documented
+- [ ] Billing alerts configured
+- [ ] AWS costs < $100/month
+
+---
+
+## Notes
+
+- **Development environment - no critical data**: Feel free to experiment, drop databases, delete resources
+- This is a POC/testing environment, not production-grade
+- Focus on functionality over scalability
+- Manual deployment is acceptable (no CI/CD needed)
+- Keep costs minimal by using smallest instance types
+- Can shut down EC2 when not testing to save costs
+- Redis and MongoDB run locally on EC2 (no ElastiCache/DocumentDB)
+- No load balancer or auto-scaling for POC
+- HTTPS optional for POC (can use HTTP)
+- Custom domain optional (can use EC2 public IP)
+- **Speed over safety**: Skip backups, test aggressively, recreate data as needed

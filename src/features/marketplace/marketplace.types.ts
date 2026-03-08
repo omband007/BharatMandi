@@ -19,8 +19,7 @@ export enum PaymentMethodPreference {
 }
 
 export enum SaleChannel {
-  PLATFORM_ESCROW = 'PLATFORM_ESCROW',
-  PLATFORM_DIRECT = 'PLATFORM_DIRECT',
+  PLATFORM = 'PLATFORM',
   EXTERNAL = 'EXTERNAL'
 }
 

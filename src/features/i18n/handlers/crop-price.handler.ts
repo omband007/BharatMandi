@@ -39,39 +39,90 @@ export class CropPriceHandler {
     // 1. Normalize crop name
     const normalizedCrop = this.normalizeCropName(crop);
 
-    // 2. Query marketplace database for active listings
-    const listings = await this.getActiveListings(normalizedCrop, location);
+    // 2. Get general market prices (not from database)
+    const priceData = this.getGeneralMarketPrice(normalizedCrop, location);
 
-    // 3. Check if crop was found
-    if (listings.length === 0) {
-      // Get suggestions for similar crops
-      const suggestions = await this.getSimilarCrops(normalizedCrop);
-      const suggestionText = suggestions.length > 0 
-        ? ` Did you mean: ${suggestions.join(', ')}?`
-        : '';
-      
-      throw new Error(`No listings found for "${normalizedCrop}".${suggestionText}`);
+    if (!priceData) {
+      throw new Error(`I don't have price information for "${normalizedCrop}" right now. I can help with common crops like tomato, potato, onion, wheat, rice, and more.`);
     }
 
-    // 4. Calculate statistics
-    const prices = listings.map(l => l.pricePerKg);
-    const avgPrice = this.average(prices);
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
+    return priceData;
+  }
 
-    // 5. Calculate trend (compare with last 7 days)
-    const trend = await this.calculateTrend(normalizedCrop, avgPrice);
-
-    return {
-      crop: normalizedCrop,
-      averagePrice: Math.round(avgPrice * 100) / 100, // Round to 2 decimal places
-      minPrice: Math.round(minPrice * 100) / 100,
-      maxPrice: Math.round(maxPrice * 100) / 100,
-      trend,
-      unit: 'kg',
-      lastUpdated: new Date(),
-      sampleSize: listings.length,
+  /**
+   * Get general market price information for common crops
+   * This provides typical market prices without querying the database
+   * @param crop - Normalized crop name
+   * @param location - Optional location (affects prices)
+   * @returns Price information or null if crop not found
+   */
+  private getGeneralMarketPrice(crop: string, location?: string): CropPriceResponse | null {
+    // General market prices for common crops (₹ per kg)
+    // These are typical Indian market prices and can be updated
+    const cropPrices: Record<string, { min: number; max: number; avg: number; trend: 'up' | 'down' | 'stable' }> = {
+      'tomato': { min: 15, max: 35, avg: 25, trend: 'stable' },
+      'potato': { min: 12, max: 25, avg: 18, trend: 'stable' },
+      'onion': { min: 18, max: 30, avg: 22, trend: 'up' },
+      'wheat': { min: 22, max: 28, avg: 25, trend: 'stable' },
+      'rice': { min: 30, max: 45, avg: 35, trend: 'stable' },
+      'cabbage': { min: 10, max: 20, avg: 15, trend: 'stable' },
+      'cauliflower': { min: 15, max: 30, avg: 22, trend: 'down' },
+      'carrot': { min: 20, max: 35, avg: 28, trend: 'stable' },
+      'brinjal': { min: 18, max: 30, avg: 24, trend: 'stable' },
+      'eggplant': { min: 18, max: 30, avg: 24, trend: 'stable' },
+      'okra': { min: 25, max: 40, avg: 32, trend: 'up' },
+      'ladyfinger': { min: 25, max: 40, avg: 32, trend: 'up' },
+      'spinach': { min: 15, max: 25, avg: 20, trend: 'stable' },
+      'coriander': { min: 20, max: 40, avg: 30, trend: 'stable' },
+      'chilli': { min: 30, max: 60, avg: 45, trend: 'up' },
+      'pepper': { min: 30, max: 60, avg: 45, trend: 'up' },
+      'cucumber': { min: 12, max: 22, avg: 17, trend: 'stable' },
+      'pumpkin': { min: 10, max: 18, avg: 14, trend: 'stable' },
+      'bitter gourd': { min: 20, max: 35, avg: 28, trend: 'stable' },
+      'bottle gourd': { min: 15, max: 25, avg: 20, trend: 'stable' },
+      'beans': { min: 25, max: 40, avg: 32, trend: 'stable' },
+      'peas': { min: 30, max: 50, avg: 40, trend: 'stable' },
+      'corn': { min: 15, max: 25, avg: 20, trend: 'stable' },
+      'maize': { min: 15, max: 25, avg: 20, trend: 'stable' },
+      'sugarcane': { min: 2.5, max: 3.5, avg: 3, trend: 'stable' },
+      'cotton': { min: 50, max: 70, avg: 60, trend: 'stable' },
+      'soybean': { min: 40, max: 55, avg: 48, trend: 'stable' },
+      'groundnut': { min: 50, max: 70, avg: 60, trend: 'stable' },
+      'peanut': { min: 50, max: 70, avg: 60, trend: 'stable' },
     };
+
+    // Try exact match first
+    if (cropPrices[crop]) {
+      const price = cropPrices[crop];
+      return {
+        crop: crop,
+        averagePrice: price.avg,
+        minPrice: price.min,
+        maxPrice: price.max,
+        trend: price.trend,
+        unit: 'kg',
+        lastUpdated: new Date(),
+        sampleSize: 10, // Simulated sample size
+      };
+    }
+
+    // Try partial match
+    for (const [key, price] of Object.entries(cropPrices)) {
+      if (key.includes(crop) || crop.includes(key)) {
+        return {
+          crop: key,
+          averagePrice: price.avg,
+          minPrice: price.min,
+          maxPrice: price.max,
+          trend: price.trend,
+          unit: 'kg',
+          lastUpdated: new Date(),
+          sampleSize: 10,
+        };
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -102,7 +153,7 @@ export class CropPriceHandler {
       `Average: ₹${estimatedRetailPrice} per ${priceData.unit}\n` +
       `Range: ₹${retailMinPrice} - ₹${retailMaxPrice} per ${priceData.unit}\n\n` +
       `📈 Price Trend: ${trendText.toUpperCase()}\n` +
-      `📍 Based on ${priceData.sampleSize} active farmer listings`;
+      `📍 General market prices across India`;
 
     // Translate to user's language if needed
     let responseText = englishText;

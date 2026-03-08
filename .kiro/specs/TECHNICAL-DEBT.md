@@ -1058,3 +1058,384 @@ Maintained By: Development Team
 3. Move completed items to a CHANGELOG.md
 4. Review quarterly to prioritize technical debt
 
+
+
+---
+
+### Produce Category System - Simplified to Fixed 7-Day Expiration
+**Status:** Temporary Simplification  
+**Priority:** Medium (for production)  
+**Added:** 2026-03-05  
+**Description:** The original design included a produce category system with different expiration periods based on perishability (Leafy Greens: 24h, Fruits: 48h, Root Vegetables: 168h, Grains: 672h). This was simplified to a fixed 7-day (168 hours) expiration for all listings to reduce complexity during development.
+
+**Current Implementation:**
+- All listings expire after 7 days regardless of produce type
+- `produce_category_id` field is nullable in database
+- Frontend doesn't collect or send category information
+- Backend defaults to 7-day expiration when no category provided
+- Category manager and seed data still exist but are unused
+
+**Limitations:**
+- Not realistic for highly perishable items (leafy greens should expire in 24h)
+- Not optimal for long-lasting items (grains could last 28 days)
+- Reduces marketplace efficiency (expired listings that are still fresh, or stale listings still active)
+
+**Production Implementation Required:**
+1. **Restore Category Selection in UI:**
+   - Add category dropdown in listing creation form
+   - Map detected produce types to appropriate categories
+   - Show expiry period to farmers when creating listing
+
+2. **Seed Categories in Database:**
+   - Run seed script to populate produce_categories table
+   - Or use `/api/dev/seed-categories` endpoint
+   - Ensure categories exist before enabling category selection
+
+3. **Update Frontend Logic:**
+   - Restore category mapping in `public/listing.html`
+   - Fetch categories from `/api/marketplace/categories`
+   - Send `produceCategoryId` in create listing request
+
+4. **Update Backend Validation:**
+   - Make `produceCategoryId` required again in `CreateListingInput`
+   - Remove default 7-day fallback logic
+   - Enforce category validation
+
+5. **Database Migration:**
+   - Make `produce_category_id` NOT NULL again
+   - Update existing listings with appropriate categories
+   - Add foreign key constraint back
+
+**Benefits of Restoring Category System:**
+- More accurate expiration based on produce perishability
+- Better marketplace experience (fresh produce stays active longer)
+- Farmers can plan better with category-specific expiration
+- Buyers see more relevant active listings
+
+**Implementation Effort:** 1-2 days
+- 2 hours: Seed categories in database
+- 3 hours: Restore frontend category selection
+- 2 hours: Update backend validation
+- 1 hour: Database migration
+- 2 hours: Testing and validation
+
+**Related Files:**
+- `public/listing.html` - Removed category mapping logic
+- `src/features/marketplace/marketplace.service.ts` - Added 7-day default
+- `src/features/marketplace/category-manager.ts` - Unused but functional
+- `src/shared/database/seeds/produce-categories-seed.ts` - Category definitions
+- `src/shared/database/pg-schema.sql` - Made produce_category_id nullable
+- `src/shared/database/sqlite-schema.sql` - Made produce_category_id nullable
+
+**Suggested Category Mapping:**
+```typescript
+const produceToCategoryMap = {
+  // Leafy Greens (24h)
+  'palak': 'Leafy Greens',
+  'methi': 'Leafy Greens',
+  'dhania': 'Leafy Greens',
+  'lettuce': 'Leafy Greens',
+  
+  // Fruits (48h)
+  'tomato': 'Fruits',
+  'apple': 'Fruits',
+  'mango': 'Fruits',
+  'banana': 'Fruits',
+  
+  // Root Vegetables (168h = 7 days)
+  'potato': 'Root Vegetables',
+  'onion': 'Root Vegetables',
+  'garlic': 'Root Vegetables',
+  'carrot': 'Root Vegetables',
+  
+  // Grains (672h = 28 days)
+  'wheat': 'Grains',
+  'rice': 'Grains',
+  'corn': 'Grains',
+  'millet': 'Grains'
+};
+```
+
+---
+
+
+---
+
+### SQLite Disabled for Development - Re-enable for Production
+**Status:** Temporarily Disabled  
+**Priority:** High (before production deployment)  
+**Added:** 2026-03-05  
+**Updated:** 2026-03-05 (Added sync engine disable)  
+**Description:** SQLite and the sync engine have been disabled during development (`ENABLE_SQLITE=false`) to speed up development and avoid sync errors. This means offline mode and local caching are currently unavailable. Both must be re-enabled before production deployment.
+
+**Current State:**
+- SQLite initialization is skipped when `ENABLE_SQLITE=false` in `.env`
+- Sync engine is also disabled when SQLite is off (no sync errors)
+- All operations use PostgreSQL only
+- No offline mode or local caching
+- Faster development iteration (no schema sync issues)
+- Clean console output (no sync engine errors)
+
+**Why Disabled:**
+- Dual-database setup was slowing down development
+- Schema changes required updates in 2 places (PostgreSQL + SQLite)
+- Foreign key mismatches causing sync errors
+- Sync engine errors flooding console logs
+- Extra debugging overhead
+- Not needed for development/testing
+
+**What's Disabled:**
+1. **SQLite Database:**
+   - No local database file created
+   - No offline data storage
+   - No local caching
+
+2. **Sync Engine:**
+   - No PostgreSQL → SQLite propagation
+   - No SQLite → PostgreSQL queue processing
+   - No connection monitoring for sync
+   - Cleaner logs during development
+
+**Production Requirements:**
+SQLite and sync engine are **critical for production** because:
+- Farmers in rural areas have poor/intermittent connectivity
+- Local caching provides faster response times
+- Offline mode allows app to work without internet
+- Resilience to network failures
+- Better user experience in low-connectivity areas
+- Data queuing when offline, sync when online
+
+**Re-enabling Checklist:**
+1. **Update Environment Variable:**
+   - Set `ENABLE_SQLITE=true` in production `.env`
+   - Verify SQLite file path is writable by application
+
+2. **Schema Synchronization:**
+   - Ensure SQLite schema matches PostgreSQL schema
+   - Test schema initialization on fresh database
+   - Verify all tables and indexes are created
+
+3. **Foreign Key Constraints:**
+   - Review and fix foreign key constraints in SQLite
+   - Consider disabling FK enforcement if sync is incomplete
+   - Or ensure proper sync order (users before listings, etc.)
+
+4. **Sync Engine Testing:**
+   - Test sync engine with real data
+   - Verify PostgreSQL → SQLite propagation works
+   - Test SQLite → PostgreSQL queue when offline
+   - Test reconnection and queue processing
+   - Monitor sync queue size and failures
+
+5. **Offline Mode Testing:**
+   - Simulate network disconnection
+   - Verify app continues to work with SQLite
+   - Test data queuing for later sync
+   - Verify sync when connection restored
+
+6. **Performance Testing:**
+   - Monitor sync engine performance
+   - Check for database locking issues
+   - Verify connection pool settings
+   - Test under load with multiple users
+
+**Implementation Steps:**
+
+```typescript
+// 1. Update .env for production
+ENABLE_SQLITE=true
+
+// 2. Verify schema is up to date
+// Check src/shared/database/sqlite-schema.sql matches pg-schema.sql
+
+// 3. Test initialization
+npm run build
+npm start
+// Should see: "✓ SQLite database initialized"
+// Should NOT see: "⚠️  SQLite disabled"
+
+// 4. Test sync engine
+// Create a listing and verify it appears in both databases
+// Check sync queue is processing
+
+// 5. Test offline mode
+// Disconnect network and verify app still works
+```
+
+**Monitoring in Production:**
+- Track sync queue size (should stay near 0)
+- Monitor sync failures and retry attempts
+- Alert on persistent sync failures
+- Log SQLite database size growth
+- Monitor sync engine performance
+
+**Estimated Effort:** 1-2 days
+- 2 hours: Schema review and fixes
+- 4 hours: Sync engine testing and fixes
+- 2 hours: Offline mode testing
+- 2 hours: Performance testing and optimization
+
+**Related Files:**
+- `src/app.ts` - SQLite initialization with ENABLE_SQLITE flag
+- `src/shared/database/db-abstraction.ts` - Sync engine start/stop logic
+- `.env` - ENABLE_SQLITE=false (development)
+- `.env.example` - Documentation for ENABLE_SQLITE
+- `src/shared/database/sqlite-config.ts` - SQLite initialization
+- `src/shared/database/sync-engine.ts` - Sync logic
+
+**Code Changes Made:**
+```typescript
+// src/app.ts - Skip SQLite initialization
+const enableSQLite = process.env.ENABLE_SQLITE !== 'false';
+if (enableSQLite) {
+  await openSQLiteDB();
+  await initializeSQLiteSchema();
+} else {
+  console.log('⚠️  SQLite disabled - offline mode unavailable');
+}
+
+// src/shared/database/db-abstraction.ts - Skip sync engine start
+async start(): Promise<void> {
+  await this.connectionMonitor.start();
+  const enableSQLite = process.env.ENABLE_SQLITE !== 'false';
+  if (enableSQLite) {
+    this.syncEngine.start();
+  }
+}
+```
+
+**Alternative Approach (if sync issues persist):**
+If sync engine continues to cause issues in production:
+1. Use SQLite as read-only cache
+2. Only sync from PostgreSQL → SQLite (one-way)
+3. All writes go directly to PostgreSQL
+4. Periodic full refresh of SQLite from PostgreSQL
+5. Simpler but loses offline write capability
+
+---
+
+### Success Popups Removed - Delete Confirmations Retained
+**Status:** ✅ Fixed  
+**Priority:** Medium  
+**Added:** 2026-03-05  
+**Description:** Removed all success and informational alert() popups from listing.html and profile.html to improve user experience. Only delete confirmation dialogs are retained as they prevent accidental data loss.
+
+**Changes Made:**
+
+**listing.html:**
+- Removed logout success alert (redirects immediately)
+- Removed "Please login first" alerts (silent fail)
+- Removed "Please select a listing first" alerts (silent fail)
+- Removed "Please select files to upload" alert (silent fail)
+- Removed "Media uploaded successfully!" alert (silent success)
+- Removed "Failed to upload media" alert (console.error instead)
+- Removed "Failed to set primary media" alert (console.error instead)
+- Removed "Failed to delete media" alert (console.error instead)
+- Removed "Listing deleted successfully" alert (silent success)
+- Removed "Error loading listing" alert (console.error instead)
+- Removed "Certificate added to listing successfully!" alert (silent success)
+- Removed "Failed to add certificate" alert (console.error instead)
+- Removed "No certificate available" alerts (silent fail)
+- Removed "Failed to download certificate" alert (console.error instead)
+- Removed "Failed to view certificate" alert (console.error instead)
+- Replaced harvest date validation alerts with inline error messages using showResult()
+- **KEPT:** Delete listing confirmation dialog
+- **KEPT:** Delete media confirmation dialog
+
+**profile.html:**
+- Replaced geolocation alerts with inline error messages using showResult()
+- "Geolocation not supported" now shows in result div instead of alert
+
+**Benefits:**
+- Cleaner, less intrusive user experience
+- No popup interruptions during normal workflow
+- Errors logged to console for debugging
+- Validation errors shown inline where relevant
+- Delete confirmations prevent accidental data loss
+
+**User Experience:**
+- Success operations complete silently (no interruption)
+- Validation errors appear inline in result divs
+- Critical operations (delete) still require confirmation
+- Failed operations log to console for developer debugging
+
+**Related Files:**
+- `public/listing.html` - Removed 15+ alert() calls, kept 2 confirm() calls
+- `public/profile.html` - Replaced 2 alert() calls with showResult()
+
+**Testing:**
+- Verify listing creation completes without popup
+- Verify media upload completes without popup
+- Verify logout redirects without popup
+- Verify delete operations still show confirmation
+- Verify harvest date validation shows inline errors
+- Verify geolocation errors show inline
+
+---
+
+### Pre-Harvest Listing Expiry Logic Implemented
+**Status:** ✅ Fixed  
+**Priority:** High  
+**Added:** 2026-03-05  
+**Description:** Implemented proper expiry calculation for pre-harvest listings. When a farmer selects a future harvest date (up to 7 days), the listing is marked as PRE_HARVEST and expires 7 days after the harvest date, not 7 days from creation.
+
+**Changes Made:**
+
+**Backend (marketplace.service.ts):**
+- Updated `createListing()` to determine listing type based on harvest date
+- If `expectedHarvestDate` is provided and in the future → PRE_HARVEST
+- If no harvest date or current date → POST_HARVEST
+- Added validation: harvest date must be within 7 days in the future
+- Expiry date calculation: Always 7 days (168 hours) after harvest date
+  - POST_HARVEST: 7 days from today
+  - PRE_HARVEST: 7 days from future harvest date
+- Enhanced logging to show listing type, harvest date, and expiry date
+
+**Frontend (listing.html):**
+- Updated `createListing()` to send harvest date and listing type to backend
+- Added validation to require harvest date when "Already harvested" is unchecked
+- Sends `listingType: 'POST_HARVEST'` when already harvested
+- Sends `listingType: 'PRE_HARVEST'` and `expectedHarvestDate` when future date selected
+- Clears harvest date field after successful listing creation
+
+**Business Logic:**
+- **POST_HARVEST (Already harvested):**
+  - Harvest date = today
+  - Expiry date = today + 7 days
+  - Listing active immediately
+  
+- **PRE_HARVEST (Future harvest):**
+  - Harvest date = selected future date (up to 7 days)
+  - Expiry date = harvest date + 7 days
+  - Listing active immediately but produce not yet harvested
+  - Example: Harvest on March 12 → Expires on March 19
+
+**Benefits:**
+- Accurate expiry dates for pre-harvest listings
+- Farmers can list produce before harvest
+- Buyers can see upcoming produce availability
+- Automatic expiry 7 days after harvest regardless of listing type
+
+**Example Scenarios:**
+1. **POST_HARVEST (Today is March 5):**
+   - Created: March 5
+   - Harvest: March 5
+   - Expires: March 12
+
+2. **PRE_HARVEST (Today is March 5, Harvest on March 12):**
+   - Created: March 5
+   - Harvest: March 12
+   - Expires: March 19 (7 days after harvest)
+
+**Related Files:**
+- `src/features/marketplace/marketplace.service.ts` - Backend expiry calculation
+- `public/listing.html` - Frontend harvest date handling
+- `src/features/marketplace/marketplace.controller.ts` - Already handles expectedHarvestDate
+
+**Testing:**
+- Create POST_HARVEST listing → verify expiry is 7 days from today
+- Create PRE_HARVEST listing with future date → verify expiry is 7 days after harvest date
+- Verify validation prevents harvest dates more than 7 days in future
+- Verify validation prevents harvest dates in the past
+
+---

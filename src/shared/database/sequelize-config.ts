@@ -13,6 +13,12 @@ const sequelize = new Sequelize({
   username: process.env.POSTGRES_USER || 'postgres',
   password: process.env.POSTGRES_PASSWORD || '',
   logging: false, // Disable SQL query logging
+  dialectOptions: {
+    ssl: process.env.DB_SSL === 'true' ? {
+      require: true,
+      rejectUnauthorized: false // For AWS RDS
+    } : false
+  },
   pool: {
     max: 10,
     min: 2,

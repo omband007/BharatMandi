@@ -7,36 +7,44 @@ import * as crypto from 'crypto';
 import sharp from 'sharp';
 import { THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, IMAGE_COMPRESSION_QUALITY, SIGNED_URL_EXPIRATION } from './media.constants';
 import type { MediaType } from './media.types';
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { getEnvironmentConfig } from '../../config/environment';
 
-// AWS S3 configuration (requires @aws-sdk/client-s3 and @aws-sdk/s3-request-presigner)
-// TODO: Install dependencies: npm install @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
-// import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-// import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+const config = getEnvironmentConfig();
 
 export class StorageService {
-  private s3Client: any; // S3Client when AWS SDK is installed
+  private s3Client: S3Client | null;
   private bucketName: string;
   private localStoragePath: string;
+  private useS3: boolean;
 
   constructor() {
-    this.bucketName = process.env.AWS_S3_BUCKET || 'bharat-mandi-media';
+    this.useS3 = config.aws.s3.useS3ForListings;
+    this.bucketName = config.aws.s3.listingsBucket;
     this.localStoragePath = process.env.LOCAL_MEDIA_PATH || path.join(__dirname, '../../../data/media');
     
-    // Initialize S3 client (when AWS SDK is installed)
-    // this.s3Client = new S3Client({
-    //   region: process.env.AWS_REGION || 'us-east-1',
-    //   credentials: {
-    //     accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    //     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || ''
-    //   }
-    // });
+    // Initialize S3 client if S3 is enabled
+    if (this.useS3) {
+      this.s3Client = new S3Client({
+        region: config.aws.region,
+        credentials: {
+          accessKeyId: config.aws.accessKeyId,
+          secretAccessKey: config.aws.secretAccessKey
+        }
+      });
+      console.log(`✓ S3 storage enabled: ${this.bucketName}`);
+    } else {
+      this.s3Client = null;
+      console.log('✓ Local storage enabled (S3 disabled)');
+    }
 
     // Ensure local storage directory exists
     this.ensureLocalStorageDirectory();
   }
 
   /**
-   * Upload file to cloud storage (AWS S3)
+   * Upload file to cloud storage (AWS S3) or local storage
    * @param file - File buffer
    * @param key - Storage key (path)
    * @param mimeType - File MIME type
@@ -44,45 +52,49 @@ export class StorageService {
    */
   async uploadFile(file: Buffer, key: string, mimeType: string): Promise<string> {
     try {
-      // TODO: Implement S3 upload when AWS SDK is installed
-      // const command = new PutObjectCommand({
-      //   Bucket: this.bucketName,
-      //   Key: key,
-      //   Body: file,
-      //   ContentType: mimeType
-      // });
-      // await this.s3Client.send(command);
-      // return `https://${this.bucketName}.s3.amazonaws.com/${key}`;
-
-      // Fallback to local storage for development
-      console.warn('AWS S3 not configured, using local storage');
-      return await this.uploadToLocal(file, key);
+      if (this.useS3 && this.s3Client) {
+        // Upload to S3
+        const command = new PutObjectCommand({
+          Bucket: this.bucketName,
+          Key: key,
+          Body: file,
+          ContentType: mimeType
+        });
+        await this.s3Client.send(command);
+        
+        // Return S3 URL
+        return `https://${this.bucketName}.s3.${config.aws.region}.amazonaws.com/${key}`;
+      } else {
+        // Fallback to local storage
+        return await this.uploadToLocal(file, key);
+      }
     } catch (error) {
-      console.error('Error uploading file to S3:', error);
-      throw new Error('Failed to upload file to cloud storage');
+      console.error('Error uploading file:', error);
+      throw new Error('Failed to upload file');
     }
   }
 
   /**
-   * Delete file from cloud storage (AWS S3)
+   * Delete file from cloud storage (AWS S3) or local storage
    * @param key - Storage key (path)
    * @returns Success boolean
    */
   async deleteFile(key: string): Promise<boolean> {
     try {
-      // TODO: Implement S3 delete when AWS SDK is installed
-      // const command = new DeleteObjectCommand({
-      //   Bucket: this.bucketName,
-      //   Key: key
-      // });
-      // await this.s3Client.send(command);
-      // return true;
-
-      // Fallback to local storage for development
-      console.warn('AWS S3 not configured, using local storage');
-      return await this.deleteFromLocal(key);
+      if (this.useS3 && this.s3Client) {
+        // Delete from S3
+        const command = new DeleteObjectCommand({
+          Bucket: this.bucketName,
+          Key: key
+        });
+        await this.s3Client.send(command);
+        return true;
+      } else {
+        // Fallback to local storage
+        return await this.deleteFromLocal(key);
+      }
     } catch (error) {
-      console.error('Error deleting file from S3:', error);
+      console.error('Error deleting file:', error);
       return false;
     }
   }
@@ -100,15 +112,23 @@ export class StorageService {
         return urlOrKey;
       }
       
-      // TODO: Implement signed URL generation when AWS SDK is installed
-      // const command = new GetObjectCommand({
-      //   Bucket: this.bucketName,
-      //   Key: urlOrKey
-      // });
-      // return await getSignedUrl(this.s3Client, command, { expiresIn });
-
-      // For S3 keys (relative paths), convert to URL path for local development
-      return `/data/media/${urlOrKey.replace(/\\/g, '/')}`;
+      // If it's an S3 URL, extract the key
+      if (urlOrKey.startsWith('https://')) {
+        // For S3 URLs, they're already public (we configured public read access)
+        return urlOrKey;
+      }
+      
+      if (this.useS3 && this.s3Client) {
+        // Generate signed URL for S3
+        const command = new GetObjectCommand({
+          Bucket: this.bucketName,
+          Key: urlOrKey
+        });
+        return await getSignedUrl(this.s3Client, command, { expiresIn });
+      } else {
+        // For local storage, convert to URL path
+        return `/data/media/${urlOrKey.replace(/\\/g, '/')}`;
+      }
     } catch (error) {
       console.error('Error generating signed URL:', error);
       throw new Error('Failed to generate signed URL');

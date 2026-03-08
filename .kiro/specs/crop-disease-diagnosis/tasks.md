@@ -13,7 +13,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
 ## Tasks
 
 - [ ] 1. Phase 1: Core Infrastructure Setup (Week 1-2)
-  - [ ] 1.1 Set up AWS S3 bucket for crop diagnosis images
+  - [x] 1.1 Set up AWS S3 bucket for crop diagnosis images
     - Create S3 bucket `bharat-mandi-crop-diagnosis` in ap-southeast-2 region
     - Configure server-side AES-256 encryption
     - Set up lifecycle policy for 2-year retention
@@ -21,14 +21,14 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - Create IAM policies for service access
     - _Requirements: 1.6, 14.2_
 
-  - [ ] 1.2 Create MongoDB schema and indexes for diagnosis records
+  - [x] 1.2 Create MongoDB schema and indexes for diagnosis records
     - Define DiagnosisRecord schema with all required fields (userId, imageUrl, diagnosis, remedies, confidence, timestamps)
     - Create compound indexes: (userId, createdAt), (diagnosis.cropType), (expertReview.required, expertReview.reviewedAt)
     - Add soft delete support with deletedAt field
     - Set up 2-year TTL index for automatic cleanup
     - _Requirements: 7.1, 7.2, 7.3_
 
-  - [ ] 1.3 Implement Image Validator service
+  - [x] 1.3 Implement Image Validator service
     - Create ImageValidator class with validateImage(), compressImage(), uploadToS3() methods
     - Implement format validation (JPEG, PNG, WebP only)
     - Implement size validation (100KB - 10MB)
@@ -46,7 +46,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Validates: Requirements 1.1, 1.2, 1.4, 1.5**
 
 
-  - [ ] 1.5 Implement S3 image upload and storage service
+  - [x] 1.5 Implement S3 image upload and storage service
     - Create S3Service class with uploadImage(), generatePresignedUrl(), deleteImage() methods
     - Implement image compression to max 5MB using sharp (maintain quality)
     - Generate unique S3 keys: `diagnoses/{userId}/{diagnosisId}/{timestamp}.jpg`
@@ -60,7 +60,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 46: Image Compression** - Images compressed to ≤5MB
     - **Validates: Requirements 1.6, 1.7, 12.4**
 
-  - [ ] 1.7 Create Diagnosis API controller with authentication
+  - [x] 1.7 Create Diagnosis API controller with authentication
     - Create DiagnosisController with POST /api/diagnosis endpoint
     - Integrate existing JWT authentication middleware
     - Implement multipart/form-data parsing for image uploads
@@ -76,18 +76,18 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - Test error response formatting
     - _Requirements: 14.3, 14.7_
 
-- [ ] 2. Checkpoint - Core infrastructure complete
+- [x] 2. Checkpoint - Core infrastructure complete
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 3. Phase 2: Nova Pro Integration (Week 2-3)
-  - [ ] 3.1 Set up Bedrock client with region-specific configuration
+  - [x] 3.1 Set up Bedrock client with region-specific configuration
     - Create BedrockService with region mapping (Nova models → us-east-1)
     - Implement client pooling for reusable BedrockRuntimeClient instances
     - Configure AWS credentials and region selection
     - Add timeout configuration (2000ms)
     - _Requirements: 2.1, 2.4_
 
-  - [ ] 3.2 Implement Nova Vision Service for image analysis
+  - [x] 3.2 Implement Nova Vision Service for image analysis
     - Create NovaVisionService class with analyzeImage() method
     - Implement Converse API integration with multimodal content (image + text)
     - Design structured prompt for consistent JSON responses
@@ -96,7 +96,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - Extract cropType, diseases array, symptoms, confidence, imageQuality
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.7_
 
-  - [ ] 3.3 Implement retry logic with exponential backoff
+  - [x] 3.3 Implement retry logic with exponential backoff
     - Create retryWithBackoff utility function
     - Configure retry for throttling, network errors, timeouts
     - Implement exponential backoff (500ms base, 5s max, 2x multiplier)
@@ -110,7 +110,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 12: Confidence Display Format** - Integer percentage format
     - **Validates: Requirements 2.2, 2.3, 2.7, 3.1, 3.4**
 
-  - [ ] 3.5 Implement confidence scoring algorithm
+  - [x] 3.5 Implement confidence scoring algorithm
     - Create ConfidenceScorer class with calculateOverallConfidence() method
     - Adjust confidence based on image quality (excellent: 1.0, good: 0.95, fair: 0.85, poor: 0.70)
     - Reduce confidence for multiple diseases (>1: 0.90x, >2: 0.85x)
@@ -124,7 +124,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 14: Image Quality Impact** - Lower quality = lower confidence
     - **Validates: Requirements 3.2, 3.3, 3.5, 3.6**
 
-  - [ ] 3.7 Implement error handling for Bedrock API
+  - [x] 3.7 Implement error handling for Bedrock API
     - Define DiagnosisErrorCode enum with all error types
     - Create error response format with code, message, details, retryable flag
     - Handle throttling, timeout, network errors
@@ -140,11 +140,11 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - Test error response format
     - _Requirements: 1.5, 2.4_
 
-- [ ] 4. Checkpoint - Nova Pro integration complete
+- [x] 4. Checkpoint - Nova Pro integration complete
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 5. Phase 3: Remedy Generation (Week 3-4)
-  - [ ] 5.1 Create disease-remedy knowledge base
+  - [x] 5.1 Create disease-remedy knowledge base
     - Design JSON structure for disease-remedy mappings
     - Include chemical remedies (genericName, brandNames, dosage, applicationMethod, frequency, preHarvestInterval, safetyPrecautions)
     - Include organic remedies (name, ingredients, preparation, applicationMethod, frequency, effectiveness)
@@ -153,7 +153,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - Organize by disease type (fungal, bacterial, viral, pest, nutrient_deficiency)
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 5.1, 5.2, 5.3, 5.4, 6.1_
 
-  - [ ] 5.2 Implement Remedy Generator service
+  - [x] 5.2 Implement Remedy Generator service
     - Create RemedyGenerator class with generateRemedies() method
     - Load knowledge base from JSON files
     - Match diseases to remedies based on disease name and crop type
@@ -168,7 +168,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 20: Preventive Measure Categories** - At least 2 different categories
     - **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2**
 
-  - [ ] 5.4 Implement regional customization logic
+  - [x] 5.4 Implement regional customization logic
     - Add region-specific remedy filtering based on location.state
     - Include regional product availability
     - Add seasonal guidance based on current date
@@ -181,7 +181,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 41: Growth Stage Customization** - Recommendations tailored to growth stage
     - **Validates: Requirements 11.1, 11.2, 11.3, 11.4, 11.5**
 
-  - [ ] 5.6 Integrate translation pipeline for remedies
+  - [x] 5.6 Integrate translation pipeline for remedies
     - Import existing translationService from i18n module
     - Implement batch translation for efficiency
     - Translate disease names, remedy instructions, preventive measures
@@ -195,17 +195,17 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 29: Language Switching** - New requests use new language
     - **Validates: Requirements 8.2, 8.3, 8.4, 8.5**
 
-- [ ] 6. Checkpoint - Remedy generation complete
+- [x] 6. Checkpoint - Remedy generation complete
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 7. Phase 4: Expert Escalation (Week 4-5)
-  - [ ] 7.1 Create Expert Review Request schema
+  - [x] 7.1 Create Expert Review Request schema
     - Define ExpertReviewRequest schema in MongoDB
     - Include fields: diagnosisId, userId, imageUrl, aiDiagnosis, aiRemedies, status, assignedTo, timestamps
     - Create indexes: (status, createdAt), (assignedTo, status)
     - _Requirements: 10.1, 10.3_
 
-  - [ ] 7.2 Implement Expert Escalation Service
+  - [x] 7.2 Implement Expert Escalation Service
     - Create ExpertEscalationService class with createReviewRequest() method
     - Automatically create review request when confidence <80%
     - Set status to 'pending' on creation
@@ -217,7 +217,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 35: Review Request Completeness** - Contains all required fields
     - **Validates: Requirements 10.1, 10.3**
 
-  - [ ] 7.4 Implement expert notification system
+  - [x] 7.4 Implement expert notification system
     - Create notification service for multi-channel alerts (SMS, email, push)
     - Send notifications to available experts when review request created
     - Implement expert assignment logic (round-robin or availability-based)
@@ -228,7 +228,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 34: Expert Notification** - At least one notification sent
     - **Validates: Requirements 10.2**
 
-  - [ ] 7.6 Implement expert review submission
+  - [x] 7.6 Implement expert review submission
     - Create submitReview() method in ExpertEscalationService
     - Allow experts to modify diagnosis, remedies, or both
     - Update DiagnosisRecord with expert review data
@@ -241,7 +241,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 38: Expert Review Badge** - reviewedAt field populated
     - **Validates: Requirements 10.5, 10.6**
 
-  - [ ] 7.8 Implement farmer notification on review completion
+  - [x] 7.8 Implement farmer notification on review completion
     - Send notification to farmer when expert completes review
     - Include summary of expert findings
     - Provide link to view updated diagnosis
@@ -251,11 +251,11 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 36: Farmer Notification on Review** - Notification sent when completed
     - **Validates: Requirements 10.4**
 
-- [ ] 8. Checkpoint - Expert escalation complete
+- [x] 8. Checkpoint - Expert escalation complete
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 9. Phase 5: History & Caching (Week 5-6)
-  - [ ] 9.1 Implement Diagnosis History Manager
+  - [x] 9.1 Implement Diagnosis History Manager
     - Create HistoryManager class with saveDiagnosis(), getDiagnosis(), getUserHistory() methods
     - Implement saveDiagnosis() to store complete diagnosis record in MongoDB
     - Implement getDiagnosis() to retrieve by diagnosisId
@@ -272,7 +272,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 26: History Filtering** - Filters work correctly
     - **Validates: Requirements 7.1, 7.2, 7.3, 7.4, 7.6, 7.7**
 
-  - [ ] 9.3 Implement diagnosis deletion with soft delete
+  - [x] 9.3 Implement diagnosis deletion with soft delete
     - Create deleteDiagnosis() method in HistoryManager
     - Implement soft delete by setting deletedAt timestamp
     - Schedule S3 image deletion within 24 hours
@@ -283,14 +283,14 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 54: Diagnosis Deletion Completeness** - Both MongoDB and S3 marked for deletion
     - **Validates: Requirements 14.5, 14.6**
 
-  - [ ] 9.5 Set up Redis caching layer
+  - [x] 9.5 Set up Redis caching layer
     - Install and configure Redis client
     - Create CacheService class with get(), set(), delete() methods
     - Implement 24-hour TTL for cached diagnoses
     - Track cache hit count for metrics
     - _Requirements: 12.3_
 
-  - [ ] 9.6 Implement image hashing for cache keys
+  - [x] 9.6 Implement image hashing for cache keys
     - Create generateImageHash() function using SHA-256
     - Use first 16 characters of hash as cache key
     - Implement getCachedDiagnosis() and cacheDiagnosis() methods
@@ -301,7 +301,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 45: Cache Hit for Similar Images** - Identical images return cached results
     - **Validates: Requirements 12.3**
 
-  - [ ] 9.8 Implement history API endpoints
+  - [x] 9.8 Implement history API endpoints
     - Create GET /api/diagnosis/history endpoint with pagination
     - Create GET /api/diagnosis/:id endpoint for single diagnosis
     - Create DELETE /api/diagnosis/:id endpoint for deletion
@@ -320,7 +320,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 11. Phase 6: Integration & Testing (Week 6-7)
-  - [ ] 11.1 Integrate with Kisan Mitra chat service
+  - [x] 11.1 Integrate with Kisan Mitra chat service
     - Import existing kisanMitraService
     - Implement addContext() to share diagnosis context with chat
     - Pass diagnosisId, cropType, diseases, confidence to chat
@@ -333,7 +333,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 58: Language Consistency** - Same language in diagnosis and chat
     - **Validates: Requirements 15.2, 15.3, 15.6**
 
-  - [ ] 11.3 Implement end-to-end diagnosis flow
+  - [x] 11.3 Implement end-to-end diagnosis flow
     - Wire all components together: Controller → Validator → S3 → Nova → Remedies → History
     - Implement main diagnose() method in DiagnosisService
     - Handle all error cases with appropriate responses
@@ -348,21 +348,23 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - Test error scenarios (invalid image, Bedrock failure, etc.)
     - _Requirements: All core requirements_
 
-  - [ ] 11.5 Implement offline queue for network resilience
+  - [ ]* 11.5 Implement offline queue for network resilience (FUTURE)
     - Create upload queue for failed requests
     - Store images locally until upload succeeds
     - Implement automatic retry on connectivity restoration
     - Display upload status indicators
     - Notify farmer after 3 failed attempts
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5_
+    - **NOTE: Marked for future implementation per user request**
 
-  - [ ]* 11.6 Write property tests for offline capability
+  - [ ]* 11.6 Write property tests for offline capability (FUTURE)
     - **Property 49: Upload Retry Queue** - Failed uploads queued
     - **Property 50: Automatic Upload Resumption** - Auto-resume on connectivity
     - **Property 51: Retry Limit Notification** - Notify after 3 failures
     - **Validates: Requirements 13.1, 13.3, 13.5**
+    - **NOTE: Marked for future implementation per user request**
 
-  - [ ] 11.7 Implement comprehensive error handling
+  - [~] 11.7 Implement comprehensive error handling
     - Add error handlers for all error categories (client, server, business logic)
     - Return consistent error response format
     - Include retryable flag and retry guidance
@@ -379,7 +381,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 13. Phase 7: Optimization & Launch (Week 7-8)
-  - [ ] 13.1 Implement cost tracking and monitoring
+  - [~] 13.1 Implement cost tracking and monitoring
     - Create cost calculation for each diagnosis (Bedrock + S3 + MongoDB + Translation)
     - Log cost metrics to CloudWatch
     - Set up alerts for costs exceeding ₹1 threshold
@@ -391,7 +393,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 47: Cost Alert Trigger** - Alert logged when exceeding ₹1
     - **Validates: Requirements 12.1, 12.5**
 
-  - [ ] 13.3 Optimize token usage for Bedrock API
+  - [~] 13.3 Optimize token usage for Bedrock API
     - Refine prompts to minimize response tokens
     - Use structured output format (JSON)
     - Remove unnecessary verbose instructions
@@ -402,7 +404,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 44: Token Optimization** - Prompts minimize response tokens
     - **Validates: Requirements 12.2**
 
-  - [ ] 13.5 Implement performance monitoring
+  - [~] 13.5 Implement performance monitoring
     - Track end-to-end response time for each diagnosis
     - Calculate p95 and p99 percentiles
     - Monitor each stage: upload, validation, analysis, remedy, storage
@@ -414,7 +416,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 48: End-to-End Performance** - Total time ≤3000ms at p95
     - **Validates: Requirements 2.4, 12.6**
 
-  - [ ] 13.7 Implement security measures
+  - [~] 13.7 Implement security measures
     - Verify TLS 1.3 encryption for all API calls
     - Verify S3 server-side encryption enabled
     - Implement rate limiting enforcement
@@ -427,7 +429,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 55: Rate Limiting** - Reject after 10 requests/hour
     - **Validates: Requirements 14.2, 14.3, 14.7**
 
-  - [ ] 13.9 Create deployment configuration
+  - [~] 13.9 Create deployment configuration
     - Set up environment variables for production
     - Configure AWS credentials and regions
     - Set up MongoDB connection strings
@@ -435,7 +437,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - Set up CloudWatch logging and metrics
     - _Requirements: All_
 
-  - [ ] 13.10 Write deployment documentation
+  - [~] 13.10 Write deployment documentation
     - Document environment setup steps
     - Document AWS resource requirements
     - Document MongoDB schema setup
@@ -443,7 +445,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - Document monitoring and alerting setup
     - _Requirements: All_
 
-  - [ ] 13.11 Conduct load testing
+  - [~] 13.11 Conduct load testing
     - Simulate 100 concurrent diagnosis requests
     - Measure response times under load
     - Verify system stability
