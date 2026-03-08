@@ -52,7 +52,9 @@ export class S3Service {
   constructor() {
     const config = getEnvironmentConfig();
     
-    // Initialize S3 client if credentials are available
+    // Initialize S3 client
+    // If explicit credentials are provided, use them (local development)
+    // Otherwise, use default credential chain (IAM role on EC2, environment variables, etc.)
     if (config.aws.accessKeyId && config.aws.secretAccessKey) {
       this.s3Client = new S3Client({
         region: config.aws.region,
@@ -60,6 +62,11 @@ export class S3Service {
           accessKeyId: config.aws.accessKeyId,
           secretAccessKey: config.aws.secretAccessKey
         }
+      });
+    } else {
+      // Use default credential provider chain (IAM role, environment variables, etc.)
+      this.s3Client = new S3Client({
+        region: config.aws.region
       });
     }
     
