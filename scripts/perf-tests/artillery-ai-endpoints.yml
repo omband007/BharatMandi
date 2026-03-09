@@ -1,0 +1,248 @@
+# Artillery Load Test Configuration - AI Endpoints Focus
+# Tests the core AI-powered features of Bharat Mandi
+#
+# Features tested:
+# - Dr. Fasal (Crop Disease Diagnosis) - POST /api/diagnosis
+# - Fasal-Parakh (Produce Grading) - POST /api/grading/grade-with-image
+# - Kisan Mitra (AI Assistant) - POST /api/kisan-mitra/query
+# - Voice Services - POST /api/voice/synthesize, POST /api/voice/transcribe
+# - Translation - POST /api/i18n/translate
+#
+# Target: AWS EC2 deployment (http://13.236.3.139:3000)
+
+config:
+  target: "http://13.236.3.139:3000"
+  phases:
+    # Phase 1: Warm-up - Initialize AI services
+    - duration: 120
+      arrivalRate: 2
+      name: "Warm-up AI Services"
+    
+    # Phase 2: Normal Load - Typical farmer usage
+    - duration: 180
+      arrivalRate: 5
+      name: "Normal AI Usage"
+    
+    # Phase 3: Peak Load - High activity period
+    - duration: 180
+      arrivalRate: 10
+      name: "Peak AI Usage"
+    
+    # Phase 4: Stress Test - Maximum capacity
+    - duration: 120
+      arrivalRate: 15
+      name: "AI Stress Test"
+
+  processor: "./artillery-ai-processor.js"
+  
+  # Payload configuration for test data
+  payload:
+    path: "./test-data/sample-crops.csv"
+    fields:
+      - "cropType"
+      - "language"
+      - "query"
+    skipHeader: true
+    order: "sequence"
+  
+  # Performance thresholds
+  ensure:
+    # AI endpoints are expected to be slower due to AWS Bedrock/Nova processing
+    # Diagnosis: 3-8 seconds (Nova Pro vision analysis)
+    # Grading: 2-5 seconds (Nova Pro vision analysis)
+    # Kisan Mitra: 1-3 seconds (Bedrock Claude/Nova text)
+    # Voice: 0.5-2 seconds (Polly TTS)
+    # Translation: 0.3-1 second (Translate API)
+    
+    # Overall metrics
+    - http.response_time.p95: 10000  # 10 seconds for P95 (AI processing)
+    - http.response_time.p99: 15000  # 15 seconds for P99
+    - http.response_time.max: 30000  # 30 seconds max
+    
+    # Success rate
+    - http.response_time.median: 5000  # 5 seconds median
+    - http.codes.200: 70  # At least 70% success (some may fail due to rate limits)
+    - http.codes.201: 20  # Diagnosis creates return 201
+
+  # Variables for test scenarios
+  variables:
+    testUserId: "perf-test-user-{{ $randomNumber() }}"
+    testFarmerId: "perf-test-farmer-{{ $randomNumber() }}"
+
+scenarios:
+  # Scenario 1: Dr. Fasal - Crop Disease Diagnosis (30% weight)
+  # Most compute-intensive - uses Nova Pro vision model
+  - name: "Dr. Fasal - Disease Diagnosis"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/diagnosis/test"
+          headers:
+            Content-Type: "multipart/form-data"
+          beforeRequest: "prepareImageUpload"
+          formData:
+            image: "@./test-data/sample-crop-disease.jpg"
+            cropType: "{{ cropType }}"
+            language: "{{ language }}"
+            location: '{"latitude": 19.0760, "longitude": 72.8777, "state": "Maharashtra"}'
+          capture:
+            - json: "$.data.diagnosisId"
+              as: "diagnosisId"
+            - json: "$.data.confidence"
+              as: "confidence"
+          expect:
+            - statusCode: 201
+            - contentType: json
+            - hasProperty: "data.diagnosisId"
+            - hasProperty: "data.diseases"
+            - hasProperty: "data.remedies"
+      
+      # Follow-up: Get diagnosis history
+      - think: 2
+      - get:
+          url: "/api/diagnosis/history"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          qs:
+            limit: 10
+
+  # Scenario 2: Fasal-Parakh - Produce Grading (25% weight)
+  # Compute-intensive - uses Nova Pro vision model
+  - name: "Fasal-Parakh - Produce Grading"
+    weight: 25
+    flow:
+      - post:
+          url: "/api/grading/grade-with-image"
+          headers:
+            Content-Type: "multipart/form-data"
+          beforeRequest: "prepareGradingImage"
+          formData:
+            image: "@./test-data/sample-produce.jpg"
+            farmerId: "{{ testFarmerId }}"
+            produceType: "{{ cropType }}"
+            lat: "19.0760"
+            lng: "72.8777"
+            autoDetect: "true"
+          capture:
+            - json: "$.certificate.certificateId"
+              as: "certificateId"
+            - json: "$.gradingResult.grade"
+              as: "grade"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: "gradingResult"
+            - hasProperty: "certificate"
+            - hasProperty: "analysis"
+      
+      # Follow-up: Get certificates
+      - think: 1
+      - get:
+          url: "/api/grading/certificates"
+          qs:
+            farmerId: "{{ testFarmerId }}"
+
+  # Scenario 3: Kisan Mitra - AI Assistant (20% weight)
+  # Moderate compute - uses Bedrock Claude or Nova
+  - name: "Kisan Mitra - AI Assistant"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/kisan-mitra/query"
+          json:
+            userId: "{{ testUserId }}"
+            query: "{{ query }}"
+            language: "{{ language }}"
+          capture:
+            - json: "$.sessionId"
+              as: "sessionId"
+            - json: "$.intent"
+              as: "intent"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: "text"
+            - hasProperty: "intent"
+      
+      # Follow-up question in same session
+      - think: 3
+      - post:
+          url: "/api/kisan-mitra/query"
+          json:
+            userId: "{{ testUserId }}"
+            sessionId: "{{ sessionId }}"
+            query: "Tell me more about that"
+            language: "{{ language }}"
+
+  # Scenario 4: Voice Services (15% weight)
+  # Light compute - uses AWS Polly
+  - name: "Voice Services - TTS and STT"
+    weight: 15
+    flow:
+      # Text-to-Speech
+      - post:
+          url: "/api/voice/synthesize"
+          json:
+            text: "नमस्ते किसान भाई, आपकी फसल की जानकारी"
+            language: "hi"
+            speed: 1.0
+          capture:
+            - json: "$.audioUrl"
+              as: "audioUrl"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: "audioUrl"
+      
+      - think: 1
+      
+      # Speech-to-Text (if audio available)
+      - post:
+          url: "/api/voice/transcribe"
+          headers:
+            Content-Type: "multipart/form-data"
+          beforeRequest: "prepareAudioUpload"
+          formData:
+            audio: "@./test-data/sample-audio.mp3"
+            language: "hi"
+          expect:
+            - statusCode: 200
+            - contentType: json
+
+  # Scenario 5: Translation API (10% weight)
+  # Light compute - uses AWS Translate
+  - name: "Translation Services"
+    weight: 10
+    flow:
+      - post:
+          url: "/api/i18n/translate"
+          json:
+            text: "Your crop is healthy and ready for harvest"
+            targetLanguage: "{{ language }}"
+            sourceLanguage: "en"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: "translatedText"
+      
+      # Batch translation
+      - think: 1
+      - post:
+          url: "/api/i18n/translate/batch"
+          json:
+            texts:
+              - "Good morning farmer"
+              - "Check your crop health"
+              - "Market prices updated"
+            targetLanguage: "{{ language }}"
+            sourceLanguage: "en"
+          expect:
+            - statusCode: 200
+            - contentType: json
+
+# Custom metrics to track
+plugins:
+  expect: {}
+  metrics-by-endpoint:
+    stripQueryString: true
+    ignoreUnknownEndpoints: false
