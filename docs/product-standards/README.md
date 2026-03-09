@@ -2,11 +2,23 @@
 
 Quality standards, best practices, and guidelines for Bharat Mandi.
 
+> **📋 NOTE FOR AI AGENTS:**  
+> All product standards, benchmarks, quality metrics, and compliance documentation MUST be stored in this `docs/product-standards/` folder. This includes performance benchmarks, security audits, accessibility standards, testing standards, and any other quality-related documentation. Do NOT create standards documentation in other locations.
+
 ## Standards Categories
 
 ### 🔒 [Security](security/)
 Security standards and practices
 - [Endpoint Audit](security/ENDPOINT-AUDIT.md) - API endpoint security audit
+
+### ⚡ [Performance](performance/)
+Performance standards, benchmarks, and optimization
+- [AWS Deployment Performance Test Results](performance/AWS-DEPLOYMENT-PERFORMANCE-TEST-RESULTS.md) - Load testing results and analysis
+- [Performance Testing Guide](performance/PERFORMANCE-TESTING-GUIDE.md) - How to run performance tests
+- [Performance Benchmarks](performance/performance-benchmarks.md) - Performance targets and standards
+- Load time targets: < 200ms average response time
+- API response times: P95 < 500ms, P99 < 1000ms
+- Throughput: > 50 req/s sustained load
 
 ### ♿ Accessibility (Coming Soon)
 Accessibility standards and WCAG compliance
@@ -14,13 +26,6 @@ Accessibility standards and WCAG compliance
 - Keyboard navigation
 - Color contrast
 - Multi-language accessibility
-
-### ⚡ Performance (Coming Soon)
-Performance standards and optimization
-- Load time targets
-- API response times
-- Caching strategies
-- Mobile performance
 
 ### 🛠️ Supportability (Coming Soon)
 Maintainability and support standards
