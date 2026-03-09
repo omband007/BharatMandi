@@ -147,19 +147,38 @@
 ### Phase 1: Critical AI Endpoints (IMMEDIATE)
 
 **Priority**: 🔴 HIGH  
-**Estimated Cost**: $15-20 per test run  
-**Estimated Time**: 2-3 hours setup + 10 minutes per run
 
-1. Dr. Fasal (Diagnosis) - Core feature
-2. Fasal-Parakh (Grading) - Core feature
-3. Kisan Mitra (Assistant) - Primary interface
+#### Option A: Smoke Test (Recommended First)
+**Cost**: $0.10 per test run  
+**Time**: 5 minutes setup + 2 minutes per run  
+**Requests**: 5 per endpoint (25 total)
+
+```powershell
+artillery run artillery-ai-smoke-test.yml
+```
+
+**Purpose**: Quick validation that AI services work  
+**When**: After every deployment
+
+#### Option B: Full Load Test
+**Cost**: $2.50 per test run (revised from $15)  
+**Time**: 2-3 hours setup + 10 minutes per run  
+**Requests**: 100-500 total
+
+```powershell
+artillery run artillery-ai-endpoints.yml
+```
+
+**Purpose**: Comprehensive performance analysis  
+**When**: Weekly or before major releases
 
 **Action Items**:
 1. Prepare test images (crop diseases, produce samples)
 2. Configure authentication for test users
-3. Run AI performance test: `artillery run artillery-ai-endpoints.yml`
-4. Document results in new markdown file
-5. Compare against targets in `AI-ENDPOINTS-PERFORMANCE-TESTING.md`
+3. Run smoke test first: `artillery run artillery-ai-smoke-test.yml`
+4. If smoke test passes, run full load test
+5. Document results in new markdown file
+6. Compare against targets in `AI-ENDPOINTS-PERFORMANCE-TESTING.md`
 
 ### Phase 2: Supporting Services (NEXT)
 
@@ -202,16 +221,16 @@ Before running AI performance tests, ensure:
 
 ## Cost Tracking
 
-### Estimated Costs
+### Estimated Costs (Revised)
 
 | Test Type | Requests | Cost per Run | Runs per Month | Monthly Cost |
 |-----------|----------|--------------|----------------|--------------|
 | Basic API (completed) | 19,224 | $0 | 4 | $0 |
-| AI Endpoints (pending) | ~3,000 | $15 | 4 | $60 |
-| Voice Services (pending) | ~1,000 | $5 | 4 | $20 |
-| Complete Suite (future) | ~5,000 | $25 | 4 | $100 |
+| AI Smoke Test (recommended) | 25 | $0.10 | 20 | $2 |
+| AI Load Test (weekly) | 500 | $2.50 | 4 | $10 |
+| AI Stress Test (monthly) | 1,000 | $5 | 1 | $5 |
 
-**Total Monthly Testing Budget**: ~$180
+**Total Monthly Testing Budget**: ~$17 (much lower than initial estimate!)
 
 ---
 

@@ -1,0 +1,96 @@
+# Artillery Smoke Test - AI Endpoints
+# Quick validation test with minimal cost (~$0.10 per run)
+#
+# Purpose: Get a basic performance "feeler" without high costs
+# - 5 requests per endpoint type
+# - Total: ~25 requests
+# - Duration: ~2 minutes
+# - Cost: ~$0.10 (vs $15 for full test)
+#
+# Use this for:
+# - Quick validation after deployments
+# - Sanity checks before full testing
+# - Development/staging environment testing
+# - Cost-conscious performance checks
+
+config:
+  target: "http://13.236.3.139:3000"
+  phases:
+    # Single phase: Just 5 requests per scenario
+    - duration: 120
+      arrivalRate: 1
+      name: "Smoke Test - 5 requests each"
+  
+  # Performance expectations (more lenient for smoke test)
+  ensure:
+    - http.response_time.max: 30000  # 30 seconds max
+    - http.codes.200: 50  # At least 50% success
+
+scenarios:
+  # Scenario 1: Dr. Fasal - 1 diagnosis call
+  - name: "Dr. Fasal Smoke Test"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/diagnosis/test"
+          headers:
+            Content-Type: "multipart/form-data"
+          formData:
+            image: "@./test-data/sample-crop-disease.jpg"
+            cropType: "tomato"
+            language: "en"
+            location: '{"latitude": 19.0760, "longitude": 72.8777, "state": "Maharashtra"}'
+          capture:
+            - json: "$.data.diagnosisId"
+              as: "diagnosisId"
+            - json: "$.data.confidence"
+              as: "confidence"
+
+  # Scenario 2: Fasal-Parakh - 1 grading call
+  - name: "Fasal-Parakh Smoke Test"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/grading/grade-with-image"
+          headers:
+            Content-Type: "multipart/form-data"
+          formData:
+            image: "@./test-data/sample-produce.jpg"
+            farmerId: "smoke-test-farmer"
+            produceType: "tomato"
+            lat: "19.0760"
+            lng: "72.8777"
+            autoDetect: "true"
+
+  # Scenario 3: Kisan Mitra - 1 query
+  - name: "Kisan Mitra Smoke Test"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/kisan-mitra/query"
+          json:
+            userId: "smoke-test-user"
+            query: "What fertilizer should I use for tomatoes?"
+            language: "en"
+
+  # Scenario 4: Voice TTS - 1 synthesis
+  - name: "Voice TTS Smoke Test"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/voice/synthesize"
+          json:
+            text: "Hello farmer"
+            language: "en"
+            speed: 1.0
+
+  # Scenario 5: Translation - 1 translation
+  - name: "Translation Smoke Test"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/i18n/translate"
+          json:
+            text: "Your crop is healthy"
+            targetLanguage: "hi"
+            sourceLanguage: "en"
