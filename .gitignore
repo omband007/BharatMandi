@@ -10,6 +10,7 @@ diagrams_output/
 
 # Archive folder for old scripts and notes
 docs/archive/
+!docs/archive/security-incident-*/
 
 # Database files
 data/*.db
