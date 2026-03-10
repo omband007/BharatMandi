@@ -58,15 +58,12 @@ Product quality standards and best practices
 - `security/` - Security standards and audits
 - Future: `accessibility/`, `performance/`, `supportability/`
 
-### 🔍 [investigations/](./investigations/)
-Research and technical investigations
-- `aws-translate-content-safety-2026-02-28/`
-- `marathi-translation/`
-
 ### 📦 [archive/](./archive/)
-Historical documentation and old files
-- Old scripts and migration files
-- Historical reorganization documents
+Historical documentation and completed investigations
+- Dated folders for temporary work documents (e.g., `cleanup-2026-03-10/`)
+- Completed investigations (e.g., `investigation-marathi-translation/`)
+- Old files and migration documents in `old-files/`
+- See [archive/README.md](./archive/README.md) for organization guidelines
 
 ---
 
@@ -153,6 +150,10 @@ Historical documentation and old files
 
 ## 🆕 Recent Updates
 
+- **Mar 10, 2026** - Completed file structure cleanup and organization
+- **Mar 10, 2026** - Moved all investigations to archive with dated folders
+- **Mar 10, 2026** - Organized scripts directory into logical subdirectories
+- **Mar 10, 2026** - Established archive system for temporary work documents
 - **Mar 1, 2026** - Major documentation reorganization with parent folders
 - **Mar 1, 2026** - Created `core/`, `infrastructure/`, `ui/`, and `standards/` folders
 - **Mar 1, 2026** - Moved AWS docs to `infrastructure/aws/`
@@ -206,6 +207,6 @@ If you can't find what you're looking for:
 
 ---
 
-**Last Updated:** March 1, 2026  
+**Last Updated:** March 10, 2026  
 **Maintained By:** Engineering Team
 
