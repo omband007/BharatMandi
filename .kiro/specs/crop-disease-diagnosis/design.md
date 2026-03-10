@@ -30,6 +30,81 @@ The Crop Disease Diagnosis feature provides AI-powered disease and pest identifi
 4. **Cost-Conscious**: Aggressive optimization to maintain <₹1 per diagnosis
 5. **Accuracy-Focused**: Confidence scoring with expert escalation for uncertain diagnoses
 
+### AI Provider Coupling and Flexibility
+
+**Current Coupling Level**: Pragmatic and appropriate for MVP
+
+The system has a **moderate coupling** to Amazon Nova Pro, which is intentional and justified for the following reasons:
+
+**Why This Coupling Level is Appropriate:**
+
+1. **MVP-Focused**: Requirements explicitly specify Amazon Nova Pro. Over-abstracting at this stage would be premature optimization (YAGNI principle).
+
+2. **Isolated Coupling**: The coupling is contained to one service (`NovaVisionService`). The rest of the system (controllers, remedy generation, history, expert escalation, translation) is completely independent of the AI provider.
+
+3. **Clean Domain Interface**: The `ImageAnalysisResult` interface is a domain model, not a Nova-specific model. This provides a natural abstraction boundary.
+
+4. **Cost-Optimized**: The design is specifically tuned for Nova Pro's pricing model to achieve the <₹1 per diagnosis target. Adding abstraction layers now would complicate this optimization.
+
+5. **Real-World Pragmatism**: In practice, switching AI vision models is rare because:
+   - Each model has different strengths (Nova Pro is optimized for multimodal analysis)
+   - Prompts require significant tuning per model
+   - Performance characteristics differ significantly
+   - Cost structures vary widely
+   - Organizations typically A/B test rather than wholesale replace
+
+**What Makes This Design Flexible Enough:**
+
+- **Service Layer Isolation**: `NovaVisionService` can be mocked for testing
+- **Interface-Based Design**: `ImageAnalysisResult` defines the contract, not the implementation
+- **Dependency Injection Ready**: Services are instantiated separately, making swapping straightforward
+- **Fast Refactoring Path**: Adding a new provider would take 2-4 hours, not days or weeks
+
+**When You WOULD Need More Abstraction:**
+
+- Requirements specify "support multiple AI providers simultaneously"
+- Building a platform where users choose their AI provider
+- Proven need to switch providers frequently
+- Regulatory requirements for provider redundancy
+
+**Future Migration Path (If Needed):**
+
+If you later need to support multiple AI providers, the refactoring path is straightforward:
+
+```typescript
+// Step 1: Create interface
+interface IImageAnalyzer {
+  analyzeImage(request: ImageAnalysisRequest): Promise<ImageAnalysisResult>;
+}
+
+// Step 2: Implement for each provider
+class NovaVisionService implements IImageAnalyzer { /* existing code */ }
+class ClaudeVisionService implements IImageAnalyzer { /* new implementation */ }
+class GeminiVisionService implements IImageAnalyzer { /* new implementation */ }
+
+// Step 3: Add factory or strategy pattern
+class ImageAnalyzerFactory {
+  static create(provider: 'nova' | 'claude' | 'gemini'): IImageAnalyzer {
+    switch (provider) {
+      case 'nova': return new NovaVisionService();
+      case 'claude': return new ClaudeVisionService();
+      case 'gemini': return new GeminiVisionService();
+    }
+  }
+}
+
+// Step 4: Update DiagnosisService to use factory
+class DiagnosisService {
+  constructor(
+    private imageAnalyzer: IImageAnalyzer = ImageAnalyzerFactory.create('nova')
+  ) {}
+}
+```
+
+**Estimated Refactoring Effort**: 2-4 hours for single provider swap, 1-2 days for multi-provider support with A/B testing.
+
+**Design Philosophy**: "Make it work, make it right, make it fast." This design is at the "make it work" stage with sufficient "rightness" for current needs. The coupling is intentional, documented, and easily reversible.
+
 ## Architecture
 
 ### System Architecture Diagram
@@ -2367,19 +2442,4 @@ describe('DiagnosisService', () => {
 - [Bedrock Converse API](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html)
 - [fast-check Property-Based Testing](https://fast-check.dev/)
 - [MongoDB Best Practices](https://www.mongodb.com/docs/manual/administration/production-notes/)
-- [S3 Security Best Practices](https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html)
-
-### Related Documents
-
-- Requirements Document: `.kiro/specs/crop-disease-diagnosis/requirements.md`
-- API Documentation: (To be created)
-- Deployment Guide: (To be created)
-- Expert Dashboard Guide: (To be created)
-
----
-
-**Document Version**: 1.0  
-**Last Updated**: 2024  
-**Status**: Ready for Review  
-**Next Steps**: User review and approval before task creation
-
+- [S3 Security Best Practices](https://docs.aws.amazon.com/A

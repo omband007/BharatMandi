@@ -835,21 +835,24 @@ async function submitFeedback(req: Request, res: Response): Promise<void> {
 const router = Router();
 
 // PUBLIC ENDPOINT FOR TESTING (NO AUTH REQUIRED)
-// TODO: Remove this in production - for development/testing only
-router.post(
-  '/test',
-  upload.single('image'),
-  async (req: Request, res: Response) => {
-    // Mock user for testing
-    req.user = {
-      userId: 'test-user-123',
-      email: 'test@example.com',
-      role: 'farmer'
-    } as any;
-    
-    await createDiagnosis(req, res);
-  }
-);
+// Only available in non-production environments for performance testing
+if (process.env.NODE_ENV !== 'production') {
+  router.post(
+    '/test',
+    upload.single('image'),
+    async (req: Request, res: Response) => {
+      // Mock user for testing
+      req.user = {
+        userId: 'test-user-123',
+        email: 'test@example.com',
+        role: 'farmer'
+      } as any;
+      
+      await createDiagnosis(req, res);
+    }
+  );
+  console.log('✓ Test endpoint enabled at POST /api/diagnosis/test (no auth required)');
+}
 
 // Apply authentication to all routes below
 router.use(requireAuth);

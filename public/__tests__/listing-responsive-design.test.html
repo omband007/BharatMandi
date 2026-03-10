@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Design Tests - Grade Produce Thumbnail Preview</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .test-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        
+        .test-section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        
+        .test-result.pass {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .test-result.fail {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .test-result.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .viewport-simulator {
+            border: 3px solid #667eea;
+            margin: 20px 0;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .viewport-label {
+            background: #667eea;
+            color: white;
+            padding: 8px;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .viewport-content {
+            padding: 20px;
+        }
+        
+        /* Simulated tile styles from listing.html */
+        .tile {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .tile h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .button-group button {
+            flex: 1;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .button-secondary {
+            background: #6c757d !important;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #5568d3;
+        }
+        
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .measurement {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Responsive Design Tests</h1>
+        <div class="test-info">
+            <p><strong>Feature:</strong> Grade Produce Thumbnail Preview</p>
+            <p><strong>Requirements:</strong> 7.1, 7.2, 7.3, 7.4</p>
+            <p><strong>Purpose:</strong> Verify responsive design works correctly on mobile devices (< 768px width)</p>
+        </div>
+
+        <div class="controls">
+            <button onclick="runAllTests()">▶️ Run All Tests</button>
+            <button onclick="location.reload()">🔄 Reset</button>
+        </div>
+
+        <!-- Test 1: Preview Image Responsive Scaling -->
+        <div class="test-section" id="test1">
+            <h2>Test 1: Preview Image Responsive Scaling (Req 7.2)</h2>
+            <p><strong>Requirement:</strong> The thumbnail image SHALL scale appropriately on mobile devices (screens < 768px wide)</p>
+            <p><strong>Expected:</strong> Preview image uses max-width: 100% and scales to container width</p>
+            
+            <div id="test1-results"></div>
+            
+            <div class="viewport-simulator" style="width: 375px;">
+                <div class="viewport-label">Mobile Viewport (375px - iPhone)</div>
+                <div class="viewport-content">
+                    <div class="tile">
+                        <h2>Grade Produce</h2>
+                        <div id="test1-preview">
+                            <img id="test1-image" class="preview-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect fill='%23667eea' width='800' height='600'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dy='.3em'%3ETest Image 800x600%3C/text%3E%3C/svg%3E" alt="Test Preview">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="runTest1()">Run Test 1</button>
+        </div>
+
+        <!-- Test 2: Button Group Responsive Layout -->
+        <div class="test-section" id="test2">
+            <h2>Test 2: "Change Image" Button Accessibility on Mobile (Req 7.3)</h2>
+            <p><strong>Requirement:</strong> The "Change Image" button SHALL remain accessible and properly sized on mobile devices</p>
+            <p><strong>Expected:</strong> Buttons are touch-friendly (min 44px height) and properly spaced</p>
+            
+            <div id="test2-results"></div>
+            
+            <div class="viewport-simulator" style="width: 375px;">
+                <div class="viewport-label">Mobile Viewport (375px - iPhone)</div>
+                <div class="viewport-content">
+                    <div class="tile">
+                        <h2>Grade Produce</h2>
+                        <div id="test2-preview">
+                            <img class="preview-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%2328a745' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='white' text-anchor='middle' dy='.3em'%3EPreview%3C/text%3E%3C/svg%3E" alt="Preview">
+                            <div class="button-group" id="test2-buttons">
+                                <button id="test2-grade-btn">🔍 Grade Produce</button>
+                                <button id="test2-change-btn" class="button-secondary">🔄 Change Image</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="runTest2()">Run Test 2</button>
+        </div>
+
+        <!-- Test 3: Preview Container Adapts to Tile Width -->
+        <div class="test-section" id="test3">
+            <h2>Test 3: Preview Container Adapts to Tile Width (Req 7.1)</h2>
+            <p><strong>Requirement:</strong> The Preview_Container SHALL be responsive and adapt to the tile width</p>
+            <p><strong>Expected:</strong> Preview container width matches tile width at different viewport sizes</p>
+            
+            <div id="test3-results"></div>
+            
+            <div style="display: grid; gap: 20px;">
+                <div class="viewport-simulator" style="width: 320px;">
+                    <div class="viewport-label">Small Mobile (320px)</div>
+                    <div class="viewport-content">
+                        <div class="tile" id="test3-tile-320">
+                            <h2>Grade Produce</h2>
+                            <div id="test3-preview-320">
+                                <img class="preview-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23dc3545' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='20' fill='white' text-anchor='middle' dy='.3em'%3E320px%3C/text%3E%3C/svg%3E" alt="Preview">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="viewport-simulator" style="width: 768px;">
+                    <div class="viewport-label">Tablet (768px)</div>
+                    <div class="viewport-content">
+                        <div class="tile" id="test3-tile-768">
+                            <h2>Grade Produce</h2>
+                            <div id="test3-preview-768">
+                                <img class="preview-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect fill='%23ffc107' width='600' height='400'/%3E%3Ctext x='50%25' y='50%25' font-size='32' fill='white' text-anchor='middle' dy='.3em'%3E768px%3C/text%3E%3C/svg%3E" alt="Preview">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="runTest3()">Run Test 3</button>
+        </div>
+
+        <!-- Test 4: CSS Verification -->
+        <div class="test-section" id="test4">
+            <h2>Test 4: CSS Properties Verification (Req 7.4)</h2>
+            <p><strong>Requirement:</strong> The Preview_Container styling SHALL match the existing design system colors, borders, and spacing</p>
+            <p><strong>Expected:</strong> Preview image has correct CSS properties for responsive behavior</p>
+            
+            <div id="test4-results"></div>
+            
+            <div style="display: none;">
+                <img id="test4-image" class="preview-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23667eea' width='100' height='100'/%3E%3C/svg%3E" alt="Test">
+            </div>
+            
+            <button onclick="runTest4()">Run Test 4</button>
+        </div>
+
+        <!-- Summary -->
+        <div class="test-section" id="summary" style="display: none;">
+            <h2>📊 Test Summary</h2>
+            <div id="summary-results"></div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = {
+            test1: null,
+            test2: null,
+            test3: null,
+            test4: null
+        };
+
+        function runAllTests() {
+            runTest1();
+            setTimeout(() => runTest2(), 100);
+            setTimeout(() => runTest3(), 200);
+            setTimeout(() => runTest4(), 300);
+            setTimeout(() => showSummary(), 500);
+        }
+
+        function runTest1() {
+            const results = document.getElementById('test1-results');
+            results.innerHTML = '<div class="test-result info">⏳ Running Test 1...</div>';
+            
+            const image = document.getElementById('test1-image');
+            const container = document.getElementById('test1-preview');
+            
+            const tests = [];
+            
+            // Test 1.1: Check max-width: 100%
+            const computedStyle = window.getComputedStyle(image);
+            const maxWidth = computedStyle.maxWidth;
+            const hasMaxWidth100 = maxWidth === '100%' || maxWidth === container.offsetWidth + 'px';
+            tests.push({
+                name: 'Preview image has max-width: 100%',
+                pass: hasMaxWidth100,
+                actual: `max-width: ${maxWidth}`,
+                expected: 'max-width: 100%'
+            });
+            
+            // Test 1.2: Check max-height: 300px
+            const maxHeight = computedStyle.maxHeight;
+            const hasMaxHeight300 = maxHeight === '300px';
+            tests.push({
+                name: 'Preview image has max-height: 300px',
+                pass: hasMaxHeight300,
+                actual: `max-height: ${maxHeight}`,
+                expected: 'max-height: 300px'
+            });
+            
+            // Test 1.3: Image scales to container width
+            const imageWidth = image.offsetWidth;
+            const containerWidth = container.offsetWidth;
+            const scalesCorrectly = imageWidth <= containerWidth;
+            tests.push({
+                name: 'Image width fits within container',
+                pass: scalesCorrectly,
+                actual: `Image: ${imageWidth}px, Container: ${containerWidth}px`,
+                expected: 'Image width ≤ Container width'
+            });
+            
+            // Test 1.4: Check border-radius for rounded corners
+            const borderRadius = computedStyle.borderRadius;
+            const hasRoundedCorners = borderRadius !== '0px' && borderRadius !== '';
+            tests.push({
+                name: 'Preview image has rounded corners',
+                pass: hasRoundedCorners,
+                actual: `border-radius: ${borderRadius}`,
+                expected: 'border-radius: 8-10px'
+            });
+            
+            // Display results
+            let html = '';
+            let allPassed = true;
+            tests.forEach(test => {
+                const status = test.pass ? 'pass' : 'fail';
+                const icon = test.pass ? '✅' : '❌';
+                allPassed = allPassed && test.pass;
+                html += `
+                    <div class="test-result ${status}">
+                        ${icon} ${test.name}<br>
+                        <small>Expected: ${test.expected} | Actual: ${test.actual}</small>
+                    </div>
+                `;
+            });
+            
+            results.innerHTML = html;
+            testResults.test1 = allPassed;
+        }
+
+        function runTest2() {
+            const results = document.getElementById('test2-results');
+            results.innerHTML = '<div class="test-result info">⏳ Running Test 2...</div>';
+            
+            const gradeBtn = document.getElementById('test2-grade-btn');
+            const changeBtn = document.getElementById('test2-change-btn');
+            const buttonGroup = document.getElementById('test2-buttons');
+            
+            const tests = [];
+            
+            // Test 2.1: Check button height (touch-friendly minimum 44px)
+            const gradeBtnHeight = gradeBtn.offsetHeight;
+            const changeBtnHeight = changeBtn.offsetHeight;
+            const minTouchHeight = 44;
+            const isTouchFriendly = gradeBtnHeight >= minTouchHeight && changeBtnHeight >= minTouchHeight;
+            tests.push({
+                name: 'Buttons are touch-friendly (≥44px height)',
+                pass: isTouchFriendly,
+                actual: `Grade: ${gradeBtnHeight}px, Change: ${changeBtnHeight}px`,
+                expected: '≥44px for both buttons'
+            });
+            
+            // Test 2.2: Check button group uses flexbox
+            const groupStyle = window.getComputedStyle(buttonGroup);
+            const isFlexbox = groupStyle.display === 'flex';
+            tests.push({
+                name: 'Button group uses flexbox layout',
+                pass: isFlexbox,
+                actual: `display: ${groupStyle.display}`,
+                expected: 'display: flex'
+            });
+            
+            // Test 2.3: Check gap between buttons
+            const gap = groupStyle.gap;
+            const hasGap = gap !== '0px' && gap !== 'normal';
+            tests.push({
+                name: 'Buttons have proper spacing',
+                pass: hasGap,
+                actual: `gap: ${gap}`,
+                expected: 'gap: 10px or similar'
+            });
+            
+            // Test 2.4: Check buttons are accessible (visible and enabled)
+            const gradeVisible = gradeBtn.offsetWidth > 0 && gradeBtn.offsetHeight > 0;
+            const changeVisible = changeBtn.offsetWidth > 0 && changeBtn.offsetHeight > 0;
+            const bothVisible = gradeVisible && changeVisible;
+            tests.push({
+                name: 'Both buttons are visible and accessible',
+                pass: bothVisible,
+                actual: `Grade visible: ${gradeVisible}, Change visible: ${changeVisible}`,
+                expected: 'Both buttons visible'
+            });
+            
+            // Display results
+            let html = '';
+            let allPassed = true;
+            tests.forEach(test => {
+                const status = test.pass ? 'pass' : 'fail';
+                const icon = test.pass ? '✅' : '❌';
+                allPassed = allPassed && test.pass;
+                html += `
+                    <div class="test-result ${status}">
+                        ${icon} ${test.name}<br>
+                        <small>Expected: ${test.expected} | Actual: ${test.actual}</small>
+                    </div>
+                `;
+            });
+            
+            results.innerHTML = html;
+            testResults.test2 = allPassed;
+        }
+
+        function runTest3() {
+            const results = document.getElementById('test3-results');
+            results.innerHTML = '<div class="test-result info">⏳ Running Test 3...</div>';
+            
+            const tile320 = document.getElementById('test3-tile-320');
+            const preview320 = document.getElementById('test3-preview-320');
+            const tile768 = document.getElementById('test3-tile-768');
+            const preview768 = document.getElementById('test3-preview-768');
+            
+            const tests = [];
+            
+            // Test 3.1: Preview container adapts to 320px tile
+            const tile320Width = tile320.offsetWidth;
+            const preview320Width = preview320.offsetWidth;
+            const adapts320 = Math.abs(tile320Width - preview320Width) <= 50; // Allow for padding
+            tests.push({
+                name: 'Preview adapts to small mobile (320px)',
+                pass: adapts320,
+                actual: `Tile: ${tile320Width}px, Preview: ${preview320Width}px`,
+                expected: 'Preview width ≈ Tile width (within padding)'
+            });
+            
+            // Test 3.2: Preview container adapts to 768px tile
+            const tile768Width = tile768.offsetWidth;
+            const preview768Width = preview768.offsetWidth;
+            const adapts768 = Math.abs(tile768Width - preview768Width) <= 50;
+            tests.push({
+                name: 'Preview adapts to tablet (768px)',
+                pass: adapts768,
+                actual: `Tile: ${tile768Width}px, Preview: ${preview768Width}px`,
+                expected: 'Preview width ≈ Tile width (within padding)'
+            });
+            
+            // Test 3.3: Images scale within their containers
+            const images = document.querySelectorAll('#test3-preview-320 img, #test3-preview-768 img');
+            let allImagesScale = true;
+            images.forEach(img => {
+                const imgWidth = img.offsetWidth;
+                const containerWidth = img.parentElement.offsetWidth;
+                if (imgWidth > containerWidth) {
+                    allImagesScale = false;
+                }
+            });
+            tests.push({
+                name: 'Images scale within preview containers',
+                pass: allImagesScale,
+                actual: allImagesScale ? 'All images fit' : 'Some images overflow',
+                expected: 'All images fit within containers'
+            });
+            
+            // Display results
+            let html = '';
+            let allPassed = true;
+            tests.forEach(test => {
+                const status = test.pass ? 'pass' : 'fail';
+                const icon = test.pass ? '✅' : '❌';
+                allPassed = allPassed && test.pass;
+                html += `
+                    <div class="test-result ${status}">
+                        ${icon} ${test.name}<br>
+                        <small>Expected: ${test.expected} | Actual: ${test.actual}</small>
+                    </div>
+                `;
+            });
+            
+            results.innerHTML = html;
+            testResults.test3 = allPassed;
+        }
+
+        function runTest4() {
+            const results = document.getElementById('test4-results');
+            results.innerHTML = '<div class="test-result info">⏳ Running Test 4...</div>';
+            
+            const image = document.getElementById('test4-image');
+            const computedStyle = window.getComputedStyle(image);
+            
+            const tests = [];
+            
+            // Test 4.1: Check max-width property
+            const maxWidth = computedStyle.maxWidth;
+            tests.push({
+                name: 'max-width is set to 100%',
+                pass: maxWidth === '100%',
+                actual: maxWidth,
+                expected: '100%'
+            });
+            
+            // Test 4.2: Check max-height property
+            const maxHeight = computedStyle.maxHeight;
+            tests.push({
+                name: 'max-height is set to 300px',
+                pass: maxHeight === '300px',
+                actual: maxHeight,
+                expected: '300px'
+            });
+            
+            // Test 4.3: Check border-radius
+            const borderRadius = computedStyle.borderRadius;
+            const radiusValue = parseInt(borderRadius);
+            const hasCorrectRadius = radiusValue >= 8 && radiusValue <= 10;
+            tests.push({
+                name: 'border-radius is 8-10px',
+                pass: hasCorrectRadius,
+                actual: borderRadius,
+                expected: '8-10px'
+            });
+            
+            // Test 4.4: Check display property
+            const display = computedStyle.display;
+            tests.push({
+                name: 'display is set to block',
+                pass: display === 'block',
+                actual: display,
+                expected: 'block'
+            });
+            
+            // Test 4.5: Check margin auto for centering
+            const marginLeft = computedStyle.marginLeft;
+            const marginRight = computedStyle.marginRight;
+            const isCentered = marginLeft === 'auto' && marginRight === 'auto';
+            tests.push({
+                name: 'Image is centered (margin: auto)',
+                pass: isCentered,
+                actual: `margin-left: ${marginLeft}, margin-right: ${marginRight}`,
+                expected: 'margin-left: auto, margin-right: auto'
+            });
+            
+            // Display results
+            let html = '';
+            let allPassed = true;
+            tests.forEach(test => {
+                const status = test.pass ? 'pass' : 'fail';
+                const icon = test.pass ? '✅' : '❌';
+                allPassed = allPassed && test.pass;
+                html += `
+                    <div class="test-result ${status}">
+                        ${icon} ${test.name}<br>
+                        <small>Expected: ${test.expected} | Actual: ${test.actual}</small>
+                    </div>
+                `;
+            });
+            
+            results.innerHTML = html;
+            testResults.test4 = allPassed;
+        }
+
+        function showSummary() {
+            const summary = document.getElementById('summary');
+            const summaryResults = document.getElementById('summary-results');
+            
+            const totalTests = 4;
+            const passedTests = Object.values(testResults).filter(r => r === true).length;
+            const failedTests = Object.values(testResults).filter(r => r === false).length;
+            const notRun = Object.values(testResults).filter(r => r === null).length;
+            
+            const allPassed = passedTests === totalTests;
+            const statusClass = allPassed ? 'pass' : 'fail';
+            const statusIcon = allPassed ? '✅' : '❌';
+            
+            let html = `
+                <div class="test-result ${statusClass}">
+                    ${statusIcon} <strong>Overall Result: ${allPassed ? 'ALL TESTS PASSED' : 'SOME TESTS FAILED'}</strong><br>
+                    <small>Passed: ${passedTests}/${totalTests} | Failed: ${failedTests} | Not Run: ${notRun}</small>
+                </div>
+            `;
+            
+            html += '<h3 style="margin-top: 20px;">Test Details:</h3>';
+            html += `<div class="test-result ${testResults.test1 ? 'pass' : 'fail'}">Test 1 (Responsive Scaling): ${testResults.test1 ? '✅ PASS' : '❌ FAIL'}</div>`;
+            html += `<div class="test-result ${testResults.test2 ? 'pass' : 'fail'}">Test 2 (Button Accessibility): ${testResults.test2 ? '✅ PASS' : '❌ FAIL'}</div>`;
+            html += `<div class="test-result ${testResults.test3 ? 'pass' : 'fail'}">Test 3 (Container Adaptation): ${testResults.test3 ? '✅ PASS' : '❌ FAIL'}</div>`;
+            html += `<div class="test-result ${testResults.test4 ? 'pass' : 'fail'}">Test 4 (CSS Verification): ${testResults.test4 ? '✅ PASS' : '❌ FAIL'}</div>`;
+            
+            if (allPassed) {
+                html += `
+                    <div class="test-result pass" style="margin-top: 20px;">
+                        <strong>✅ Requirements Validated:</strong><br>
+                        • Req 7.1: Preview container adapts to tile width ✓<br>
+                        • Req 7.2: Thumbnail scales on mobile devices ✓<br>
+                        • Req 7.3: Change Image button accessible on mobile ✓<br>
+                        • Req 7.4: Styling matches design system ✓
+                    </div>
+                `;
+            }
+            
+            summaryResults.innerHTML = html;
+            summary.style.display = 'block';
+            summary.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            console.log('Responsive Design Test Suite Loaded');
+            console.log('Click "Run All Tests" to begin testing');
+        });
+    </script>
+</body>
+</html>

@@ -52,3 +52,15 @@ clear-*.js
 
 # Temporary HTML pages for debugging
 public/db-status.html
+
+# SSH keys and certificates
+*.pem
+*.key
+*.crt
+*.cert
+
+# Compressed archives
+*.tar.gz
+*.zip
+*.tar
+*.rar

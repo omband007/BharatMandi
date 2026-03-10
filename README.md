@@ -6,7 +6,9 @@ A comprehensive agricultural marketplace platform addressing systemic issues in 
 
 All project documentation is organized in the `docs/` folder:
 
-- [Quickstart Guide](docs/QUICKSTART.md) - Get started quickly
+- **[Development Guide](docs/core/DEVELOPMENT.md)** - Development setup and workflows
+- [Quickstart Guide](docs/core/QUICKSTART.md) - Get started quickly
+- [Project Structure](docs/core/PROJECT-STRUCTURE.md) - Codebase organization
 - [POC v2 Guide](docs/POC-V2-GUIDE.md) - Current POC implementation guide
 - [Authentication API Guide](docs/AUTH-API-GUIDE.md) - Authentication endpoints and flows
 - [AI Grading Guide](docs/AI-GRADING-GUIDE.md) - AI-powered produce grading

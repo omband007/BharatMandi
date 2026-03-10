@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Flow Test - Grade Produce Thumbnail Preview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section h2 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        .test-case {
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #e0e0e0;
+            background: #f8f9fa;
+        }
+        .test-case.pass {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .test-case.fail {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .test-case.pending {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        .test-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .test-result {
+            font-size: 14px;
+            color: #666;
+        }
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .summary {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .summary h1 {
+            margin: 0 0 10px 0;
+        }
+        .instructions {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .instructions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="summary">
+        <h1>🧪 Complete Flow Test - Grade Produce Thumbnail Preview</h1>
+        <p>Task 8: Final checkpoint to ensure all functionality works correctly</p>
+    </div>
+
+    <div class="instructions">
+        <h3>📋 Test Instructions</h3>
+        <p>This test verifies the complete user flow and all requirements. Follow these steps:</p>
+        <ol>
+            <li><strong>Prepare Test Images:</strong> Have 2-3 different produce images ready (JPG/PNG format)</li>
+            <li><strong>Login:</strong> Make sure you're logged in as a farmer on the profile page</li>
+            <li><strong>Open listing.html:</strong> Navigate to the listing page in your browser</li>
+            <li><strong>Follow Manual Tests:</strong> Complete each test section below</li>
+            <li><strong>Check Automated Tests:</strong> Run the automated validation checks</li>
+        </ol>
+    </div>
+
+    <!-- Test Section 1: Image Selection and Preview -->
+    <div class="test-section">
+        <h2>1️⃣ Image Selection and Preview Flow</h2>
+        
+        <div class="test-case pending" id="test-1-1">
+            <div class="test-title">Test 1.1: Select Image → Preview Appears</div>
+            <div class="test-result">
+                <strong>Steps:</strong>
+                <ol>
+                    <li>Click "Upload Produce Photo" file input</li>
+                    <li>Select a valid image file (JPG/PNG)</li>
+                </ol>
+                <strong>Expected:</strong>
+                <ul>
+                    <li>✓ Preview image appears immediately</li>
+                    <li>✓ File input area is hidden</li>
+                    <li>✓ "Grade Produce" button is visible in preview</li>
+                    <li>✓ "Change Image" button is visible</li>
+                    <li>✓ Image maintains aspect ratio</li>
+                    <li>✓ Image has rounded corners</li>
+                    <li>✓ Image is centered horizontally</li>
+                </ul>
+                <button onclick="markTest('test-1-1', true)">✓ Pass</button>
+                <button onclick="markTest('test-1-1', false)">✗ Fail</button>
+            </div>
+        </div>
+
+        <div class="test-case pending" id="test-1-2">
+            <div class="test-title">Test 1.2: Invalid File Type Handling</div>
+            <div class="test-result">
+                <strong>Steps:</strong>
+                <ol>
+                    <li>Try to select a non-image file (PDF, TXT, etc.)</li>
+                </ol>
+                <strong>Expected:</strong>
+                <ul>
+                    <li>✓ Error message appears: "Please select a valid image file"</li>
+                    <li>✓ Preview does not appear</li>
+                    <li>✓ File input is cleared</li>
+                    <li>✓ Grade button remains disabled</li>
+                </ul>
+                <button onclick="markTest('test-1-2', true)">✓ Pass</button>
+                <button onclick="markTest('test-1-2', false)">✗ Fail</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Section 2: Change Image Functionality -->
+    <div class="test-section">
+        <h2>2️⃣ Change Image Functionality</h2>
+        
+        <div class="test-case pending" id="test-2-1">
+            <div class="test-title">Test 2.1: Click "Change Image" Button</div>
+            <div class="test-result">
+                <strong>Steps:</strong>
+                <ol>
+                    <li>Select an image (preview should appear)</li>
+                    <li>Click "Change Image" button</li>
+                </ol>
+                <strong>Expected:</strong>
+                <ul>
+                    <li>✓ Preview container is hidden</li>
+                    <li>✓ File input area reappears</li>
+                    <li>✓ File input value is cleared</li>
+                    <li>✓ Grade button is disabled</li>
+                </ul>
+                <button onclick="markTest('test-2-1', true)">✓ Pass</button>
+                <button onclick="markTest('test-2-1', false)">✗ Fail</button>
+            </div>
+        </div>
+
+        <div class="test-case pending" id="test-2-2">
+            <div class="test-title">Test 2.2: Select New Image After Change</div>
+            <div class="test-result">
+                <strong>Steps:</strong>
+                <ol>
+                    <li>After clicking "Change Image", select a different image</li>
+                </ol>
+                <strong>Expected:</strong>
+                <ul>
+                    <li>✓ New preview appears with the new image</li>
+                    <li>✓ Old image is completely replaced</li>
+                    <li>✓ Preview loads within 500ms</li>
+                </ul>
+                <button onclick="markTest('test-2-2', true)">✓ Pass</button>
+                <button onclick="markTest('test-2-2', false)">✗ Fail</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Section 3: Grading Flow -->
+    <div class="test-section">
+        <h2>3️⃣ Complete Grading Flow</h2>
+        
+        <div class="test-case pending" id="test-3-1">
+            <div class="test-title">Test 3.1: Grade Produce with Preview</div>
+            <div class="test-result">
+                <strong>Steps:</strong>
+                <ol>
+                    <li>Select an image (preview appears)</li>
+                    <li>Click "Grade Produce" button in preview area</li>
+                    <li>Wait for grading to complete</li>
+                </ol>
+                <strong>Expected:</strong>
+                <ul>
+                    <li>✓ Grading process starts (loading message appears)</li>
+                    <li>✓ AI analysis completes successfully</li>
+                    <li>✓ Grade certificate is displayed</li>
+                    <li>✓ Preview image remains visible after grading</li>
+                    <li>✓ Both preview and certificate are visible simultaneously</li>
+                    <li>✓ "Change Image" button remains functional</li>
+                </ul>
+                <button onclick="markTest('test-3-1', true)">✓ Pass</button>
+                <button onclick="markTest('test-3-1', false)">✗ Fail</button>
+            </div>
+        </div>
+
+        <div class="test-case pending" id="test-3-2">
+            <div class="test-title">Test 3.2: Geolocation Capture</div>
+            <div class="test-result">
+                <strong>Steps:</strong>
+                <ol>
+                    <li>Check the grade certificate after grading</li>
+                    <li>Look for the "Geotag" field</li>
+                </ol>
+                <strong>Expected:</strong>
+                <ul>
+                    <li>✓ Geotag field shows coordinates (if permission granted)</li>
+                    <li>✓ OR shows "Not certified, user uploaded image" (if permission denied)</li>
+                    <li>✓ Grading works regardless of geolocation availability</li>
+                </ul>
+                <button onclick="markTest('test-3-2', true)">✓ Pass</button>
+                <button onclick="markTest('test-3-2', false)">✗ Fail</button>
+            </div>
+        </div>
+
+        <div class="test-case pending" id="test-3-3">
+            <div class="test-title">Test 3.3: Certificate Generation</div>
+            <div class="test-result">
+                <strong>Steps:</strong>
+                <ol>
+                    <li>After grading, check the certificate display</li>
+                    <li>Click "View" button</li>
+                    <li>Click "Download" button</li>
+                </ol>
+                <strong>Expected:</strong>
+                <ul>
+                    <li>✓ Certificate shows: Crop, Grade, Confidence, Timestamp, Geotag, Certificate ID</li>
+                    <li>✓ "View" button opens certificate in lightbox</li>
+                    <li>✓ "Download" button downloads certificate as PNG</li>
+                    <li>✓ Certificate includes all required information</li>
+                </ul>
+                <button onclick="markTest('test-3-3', true)">✓ Pass</button>
+                <button onclick="markTest('test-3-3', false)">✗ Fail</button>
+            </div>
+        </div>
+
+        <div class="test-case pending" id="test-3-4">
+            <div class="test-title">Test 3.4: Auto-populate Create Listing</div>
+            <div class="test-result">
+                <strong>Steps:</strong>
+                <ol>
+                    <li>After grading completes, scroll to "Create New Listing" tile</li>
+                    <li>Check the "Produce Type" field</li>
+                    <li>Check the "Attach grade certificate" checkbox</li>
+                </ol>
+                <strong>Expected:</strong>
+                <ul>
+                    <li>✓ Produce Type is auto-filled with detected crop name</li>
+                    <li>✓ "Attach grade certificate" checkbox is auto-checked</li>
+                    <li>✓ Certificate info shows "Certificate will be attached to your listing"</li>
+                </ul>
+                <button onclick="markTest('test-3-4', true)">✓ Pass</button>
+                <button onclick="markTest('test-3-4', false)">✗ Fail</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Section 4: Preview Persistence -->
+    <div class="test-section">
+        <h2>4️⃣ Preview Persistence After Grading</h2>
+        
+        <div class="test-case pending" id="test-4-1">
+            <div class="test-title">Test 4.1: Preview Remains After Grading</div>
+            <div class="test-result">
+                <strong>Steps:</strong>
+                <ol>
+                    <li>Complete a full grading flow</li>
+                    <li>Observe the Grade Produce tile after grading completes</li>
+                </ol>
+                <strong>Expected:</strong>
+                <ul>
+                    <li>✓ Preview image is still visible</li>
+                    <li>✓ Grade certificate is visible below preview</li>
+                    <li>✓ Both elements are visible simultaneously</li>
+                    <li>✓ "Change Image" button is still functional</li>
+                    <li>✓ Can click "Change Image" to start a new grading</li>
+                </ul>
+                <button onclick="markTest('test-4-1', true)">✓ Pass</button>
+                <button onclick="markTest('test-4-1', false)">✗ Fail</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Section 5: Responsive Design -->
+    <div class="test-section">
+        <h2>5️⃣ Responsive Design</h2>
+        
+        <div class="test-case pending" id="test-5-1">
+            <div class="test-title">Test 5.1: Mobile View (< 768px)</div>
+            <div class="test-result">
+                <strong>Steps:</strong>
+                <ol>
+                    <li>Open browser DevTools (F12)</li>
+                    <li>Toggle device toolbar (Ctrl+Shift+M)</li>
+                    <li>Set viewport to 375px width (iPhone SE)</li>
+                    <li>Select an image and view preview</li>
+                </ol>
+                <strong>Expected:</strong>
+                <ul>
+                    <li>✓ Preview image scales appropriately</li>
+                    <li>✓ Image doesn't overflow container</li>
+                    <li>✓ "Change Image" button is accessible and properly sized</li>
+                    <li>✓ All buttons are touch-friendly (not too small)</li>
+                    <li>✓ Layout doesn't break on small screens</li>
+                </ul>
+                <button onclick="markTest('test-5-1', true)">✓ Pass</button>
+                <button onclick="markTest('test-5-1', false)">✗ Fail</button>
+            </div>
+        </div>
+
+        <div class="test-case pending" id="test-5-2">
+            <div class="test-title">Test 5.2: Tablet View (768px - 1024px)</div>
+            <div class="test-result">
+                <strong>Steps:</strong>
+                <ol>
+                    <li>Set viewport to 768px width (iPad)</li>
+                    <li>Test the complete flow</li>
+                </ol>
+                <strong>Expected:</strong>
+                <ul>
+                    <li>✓ Preview adapts to tile width</li>
+                    <li>✓ All functionality works correctly</li>
+                    <li>✓ Buttons remain accessible</li>
+                </ul>
+                <button onclick="markTest('test-5-2', true)">✓ Pass</button>
+                <button onclick="markTest('test-5-2', false)">✗ Fail</button>
+            </div>
+        </div>
+
+        <div class="test-case pending" id="test-5-3">
+            <div class="test-title">Test 5.3: Desktop View (> 1024px)</div>
+            <div class="test-result">
+                <strong>Steps:</strong>
+                <ol>
+                    <li>Set viewport to 1920px width (Full HD)</li>
+                    <li>Test the complete flow</li>
+                </ol>
+                <strong>Expected:</strong>
+                <ul>
+                    <li>✓ Preview looks good on large screens</li>
+                    <li>✓ Image doesn't become too large (max 300px height)</li>
+                    <li>✓ Layout is balanced and professional</li>
+                </ul>
+                <button onclick="markTest('test-5-3', true)">✓ Pass</button>
+                <button onclick="markTest('test-5-3', false)">✗ Fail</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Section 6: Existing Features -->
+    <div class="test-section">
+        <h2>6️⃣ Existing Features Still Work</h2>
+        
+        <div class="test-case pending" id="test-6-1">
+            <div class="test-title">Test 6.1: Create Listing Functionality</div>
+            <div class="test-result">
+                <strong>Steps:</strong>
+                <ol>
+                    <li>After grading, fill in Create Listing form</li>
+                    <li>Add quantity and price</li>
+                    <li>Click "Create Listing"</li>
+                </ol>
+                <strong>Expected:</strong>
+                <ul>
+                    <li>✓ Listing is created successfully</li>
+                    <li>✓ Certificate is attached if checkbox was checked</li>
+                    <li>✓ Listing appears in "My Active Listings"</li>
+                </ul>
+                <button onclick="markTest('test-6-1', true)">✓ Pass</button>
+                <button onclick="markTest('test-6-1', false)">✗ Fail</button>
+            </div>
+        </div>
+
+        <div class="test-case pending" id="test-6-2">
+            <div class="test-title">Test 6.2: View/Edit Listing</div>
+            <div class="test-result">
+                <strong>Steps:</strong>
+                <ol>
+                    <li>Click on a listing in "My Active Listings"</li>
+                    <li>View listing details</li>
+                    <li>Click "Edit" button</li>
+                    <li>Make changes and save</li>
+                </ol>
+                <strong>Expected:</strong>
+                <ul>
+                    <li>✓ Listing details display correctly</li>
+                    <li>✓ Edit mode works</li>
+                    <li>✓ Changes save successfully</li>
+                </ul>
+                <button onclick="markTest('test-6-2', true)">✓ Pass</button>
+                <button onclick="markTest('test-6-2', false)">✗ Fail</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Summary -->
+    <div class="test-section" id="test-summary">
+        <h2>📊 Test Summary</h2>
+        <div id="summary-content">
+            <p>Complete the tests above to see the summary.</p>
+        </div>
+    </div>
+
+    <script>
+        const testResults = {};
+
+        function markTest(testId, passed) {
+            const testElement = document.getElementById(testId);
+            testResults[testId] = passed;
+            
+            testElement.classList.remove('pending', 'pass', 'fail');
+            testElement.classList.add(passed ? 'pass' : 'fail');
+            
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const total = Object.keys(testResults).length;
+            const passed = Object.values(testResults).filter(r => r === true).length;
+            const failed = Object.values(testResults).filter(r => r === false).length;
+            
+            const summaryContent = document.getElementById('summary-content');
+            
+            if (total === 0) {
+                summaryContent.innerHTML = '<p>Complete the tests above to see the summary.</p>';
+                return;
+            }
+            
+            const passRate = ((passed / total) * 100).toFixed(1);
+            
+            summaryContent.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div style="background: #d4edda; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 32px; font-weight: bold; color: #28a745;">${passed}</div>
+                        <div style="color: #155724;">Tests Passed</div>
+                    </div>
+                    <div style="background: #f8d7da; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 32px; font-weight: bold; color: #dc3545;">${failed}</div>
+                        <div style="color: #721c24;">Tests Failed</div>
+                    </div>
+                    <div style="background: #d1ecf1; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 32px; font-weight: bold; color: #0c5460;">${total}</div>
+                        <div style="color: #0c5460;">Total Tests</div>
+                    </div>
+                    <div style="background: #cce5ff; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 32px; font-weight: bold; color: #004085;">${passRate}%</div>
+                        <div style="color: #004085;">Pass Rate</div>
+                    </div>
+                </div>
+                
+                ${failed === 0 && total >= 15 ? 
+                    '<div style="background: #d4edda; padding: 20px; border-radius: 8px; text-align: center; border: 2px solid #28a745;"><h3 style="color: #155724; margin: 0;">✅ All Tests Passed! Feature is ready for production.</h3></div>' :
+                    failed > 0 ?
+                    '<div style="background: #f8d7da; padding: 20px; border-radius: 8px; text-align: center; border: 2px solid #dc3545;"><h3 style="color: #721c24; margin: 0;">⚠️ Some tests failed. Please review and fix issues.</h3></div>' :
+                    '<div style="background: #fff3cd; padding: 20px; border-radius: 8px; text-align: center; border: 2px solid #ffc107;"><h3 style="color: #856404; margin: 0;">⏳ Testing in progress... Complete all tests above.</h3></div>'
+                }
+            `;
+        }
+
+        // Initialize summary on page load
+        updateSummary();
+    </script>
+</body>
+</html>

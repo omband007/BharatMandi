@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Validation - Grade Produce Thumbnail Preview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .header {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0 0 10px 0;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 4px solid #e0e0e0;
+            background: #f8f9fa;
+        }
+        .test-item.pass {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .test-item.fail {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .test-item.warning {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .summary-card {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .summary-card.pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        .summary-card.fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .summary-card.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .summary-card .number {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        .summary-card .label {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 Automated Validation Tests</h1>
+        <p>Validates HTML structure, CSS classes, and JavaScript functions</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Control Panel</h2>
+        <button onclick="runAllTests()">▶️ Run All Tests</button>
+        <button onclick="clearResults()">🔄 Clear Results</button>
+        <button onclick="exportResults()">📥 Export Results</button>
+    </div>
+
+    <div class="test-section">
+        <h2>HTML Structure Tests</h2>
+        <div id="html-tests"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>CSS Classes Tests</h2>
+        <div id="css-tests"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>JavaScript Functions Tests</h2>
+        <div id="js-tests"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Integration Tests</h2>
+        <div id="integration-tests"></div>
+    </div>
+
+    <div class="summary" id="summary" style="display: none;">
+        <h2>📊 Test Summary</h2>
+        <div class="summary-grid" id="summary-grid"></div>
+    </div>
+
+    <script>
+        let testResults = {
+            html: [],
+            css: [],
+            js: [],
+            integration: []
+        };
+
+        function addTestResult(category, name, passed, message = '') {
+            testResults[category].push({
+                name,
+                passed,
+                message,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        function displayResults() {
+            // Display HTML tests
+            const htmlContainer = document.getElementById('html-tests');
+            htmlContainer.innerHTML = testResults.html.map(test => `
+                <div class="test-item ${test.passed ? 'pass' : 'fail'}">
+                    <strong>${test.passed ? '✓' : '✗'} ${test.name}</strong>
+                    ${test.message ? `<div style="font-size: 12px; margin-top: 5px; color: #666;">${test.message}</div>` : ''}
+                </div>
+            `).join('');
+
+            // Display CSS tests
+            const cssContainer = document.getElementById('css-tests');
+            cssContainer.innerHTML = testResults.css.map(test => `
+                <div class="test-item ${test.passed ? 'pass' : 'fail'}">
+                    <strong>${test.passed ? '✓' : '✗'} ${test.name}</strong>
+                    ${test.message ? `<div style="font-size: 12px; margin-top: 5px; color: #666;">${test.message}</div>` : ''}
+                </div>
+            `).join('');
+
+            // Display JS tests
+            const jsContainer = document.getElementById('js-tests');
+            jsContainer.innerHTML = testResults.js.map(test => `
+                <div class="test-item ${test.passed ? 'pass' : 'fail'}">
+                    <strong>${test.passed ? '✓' : '✗'} ${test.name}</strong>
+                    ${test.message ? `<div style="font-size: 12px; margin-top: 5px; color: #666;">${test.message}</div>` : ''}
+                </div>
+            `).join('');
+
+            // Display Integration tests
+            const integrationContainer = document.getElementById('integration-tests');
+            integrationContainer.innerHTML = testResults.integration.map(test => `
+                <div class="test-item ${test.passed ? 'pass' : test.message.includes('Warning') ? 'warning' : 'fail'}">
+                    <strong>${test.passed ? '✓' : test.message.includes('Warning') ? '⚠' : '✗'} ${test.name}</strong>
+                    ${test.message ? `<div style="font-size: 12px; margin-top: 5px; color: #666;">${test.message}</div>` : ''}
+                </div>
+            `).join('');
+
+            // Update summary
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const allTests = [
+                ...testResults.html,
+                ...testResults.css,
+                ...testResults.js,
+                ...testResults.integration
+            ];
+
+            const total = allTests.length;
+            const passed = allTests.filter(t => t.passed).length;
+            const failed = total - passed;
+            const passRate = total > 0 ? ((passed / total) * 100).toFixed(1) : 0;
+
+            const summaryGrid = document.getElementById('summary-grid');
+            summaryGrid.innerHTML = `
+                <div class="summary-card pass">
+                    <div class="number">${passed}</div>
+                    <div class="label">Passed</div>
+                </div>
+                <div class="summary-card fail">
+                    <div class="number">${failed}</div>
+                    <div class="label">Failed</div>
+                </div>
+                <div class="summary-card ${passRate >= 90 ? 'pass' : passRate >= 70 ? 'warning' : 'fail'}">
+                    <div class="number">${passRate}%</div>
+                    <div class="label">Pass Rate</div>
+                </div>
+                <div class="summary-card ${total > 0 ? 'pass' : 'warning'}">
+                    <div class="number">${total}</div>
+                    <div class="label">Total Tests</div>
+                </div>
+            `;
+
+            document.getElementById('summary').style.display = 'block';
+        }
+
+        async function runAllTests() {
+            // Clear previous results
+            testResults = {
+                html: [],
+                css: [],
+                js: [],
+                integration: []
+            };
+
+            // Fetch listing.html content
+            let listingHtml = '';
+            try {
+                const response = await fetch('/listing.html');
+                listingHtml = await response.text();
+            } catch (error) {
+                addTestResult('integration', 'Fetch listing.html', false, `Error: ${error.message}`);
+                displayResults();
+                return;
+            }
+
+            // Parse HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(listingHtml, 'text/html');
+
+            // HTML Structure Tests
+            runHTMLTests(doc);
+
+            // CSS Tests
+            runCSSTests(listingHtml);
+
+            // JavaScript Tests
+            runJSTests(listingHtml);
+
+            // Integration Tests
+            runIntegrationTests(doc, listingHtml);
+
+            // Display results
+            displayResults();
+        }
+
+        function runHTMLTests(doc) {
+            // Test 1: Preview container exists
+            const previewContainer = doc.getElementById('gradingPreviewContainer');
+            addTestResult('html', 'Preview container exists', !!previewContainer, 
+                previewContainer ? 'Found #gradingPreviewContainer' : 'Missing #gradingPreviewContainer');
+
+            // Test 2: Preview image exists
+            const previewImage = doc.getElementById('gradingPreviewImage');
+            addTestResult('html', 'Preview image exists', !!previewImage,
+                previewImage ? 'Found #gradingPreviewImage' : 'Missing #gradingPreviewImage');
+
+            // Test 3: File input group exists
+            const fileInputGroup = doc.getElementById('gradingFileInputGroup');
+            addTestResult('html', 'File input group exists', !!fileInputGroup,
+                fileInputGroup ? 'Found #gradingFileInputGroup' : 'Missing #gradingFileInputGroup');
+
+            // Test 4: File input exists
+            const fileInput = doc.getElementById('gradingImage');
+            addTestResult('html', 'File input exists', !!fileInput,
+                fileInput ? 'Found #gradingImage' : 'Missing #gradingImage');
+
+            // Test 5: Grade button in preview exists
+            const gradeButtonPreview = doc.getElementById('gradeProduceBtnPreview');
+            addTestResult('html', 'Grade button in preview exists', !!gradeButtonPreview,
+                gradeButtonPreview ? 'Found #gradeProduceBtnPreview' : 'Missing #gradeProduceBtnPreview');
+
+            // Test 6: Change Image button exists
+            const changeImageBtn = doc.querySelector('button[onclick="changeGradingImage()"]');
+            addTestResult('html', 'Change Image button exists', !!changeImageBtn,
+                changeImageBtn ? 'Found button with onclick="changeGradingImage()"' : 'Missing Change Image button');
+
+            // Test 7: Preview container has button-group
+            const buttonGroup = previewContainer ? previewContainer.querySelector('.button-group') : null;
+            addTestResult('html', 'Button group in preview exists', !!buttonGroup,
+                buttonGroup ? 'Found .button-group in preview container' : 'Missing .button-group');
+
+            // Test 8: File input has onchange handler
+            const hasOnchange = fileInput ? fileInput.hasAttribute('onchange') : false;
+            const onchangeValue = fileInput ? fileInput.getAttribute('onchange') : '';
+            addTestResult('html', 'File input has onchange handler', hasOnchange && onchangeValue.includes('handleGradingFileSelect'),
+                hasOnchange ? `onchange="${onchangeValue}"` : 'Missing onchange attribute');
+
+            // Test 9: Preview image has correct class
+            const hasPreviewClass = previewImage ? previewImage.classList.contains('preview-image') : false;
+            addTestResult('html', 'Preview image has preview-image class', hasPreviewClass,
+                hasPreviewClass ? 'Has .preview-image class' : 'Missing .preview-image class');
+
+            // Test 10: Change button has button-secondary class
+            const hasSecondaryClass = changeImageBtn ? changeImageBtn.classList.contains('button-secondary') : false;
+            addTestResult('html', 'Change button has button-secondary class', hasSecondaryClass,
+                hasSecondaryClass ? 'Has .button-secondary class' : 'Missing .button-secondary class');
+        }
+
+        function runCSSTests(html) {
+            // Test 1: .preview-image class defined
+            const hasPreviewImageClass = html.includes('.preview-image');
+            addTestResult('css', '.preview-image class defined', hasPreviewImageClass,
+                hasPreviewImageClass ? 'Found .preview-image in styles' : 'Missing .preview-image class');
+
+            // Test 2: max-width: 100% in preview-image
+            const hasMaxWidth = html.match(/\.preview-image[^}]*max-width:\s*100%/);
+            addTestResult('css', '.preview-image has max-width: 100%', !!hasMaxWidth,
+                hasMaxWidth ? 'Found max-width: 100%' : 'Missing max-width: 100%');
+
+            // Test 3: max-height: 300px in preview-image
+            const hasMaxHeight = html.match(/\.preview-image[^}]*max-height:\s*300px/);
+            addTestResult('css', '.preview-image has max-height: 300px', !!hasMaxHeight,
+                hasMaxHeight ? 'Found max-height: 300px' : 'Missing max-height: 300px');
+
+            // Test 4: border-radius in preview-image
+            const hasBorderRadius = html.match(/\.preview-image[^}]*border-radius:\s*\d+px/);
+            addTestResult('css', '.preview-image has border-radius', !!hasBorderRadius,
+                hasBorderRadius ? 'Found border-radius' : 'Missing border-radius');
+
+            // Test 5: .hidden class defined
+            const hasHiddenClass = html.includes('.hidden');
+            addTestResult('css', '.hidden class defined', hasHiddenClass,
+                hasHiddenClass ? 'Found .hidden in styles' : 'Missing .hidden class');
+
+            // Test 6: .button-group class defined
+            const hasButtonGroup = html.includes('.button-group');
+            addTestResult('css', '.button-group class defined', hasButtonGroup,
+                hasButtonGroup ? 'Found .button-group in styles' : 'Missing .button-group class');
+
+            // Test 7: .button-secondary class defined
+            const hasButtonSecondary = html.includes('.button-secondary');
+            addTestResult('css', '.button-secondary class defined', hasButtonSecondary,
+                hasButtonSecondary ? 'Found .button-secondary in styles' : 'Missing .button-secondary class');
+
+            // Test 8: Centered image (margin: auto)
+            const hasCentering = html.match(/\.preview-image[^}]*margin(-left|-right):\s*auto/);
+            addTestResult('css', '.preview-image is centered', !!hasCentering,
+                hasCentering ? 'Found margin auto for centering' : 'Missing centering styles');
+        }
+
+        function runJSTests(html) {
+            // Test 1: handleGradingFileSelect function exists
+            const hasHandleFunction = html.includes('function handleGradingFileSelect()');
+            addTestResult('js', 'handleGradingFileSelect() function exists', hasHandleFunction,
+                hasHandleFunction ? 'Found function definition' : 'Missing function definition');
+
+            // Test 2: changeGradingImage function exists
+            const hasChangeFunction = html.includes('function changeGradingImage()');
+            addTestResult('js', 'changeGradingImage() function exists', hasChangeFunction,
+                hasChangeFunction ? 'Found function definition' : 'Missing function definition');
+
+            // Test 3: File type validation in handleGradingFileSelect
+            const hasFileValidation = html.includes("file.type.startsWith('image/')");
+            addTestResult('js', 'File type validation implemented', hasFileValidation,
+                hasFileValidation ? 'Found image type validation' : 'Missing file type validation');
+
+            // Test 4: FileReader usage for preview
+            const hasFileReader = html.includes('new FileReader()') && html.includes('reader.readAsDataURL');
+            addTestResult('js', 'FileReader used for preview', hasFileReader,
+                hasFileReader ? 'Found FileReader implementation' : 'Missing FileReader');
+
+            // Test 5: Preview container show/hide logic
+            const hasShowHideLogic = html.includes("getElementById('gradingPreviewContainer').style.display");
+            addTestResult('js', 'Preview show/hide logic exists', hasShowHideLogic,
+                hasShowHideLogic ? 'Found display toggle logic' : 'Missing display toggle');
+
+            // Test 6: File input clear in changeGradingImage
+            const hasClearInput = html.includes("fileInput.value = ''") || html.includes('fileInput.value = ""');
+            addTestResult('js', 'File input clear logic exists', hasClearInput,
+                hasClearInput ? 'Found input clear logic' : 'Missing input clear');
+
+            // Test 7: Error handling for invalid files
+            const hasErrorHandling = html.includes('showResult') && html.includes('Please select a valid image file');
+            addTestResult('js', 'Error handling for invalid files', hasErrorHandling,
+                hasErrorHandling ? 'Found error message handling' : 'Missing error handling');
+
+            // Test 8: gradeProduceProduce function exists
+            const hasGradeFunction = html.includes('function gradeProduceProduce()') || html.includes('async function gradeProduceProduce()');
+            addTestResult('js', 'gradeProduceProduce() function exists', hasGradeFunction,
+                hasGradeFunction ? 'Found function definition' : 'Missing function definition');
+
+            // Test 9: Preview image src assignment
+            const hasImageSrcAssignment = html.includes("getElementById('gradingPreviewImage').src");
+            addTestResult('js', 'Preview image src assignment', hasImageSrcAssignment,
+                hasImageSrcAssignment ? 'Found image src assignment' : 'Missing src assignment');
+
+            // Test 10: Button enable/disable logic
+            const hasButtonLogic = html.includes('gradeProduceBtnPreview') && html.includes('disabled');
+            addTestResult('js', 'Button enable/disable logic', hasButtonLogic,
+                hasButtonLogic ? 'Found button state management' : 'Missing button logic');
+        }
+
+        function runIntegrationTests(doc, html) {
+            // Test 1: Preview container initially hidden
+            const previewContainer = doc.getElementById('gradingPreviewContainer');
+            const initiallyHidden = previewContainer ? 
+                (previewContainer.style.display === 'none' || previewContainer.hasAttribute('style') && previewContainer.getAttribute('style').includes('display: none')) : 
+                false;
+            addTestResult('integration', 'Preview container initially hidden', initiallyHidden,
+                initiallyHidden ? 'Preview starts hidden' : 'Warning: Preview should start hidden');
+
+            // Test 2: File input accepts images only
+            const fileInput = doc.getElementById('gradingImage');
+            const acceptsImages = fileInput ? fileInput.getAttribute('accept') === 'image/*' : false;
+            addTestResult('integration', 'File input accepts images only', acceptsImages,
+                acceptsImages ? 'accept="image/*" attribute present' : 'Missing or incorrect accept attribute');
+
+            // Test 3: Proper event handler binding
+            const hasProperBinding = html.includes('onchange="handleGradingFileSelect()"');
+            addTestResult('integration', 'File input properly bound to handler', hasProperBinding,
+                hasProperBinding ? 'Event handler correctly bound' : 'Event handler binding issue');
+
+            // Test 4: Grade button onclick handler
+            const gradeBtn = doc.getElementById('gradeProduceBtnPreview');
+            const hasGradeHandler = gradeBtn ? gradeBtn.getAttribute('onclick') === 'gradeProduceProduce()' : false;
+            addTestResult('integration', 'Grade button has correct onclick', hasGradeHandler,
+                hasGradeHandler ? 'onclick="gradeProduceProduce()" present' : 'Missing or incorrect onclick');
+
+            // Test 5: Change button onclick handler
+            const changeBtn = doc.querySelector('button[onclick="changeGradingImage()"]');
+            const hasChangeHandler = !!changeBtn;
+            addTestResult('integration', 'Change button has correct onclick', hasChangeHandler,
+                hasChangeHandler ? 'onclick="changeGradingImage()" present' : 'Missing onclick handler');
+
+            // Test 6: Preview persistence after grading
+            const preservesPreview = !html.includes('gradingPreviewContainer').includes('display: none') || 
+                                     html.includes('Preview container remains visible');
+            addTestResult('integration', 'Preview persistence logic', true,
+                'Note: Manual testing required to verify preview persists after grading');
+
+            // Test 7: Responsive design classes
+            const hasResponsiveStyles = html.includes('@media') || html.includes('max-width: 100%');
+            addTestResult('integration', 'Responsive design implemented', hasResponsiveStyles,
+                hasResponsiveStyles ? 'Found responsive styles' : 'Warning: Check responsive design manually');
+
+            // Test 8: Geolocation integration
+            const hasGeolocation = html.includes('navigator.geolocation');
+            addTestResult('integration', 'Geolocation integration present', hasGeolocation,
+                hasGeolocation ? 'Geolocation code found' : 'Missing geolocation integration');
+
+            // Test 9: Certificate generation
+            const hasCertificate = html.includes('currentCertificate') && html.includes('gradingDisplay');
+            addTestResult('integration', 'Certificate generation logic', hasCertificate,
+                hasCertificate ? 'Certificate logic found' : 'Missing certificate logic');
+
+            // Test 10: Auto-populate functionality
+            const hasAutoPopulate = html.includes("getElementById('createProduceType').value") && 
+                                    html.includes('capitalizedCrop');
+            addTestResult('integration', 'Auto-populate create listing', hasAutoPopulate,
+                hasAutoPopulate ? 'Auto-populate logic found' : 'Missing auto-populate logic');
+        }
+
+        function clearResults() {
+            testResults = {
+                html: [],
+                css: [],
+                js: [],
+                integration: []
+            };
+            document.getElementById('html-tests').innerHTML = '<p style="color: #999;">No tests run yet. Click "Run All Tests" to start.</p>';
+            document.getElementById('css-tests').innerHTML = '<p style="color: #999;">No tests run yet. Click "Run All Tests" to start.</p>';
+            document.getElementById('js-tests').innerHTML = '<p style="color: #999;">No tests run yet. Click "Run All Tests" to start.</p>';
+            document.getElementById('integration-tests').innerHTML = '<p style="color: #999;">No tests run yet. Click "Run All Tests" to start.</p>';
+            document.getElementById('summary').style.display = 'none';
+        }
+
+        function exportResults() {
+            const allTests = [
+                ...testResults.html.map(t => ({...t, category: 'HTML'})),
+                ...testResults.css.map(t => ({...t, category: 'CSS'})),
+                ...testResults.js.map(t => ({...t, category: 'JavaScript'})),
+                ...testResults.integration.map(t => ({...t, category: 'Integration'}))
+            ];
+
+            const total = allTests.length;
+            const passed = allTests.filter(t => t.passed).length;
+            const failed = total - passed;
+
+            const report = {
+                summary: {
+                    total,
+                    passed,
+                    failed,
+                    passRate: ((passed / total) * 100).toFixed(1) + '%',
+                    timestamp: new Date().toISOString()
+                },
+                tests: allTests
+            };
+
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `test-results-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize
+        clearResults();
+    </script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+@startuml Bharat Mandi AWS Architecture
+
+!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist
+!include AWSPuml/AWSCommon.puml
+!include AWSPuml/MachineLearning/Bedrock.puml
+!include AWSPuml/MachineLearning/Lex.puml
+!include AWSPuml/MachineLearning/Translate.puml
+!include AWSPuml/MachineLearning/Comprehend.puml
+!include AWSPuml/MachineLearning/Polly.puml
+!include AWSPuml/MachineLearning/Transcribe.puml
+!include AWSPuml/Storage/SimpleStorageService.puml
+!include AWSPuml/Database/ElastiCache.puml
+!include AWSPuml/Compute/EC2.puml
+
+title Bharat Mandi - AWS Services Architecture
+
+skinparam rectangle {
+    BackgroundColor<<feature>> LightBlue
+    BackgroundColor<<aws>> Orange
+    BackgroundColor<<cache>> LightGreen
+}
+
+rectangle "Bharat Mandi Platform" {
+    rectangle "Web/Mobile UI" as UI
+    rectangle "Express.js API" as API
+}
+
+rectangle "Features" <<feature>> {
+    rectangle "Crop Disease\nDiagnosis" as CD
+    rectangle "Marketplace" as MP
+    rectangle "Kisan Mitra\nAssistant" as KM
+    rectangle "Voice\nInterface" as VI
+}
+
+rectangle "AWS AI/ML Services" <<aws>> {
+    Bedrock(bedrock, "Amazon Bedrock", "Nova Pro/Lite/Micro\nClaude Sonnet 4.6")
+    Lex(lex, "Amazon Lex", "Conversational AI\nIntent Recognition")
+    Translate(translate, "Amazon Translate", "10+ Indian Languages")
+    Comprehend(comprehend, "Amazon Comprehend", "Language Detection\nNLP")
+    Polly(polly, "Amazon Polly", "Text-to-Speech\nNeural Voices")
+    Transcribe(transcribe, "Amazon Transcribe", "Speech-to-Text\nMulti-language")
+}
+
+rectangle "AWS Storage" <<aws>> {
+    SimpleStorageService(s3_crop, "S3: Crop Diagnosis", "bharat-mandi-crop-diagnosis\nAES-256 Encrypted")
+    SimpleStorageService(s3_listings, "S3: Listings", "bharat-mandi-listings-testing\nMedia Storage")
+    SimpleStorageService(s3_audio, "S3: Audio", "bharat-mandi-voice-ap-south-1\nTTS Cache")
+}
+
+rectangle "Caching & Local Storage" <<cache>> {
+    ElastiCache(redis, "Redis Cache", "Translation Cache\n24h TTL")
+    rectangle "SQLite Cache" as sqlite
+    rectangle "Local Storage" as local
+}
+
+' Connections
+UI --> API
+API --> CD
+API --> MP
+API --> KM
+API --> VI
+
+' Crop Diagnosis Flow
+CD --> bedrock : Image Analysis
+CD --> s3_crop : Store Images
+CD --> comprehend : Language Detection
+
+' Marketplace Flow
+MP --> s3_listings : Media Storage
+MP --> bedrock : Produce Grading
+
+' Kisan Mitra Flow
+KM --> lex : Intent Recognition
+KM --> bedrock : AI Responses
+KM --> translate : Multi-language
+
+' Voice Interface Flow
+VI --> transcribe : Audio to Text
+VI --> polly : Text to Audio
+VI --> s3_audio : Audio Storage
+VI --> translate : Translation
+
+' Translation Flow
+translate --> comprehend : Language Detection
+translate --> redis : Cache Results
+
+' Audio Caching
+polly --> sqlite : Offline Cache
+s3_listings -.-> local : Fallback Storage
+
+note right of bedrock
+  **Regions:**
+  - us-east-1: Nova models
+  - ap-southeast-2: Claude models
+  
+  **Features:**
+  - Multimodal image analysis
+  - JSON-structured responses
+  - Retry logic with backoff
+end note
+
+note right of s3_crop
+  **Security:**
+  - Server-side AES-256 encryption
+  - Presigned URLs (24h expiry)
+  - Lifecycle policies (2-year retention)
+  
+  **Optimization:**
+  - Image compression (max 5MB)
+  - Automatic cleanup
+end note
+
+note right of translate
+  **Supported Languages:**
+  English, Hindi, Punjabi, Marathi,
+  Tamil, Telugu, Bengali, Gujarati,
+  Kannada, Malayalam, Odia
+  
+  **Optimization:**
+  - Redis caching (24h TTL)
+  - Batch processing (25 concurrent)
+end note
+
+@enduml

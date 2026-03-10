@@ -11,6 +11,18 @@ Complete database documentation including setup, schemas, and ER diagrams.
 - [Dual Database Setup](DUAL-DATABASE-SETUP.md) - PostgreSQL + SQLite configuration
 - [MongoDB Setup](MONGODB-SETUP.md) - MongoDB configuration (if needed)
 
+## SQL Scripts
+
+SQL migration and utility scripts are located in `../../scripts/database/sql/`:
+
+- `check-users-references.sql` - Check user table references
+- `create-more-listings.sql` - Create test listings
+- `create-test-listing.sql` - Create single test listing
+- `drop-users-table.sql` - Drop users table (use with caution)
+- `insert-user.sql` - Insert test user
+- `migrate-to-user-profiles.sql` - Migrate to user profiles schema
+- `rds-schema-init.sql` - Initialize RDS schema
+
 ## Database Architecture
 
 Bharat Mandi uses a dual-database architecture:

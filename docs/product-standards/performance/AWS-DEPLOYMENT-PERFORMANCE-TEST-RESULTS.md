@@ -468,7 +468,194 @@ The Bharat Mandi AWS deployment demonstrates excellent performance characteristi
 
 ---
 
+## AI Endpoints Smoke Test Results
+
+**Test Date**: March 9, 2026  
+**Test Duration**: 2 minutes  
+**Target**: http://13.236.3.139:3000 (AWS EC2 - ap-southeast-2)  
+**Testing Tool**: Artillery 2.0.30  
+**Test Type**: AI Endpoints Smoke Test (5 requests per endpoint)  
+**Estimated Cost**: $0.10 (AWS Bedrock API calls)
+
+### Executive Summary
+
+Initial smoke test of AI endpoints revealed significant issues requiring investigation. The test achieved only 60% completion rate with high error rates across all AI-powered features.
+
+**Key Findings:**
+- ⚠️ Success rate: 35.8% (43/120 requests)
+- ❌ Server errors (500): 44.2% (53/120 requests)
+- ❌ Timeouts: 20% (24/120 requests)
+- ⚠️ Failed users: 40% (48/120 users)
+- ✅ Response time (successful requests): 145ms average
+
+### Test Configuration
+
+**AI Endpoints Tested:**
+
+| Endpoint | Purpose | Requests | AWS Service |
+|----------|---------|----------|-------------|
+| POST /api/crop-diagnosis/diagnose | Dr. Fasal - Crop disease diagnosis | 30 | Bedrock (Nova Pro) |
+| POST /api/produce-grading/grade | Fasal-Parakh - Produce quality grading | 30 | Bedrock (Nova Pro) |
+| POST /api/kisan-mitra/chat | Kisan Mitra - Voice assistant | 30 | Bedrock (Claude), Polly, Transcribe |
+| GET /api/health | Health check baseline | 30 | None |
+
+**Test Data:**
+- Sample crop disease images (required)
+- Sample produce images (required)
+- Sample audio files for voice assistant (required)
+
+### Performance Results
+
+**Overall Metrics:**
+
+| Metric | Value | Target | Status |
+|--------|-------|--------|--------|
+| Total Requests | 120 | - | ✅ |
+| Successful (200) | 43 | > 95% | ❌ 35.8% |
+| Server Errors (500) | 53 | < 1% | ❌ 44.2% |
+| Timeouts | 24 | < 1% | ❌ 20% |
+| Failed Users | 48/120 | < 5% | ❌ 40% |
+| Avg Response Time | 145ms | < 2000ms | ✅ |
+| Median Response Time | 138.4ms | < 1500ms | ✅ |
+| P95 Response Time | 156ms | < 5000ms | ✅ |
+| P99 Response Time | 257.3ms | < 10000ms | ✅ |
+
+**Response Time Distribution (Successful Requests Only):**
+
+| Metric | Value |
+|--------|-------|
+| Min | 132ms |
+| Max | 637ms |
+| Mean | 145ms |
+| Median | 138.4ms |
+| P95 | 156ms |
+| P99 | 257.3ms |
+
+### Issues Identified
+
+**1. High Server Error Rate (44.2%)**
+- 53 out of 120 requests returned 500 errors
+- Indicates backend processing failures
+- Likely causes:
+  - Missing or invalid test image files
+  - AWS Bedrock API errors
+  - Image processing failures
+  - Configuration issues
+
+**2. Timeout Issues (20%)**
+- 24 requests timed out (ETIMEDOUT)
+- Suggests:
+  - Long-running AI operations
+  - Network connectivity issues
+  - Resource constraints
+
+**3. Failed Captures (24 instances)**
+- Test expected data that wasn't returned
+- "Failed capture or match" errors
+- Indicates response format mismatches
+
+**4. Low Completion Rate (60%)**
+- Only 72 out of 120 users completed successfully
+- 48 users failed (40% failure rate)
+- Unacceptable for production
+
+### Root Cause Analysis
+
+**Primary Issues:**
+
+1. **Incorrect Endpoint URLs** (CRITICAL)
+   - Test was calling `/api/diagnosis/test` but actual endpoint is `/api/diagnosis`
+   - This caused 404 errors for all Dr. Fasal diagnosis requests (30 requests)
+   - See detailed analysis: `AI-SMOKE-TEST-FAILURE-ANALYSIS.md`
+
+2. **Missing Authentication** (CRITICAL)
+   - All diagnosis endpoints require JWT authentication (`requireAuth` middleware)
+   - Test configuration didn't include authentication headers
+   - Requests were rejected with 401 Unauthorized
+
+3. **Missing Test Data Files**
+   - Test requires actual image files in `scripts/perf-tests/test-data/`
+   - Required files:
+     - `sample-crop-disease.jpg` (for Dr. Fasal)
+     - `sample-produce.jpg` (for Fasal-Parakh)
+     - `sample-audio.mp3` (for Kisan Mitra)
+   - Without these files, endpoints cannot process requests
+
+4. **Endpoint Configuration Issues**
+   - Some endpoints may require specific image formats
+   - File size limits may be exceeded
+   - AWS Bedrock model access may have issues
+
+### Comparison: Basic API vs AI Endpoints
+
+| Metric | Basic API Test | AI Endpoints Test | Variance |
+|--------|---------------|-------------------|----------|
+| Success Rate | 100% | 35.8% | -64.2% ❌ |
+| Error Rate | 0% | 44.2% | +44.2% ❌ |
+| Timeout Rate | 0% | 20% | +20% ❌ |
+| Avg Response Time | 140ms | 145ms | +3.6% ✅ |
+| P95 Response Time | 153ms | 156ms | +2% ✅ |
+
+**Key Insight**: While response times are similar for successful requests, AI endpoints have significantly higher failure rates, indicating functional issues rather than performance issues.
+
+### Recommendations
+
+**Immediate Actions Required:**
+
+1. **Fix Endpoint URLs** (CRITICAL)
+   - Update test configuration: `/api/diagnosis/test` → `/api/diagnosis`
+   - Verify all endpoint URLs match actual application routes
+
+2. **Add Authentication** (CRITICAL)
+   - Option A: Create `/api/diagnosis/test` endpoint without auth (recommended for testing)
+   - Option B: Generate JWT tokens in test processor and add to headers
+
+3. **Add Test Data Files** (CRITICAL)
+   ```bash
+   # Create test data directory
+   mkdir -p scripts/perf-tests/test-data
+   
+   # Add sample images and audio
+   # - sample-crop-disease.jpg (crop with visible disease)
+   # - sample-produce.jpg (produce item for grading)
+   # - sample-audio.mp3 (Hindi voice sample)
+   ```
+
+4. **Re-run Smoke Test**
+   - After fixing endpoints and adding test data
+   - Target: > 95% success rate
+   - Expected cost: $0.10
+
+**Detailed Analysis**: See `AI-SMOKE-TEST-FAILURE-ANALYSIS.md` for complete root cause analysis and fix recommendations.
+
+**Future Enhancements:**
+
+1. Implement proper error handling for missing files
+2. Add retry logic for transient failures
+3. Set up monitoring for AI endpoint health
+4. Create comprehensive AI load test (after smoke test passes)
+
+### Test Status
+
+| Test Type | Status | Success Rate | Next Steps |
+|-----------|--------|--------------|------------|
+| Basic API | ✅ Complete | 100% | Monitor in production |
+| AI Smoke Test | ⚠️ Failed | 35.8% | Add test data, re-run |
+| AI Load Test | ⏸️ Pending | N/A | Run after smoke test passes |
+
+### Cost Analysis
+
+| Test Type | Requests | AWS Cost | Status |
+|-----------|----------|----------|--------|
+| Basic API | 19,224 | $0 | ✅ Complete |
+| AI Smoke Test | 120 | ~$0.10 | ⚠️ Needs re-run |
+| AI Load Test | 1,200 | ~$2.50 | ⏸️ Pending |
+
+**Note**: AI smoke test needs to be re-run after fixing issues. Additional $0.10 cost expected.
+
+---
+
 **Test Conducted By**: Performance Testing Team  
 **Report Generated**: March 9, 2026  
-**Version**: 1.0.0  
-**Next Test**: Recommended after 1 month or significant code changes
+**Version**: 1.1.0 (Added AI Smoke Test Results)  
+**Next Test**: Re-run AI smoke test after adding test data files
