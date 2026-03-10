@@ -1,83 +1,96 @@
 # Bharat Mandi - Agricultural Marketplace Platform
 
-A comprehensive agricultural marketplace platform addressing systemic issues in agricultural trade through AI-powered produce grading, secure escrow payments, digital farming records, and ecosystem integration.
+A comprehensive agricultural marketplace platform addressing systemic issues in agricultural trade through AI-powered crop disease diagnosis, produce grading, secure escrow payments, and multilingual support.
+
+## Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Start local services (MongoDB, Redis)
+docker-compose up -d
+
+# Start development server
+npm run dev
+
+# Access the app
+http://localhost:3000
+```
+
+For detailed setup instructions, see [Development Guide](docs/core/DEVELOPMENT.md).
 
 ## Documentation
 
 All project documentation is organized in the `docs/` folder:
 
+### Core Documentation
 - **[Development Guide](docs/core/DEVELOPMENT.md)** - Development setup and workflows
 - [Quickstart Guide](docs/core/QUICKSTART.md) - Get started quickly
 - [Project Structure](docs/core/PROJECT-STRUCTURE.md) - Codebase organization
-- [POC v2 Guide](docs/POC-V2-GUIDE.md) - Current POC implementation guide
-- [Authentication API Guide](docs/AUTH-API-GUIDE.md) - Authentication endpoints and flows
-- [AI Grading Guide](docs/AI-GRADING-GUIDE.md) - AI-powered produce grading
-- [UI Guide](docs/UI-GUIDE.md) - User interface documentation
-- [Database Setup](docs/DATABASE-SETUP.md) - Database configuration
-- [Database Documentation](docs/DATABASE-DOCUMENTATION.md) - Schema and models
-- [Database ER Diagrams](docs/DATABASE-ER-DIAGRAMS.md) - Entity relationship diagrams
-- [Database Summary](docs/DATABASE-SUMMARY.md) - Database overview
-- [MongoDB Setup](docs/MONGODB-SETUP.md) - MongoDB configuration
-- [POC Test Results](docs/POC-TEST-RESULTS.md) - Testing outcomes
-- [Crop Detection Update](docs/CROP-DETECTION-UPDATE.md) - Latest crop detection features
-- **[Vertical Slicing Guide](docs/VERTICAL-SLICING-GUIDE.md)** - Feature-based architecture guide
-- **[Vertical Slicing Migration](docs/VERTICAL-SLICING-MIGRATION.md)** - Migration documentation
-- [Code Organization](docs/CODE-ORGANIZATION.md) - Best practices and patterns
+- [File Organization](docs/core/FILE-ORGANIZATION.md) - File structure guide
 
-## POC Scope
+### Architecture & Design
+- [Architecture Overview](docs/architecture/README.md) - System architecture
+- [Technology Stack](docs/architecture/technology-stack.md) - Technologies used
+- [AWS Cloud Architecture](docs/architecture/aws-cloud-architecture.md) - Cloud infrastructure
+- [Vertical Slicing Guide](docs/architecture/VERTICAL-SLICING-GUIDE.md) - Feature-based architecture
 
-This POC focuses on the essential workflow:
+### Features
+- [Crop Disease Diagnosis](docs/features/crop-detection/) - AI-powered disease detection
+- [Marketplace](docs/features/marketplace/) - Listing and trading
+- [Translation](docs/features/translation/) - Multilingual support
+- [Kisan Mitra](docs/features/kisan-mitra/) - AI farming assistant
 
-**Farmer Onboarding → Produce Grading → Listing → Purchase → Escrow → Delivery**
+### Database & Infrastructure
+- [Database Documentation](docs/database/DATABASE-DOCUMENTATION.md) - Schema and models
+- [Database Setup](docs/database/DATABASE-SETUP.md) - Configuration guide
+- [AWS Services](docs/infrastructure/aws/) - AWS configuration
 
-### What's Included
-
-- ✅ Basic Node.js/Express backend with TypeScript
-- ✅ In-memory database (no PostgreSQL/MongoDB setup needed)
-- ✅ Core API endpoints for the main workflow
-- ✅ Mock AI grading service
-- ✅ Escrow payment simulation
-- ✅ Transaction lifecycle management
-
-### What's NOT Included (Future Implementation)
-
-- ❌ React Native mobile app
-- ❌ Actual AI/ML models
-- ❌ Real database (PostgreSQL/MongoDB)
-- ❌ AWS infrastructure
-- ❌ Authentication/Authorization
-- ❌ Photo-Log feature
-- ❌ Credibility scoring
-- ❌ Advanced features (auctions, disease diagnosis, etc.)
+### Testing & Performance
+- [Testing Overview](docs/testing/TESTING-OVERVIEW.md) - Testing strategy
+- [Performance Testing](docs/product-standards/performance/) - Performance benchmarks
 
 ## Project Structure
 
 ```
 bharat-mandi/
-├── .kiro/                  # Kiro specs and configuration
-│   └── specs/
-│       └── bharat-mandi/   # Feature specifications
 ├── config/                 # Configuration files
-│   ├── jest.config.js     # Jest test configuration
-│   └── test-workflow.ps1  # Test workflow script
-├── data/                   # SQLite database files
-├── docs/                   # 📚 All documentation files
-├── public/                 # Static HTML files for POC UI
-├── src/
-│   ├── features/          # 🎯 Feature modules (vertical slices)
-│   │   ├── auth/         # Authentication & user management
-│   │   ├── grading/      # AI-powered produce grading
-│   │   ├── marketplace/  # Marketplace listings
-│   │   ├── transactions/ # Transaction management
-│   │   └── users/        # User CRUD operations
-│   ├── shared/           # Shared code across features
-│   │   ├── database/     # Database connections & migrations
-│   │   ├── types/        # Common type definitions
-│   │   └── __tests__/    # Integration tests
-│   ├── app.ts            # Express app setup
-│   ├── index.ts          # Server entry point
-│   └── README.md         # Source code documentation
-├── TestImages/            # Sample images for testing
+│   ├── .env.example       # Environment template
+│   ├── .env.production    # Production config
+│   └── README.md
+├── docs/                   # 📚 Documentation
+│   ├── architecture/      # System architecture
+│   ├── core/             # Core documentation
+│   ├── database/         # Database docs
+│   ├── features/         # Feature documentation
+│   ├── infrastructure/   # Infrastructure docs
+│   └── testing/          # Testing documentation
+├── scripts/               # 🔧 Utility scripts
+│   ├── deployment/       # Deployment scripts
+│   ├── aws-setup/        # AWS infrastructure setup
+│   ├── database/         # Database scripts
+│   ├── diagnostics/      # Diagnostic scripts
+│   ├── perf-tests/       # Performance testing
+│   └── utilities/        # Utility scripts
+├── src/                   # 💻 Source code
+│   ├── features/         # Feature modules (vertical slices)
+│   │   ├── auth/        # Authentication
+│   │   ├── crop-diagnosis/ # AI disease diagnosis
+│   │   ├── grading/     # Produce grading
+│   │   ├── i18n/        # Translation & localization
+│   │   ├── marketplace/ # Marketplace listings
+│   │   └── transactions/ # Transaction management
+│   ├── shared/          # Shared utilities
+│   │   ├── database/    # Database connections
+│   │   ├── cache/       # Redis caching
+│   │   └── types/       # Type definitions
+│   ├── app.ts           # Express app setup
+│   └── index.ts         # Server entry point
+├── public/               # Static HTML files
+├── data/                 # Local database files
+├── test-images/          # Test images for AI features
+├── docker-compose.yml    # Docker services (MongoDB, Redis)
 ├── package.json
 ├── tsconfig.json
 └── README.md
@@ -98,186 +111,129 @@ This project uses **vertical slicing** architecture where each feature is self-c
 - ✅ Scalable - add features without touching existing ones
 - ✅ Team friendly - teams can own entire features
 
-See [Vertical Slicing Guide](docs/VERTICAL-SLICING-GUIDE.md) for details.
+See [Vertical Slicing Guide](docs/architecture/VERTICAL-SLICING-GUIDE.md) for details.
 
-## Installation
+## Key Features
 
-```bash
-npm install
-```
+### 🌾 AI-Powered Crop Disease Diagnosis (Dr. Fasal)
+- Real-time disease detection using AWS Bedrock
+- Support for multiple crops (tomato, potato, pepper, corn)
+- Multilingual diagnosis reports (English, Hindi, Marathi)
+- Treatment recommendations
 
-## Running the POC
+### 🎯 Produce Grading (Fasal-Parakh)
+- AI-powered quality assessment
+- Standardized grading system
+- Digital certificates
 
-### Development Mode
-```bash
-npm run dev
-```
+### 🌐 Multilingual Support
+- Translation service with Redis caching
+- Support for English, Hindi, Marathi
+- Voice integration (Text-to-Speech)
 
-### Production Build
-```bash
-npm run build
-npm start
-```
+### 🤖 Kisan Mitra (AI Farming Assistant)
+- Conversational AI for farming queries
+- Context-aware responses
+- Farming tips and advice
 
-The server will start on `http://localhost:3000`
-
-## API Endpoints
-
-### Health Check
-```
-GET /api/health
-```
-
-### User Management
-```
-POST /api/users
-Body: { name, phone, type: "FARMER" | "BUYER", location }
-
-GET /api/users
-```
-
-### Grading & Certification
-```
-POST /api/grading/grade
-Body: { farmerId, produceType, imageData, location: { lat, lng } }
-Returns: { gradingResult, certificate }
-```
-
-### Marketplace
-```
-POST /api/listings
-Body: { farmerId, produceType, quantity, pricePerKg, certificateId }
-
-GET /api/listings
-GET /api/listings/:id
-```
-
-### Transactions & Escrow
-```
-POST /api/transactions
-Body: { listingId, farmerId, buyerId, amount }
-
-POST /api/transactions/:id/accept
-POST /api/transactions/:id/lock-payment
-POST /api/transactions/:id/dispatch
-POST /api/transactions/:id/deliver
-POST /api/transactions/:id/release-funds
-
-GET /api/transactions/:id
-```
-
-## Complete Workflow Example
-
-### 1. Create Users
-```bash
-# Create Farmer
-curl -X POST http://localhost:3000/api/users \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Ramesh Kumar",
-    "phone": "+919876543210",
-    "type": "FARMER",
-    "location": "Punjab"
-  }'
-
-# Create Buyer
-curl -X POST http://localhost:3000/api/users \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Suresh Traders",
-    "phone": "+919876543211",
-    "type": "BUYER",
-    "location": "Delhi"
-  }'
-```
-
-### 2. Grade Produce
-```bash
-curl -X POST http://localhost:3000/api/grading/grade \
-  -H "Content-Type: application/json" \
-  -d '{
-    "farmerId": "<farmer-id>",
-    "produceType": "Wheat",
-    "imageData": "base64_image_data",
-    "location": { "lat": 30.7333, "lng": 76.7794 }
-  }'
-```
-
-### 3. Create Listing
-```bash
-curl -X POST http://localhost:3000/api/listings \
-  -H "Content-Type: application/json" \
-  -d '{
-    "farmerId": "<farmer-id>",
-    "produceType": "Wheat",
-    "quantity": 1000,
-    "pricePerKg": 25,
-    "certificateId": "<certificate-id>"
-  }'
-```
-
-### 4. Buyer Initiates Purchase
-```bash
-curl -X POST http://localhost:3000/api/transactions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "listingId": "<listing-id>",
-    "farmerId": "<farmer-id>",
-    "buyerId": "<buyer-id>",
-    "amount": 25000
-  }'
-```
-
-### 5. Farmer Accepts Order
-```bash
-curl -X POST http://localhost:3000/api/transactions/<transaction-id>/accept
-```
-
-### 6. Buyer Locks Payment
-```bash
-curl -X POST http://localhost:3000/api/transactions/<transaction-id>/lock-payment
-```
-
-### 7. Farmer Dispatches
-```bash
-curl -X POST http://localhost:3000/api/transactions/<transaction-id>/dispatch
-```
-
-### 8. Buyer Confirms Delivery
-```bash
-curl -X POST http://localhost:3000/api/transactions/<transaction-id>/deliver
-```
-
-### 9. Release Funds
-```bash
-curl -X POST http://localhost:3000/api/transactions/<transaction-id>/release-funds
-```
-
-## Testing
-
-```bash
-npm test
-```
+### 💰 Marketplace & Transactions
+- Secure listing management
+- Escrow payment system
+- Transaction lifecycle tracking
 
 ## Technology Stack
 
-- **Runtime**: Node.js
-- **Framework**: Express
-- **Language**: TypeScript
-- **Testing**: Jest
-- **Database**: In-memory (Map-based)
+- **Runtime**: Node.js with TypeScript
+- **Framework**: Express.js
+- **Databases**: 
+  - PostgreSQL (RDS) - Primary database
+  - MongoDB - Conversation logs, farming tips
+  - SQLite - Offline support
+  - Redis - Translation caching
+- **AI/ML**: AWS Bedrock (Claude, Nova models)
+- **Cloud**: AWS (EC2, S3, RDS, Bedrock)
+- **Testing**: Jest, Artillery (performance)
+- **Deployment**: PM2, Docker
 
-## Next Steps
+## Development
 
-After POC validation, the full implementation will include:
+### Prerequisites
+- Node.js 18+
+- Docker & Docker Compose
+- AWS credentials (for AI features)
 
-1. React Native mobile application
-2. Real database setup (PostgreSQL + MongoDB)
-3. AWS cloud infrastructure
-4. Actual AI/ML models for grading
-5. Authentication & authorization
-6. Photo-Log and credibility scoring
-7. Advanced features (auctions, disease diagnosis, etc.)
+### Environment Setup
+
+1. Copy environment template:
+```bash
+cp config/.env.example .env
+```
+
+2. Configure AWS credentials in `.env`:
+```
+AWS_REGION=ap-southeast-2
+AWS_ACCESS_KEY_ID=your_key
+AWS_SECRET_ACCESS_KEY=your_secret
+```
+
+3. Start local services:
+```bash
+docker-compose up -d
+```
+
+4. Run database migrations:
+```bash
+npm run db:setup
+```
+
+### Running Tests
+
+```bash
+# Unit tests
+npm test
+
+# Performance tests
+npm run perf:test
+
+# Smoke tests
+cd scripts/perf-tests
+artillery run artillery-ai-smoke-test.yml
+```
+
+## Deployment
+
+### AWS EC2 Deployment
+
+```bash
+# Deploy to production
+./scripts/deployment/deploy.ps1
+
+# Or using bash
+./scripts/deployment/deploy.sh
+```
+
+The application is deployed on AWS EC2 with:
+- IAM role-based authentication
+- S3 for media storage
+- RDS for database
+- PM2 for process management
+
+See [AWS Cloud Architecture](docs/architecture/aws-cloud-architecture.md) for details.
+
+## Contributing
+
+See [Development Guide](docs/core/DEVELOPMENT.md) for contribution guidelines.
+
+## Project Status
+
+**Current Phase**: Production deployment on AWS EC2
+
+**Recent Updates**:
+- ✅ AI-powered crop disease diagnosis (Dr. Fasal)
+- ✅ Multilingual support (English, Hindi, Marathi)
+- ✅ AWS Bedrock integration
+- ✅ Performance testing infrastructure
+- ✅ File structure cleanup and organization
 
 ## License
 
