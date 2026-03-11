@@ -332,6 +332,16 @@
             display: none !important;
         }
 
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         .view-mode, .edit-mode {
             display: none;
         }
@@ -503,7 +513,7 @@
             </div>
 
             <nav class="nav-bar">
-                <a href="/" class="nav-link">Main</a>
+                <a href="/" class="nav-link">Home</a>
                 <a href="/profile.html" class="nav-link">Profile</a>
                 <a href="/listing.html" class="nav-link active">Listings</a>
                 <a href="/marketplace.html" class="nav-link">Marketplace</a>
@@ -538,9 +548,18 @@
                 <h2><span class="tile-number">1</span> Grade Produce</h2>
                 <p class="info-text">Get an AI quality grade and certificate for your produce</p>
                 
-                <div class="form-group">
+                <div class="form-group" id="gradingFileInputGroup">
                     <label>Upload Produce Photo <span style="color: red;">*</span></label>
-                    <input type="file" id="gradingImage" accept="image/*" onchange="enableGradeButton()">
+                    <input type="file" id="gradingImage" accept="image/*" onchange="handleGradingFileSelect()">
+                </div>
+
+                <!-- Preview Container -->
+                <div id="gradingPreviewContainer" style="display: none;">
+                    <img id="gradingPreviewImage" class="preview-image" alt="Preview">
+                    <div class="button-group">
+                        <button id="gradeProduceBtnPreview" onclick="gradeProduceProduce()">🔍 Grade Produce</button>
+                        <button class="button-secondary" onclick="changeGradingImage()">🔄 Change Image</button>
+                    </div>
                 </div>
 
                 <button id="gradeProduceBtn" onclick="gradeProduceProduce()" disabled>🔍 Grade Produce</button>
@@ -561,7 +580,7 @@
             </div>
 
             <!-- Tile 2: Create New Listing -->
-            <div class="tile" id="tile2">
+            <div class="tile" id="tile2" style="position: relative; padding-bottom: 60px;">
                 <h2><span class="tile-number">2</span> Create New Listing</h2>
                 <p class="info-text">List your produce for sale in the marketplace</p>
                 
@@ -622,9 +641,12 @@
                 <button id="createListingBtn" onclick="createListing()" disabled>Create Listing</button>
                 <div id="createResult" class="result"></div>
                 
-                <p class="info-text" style="margin-top: 15px; font-size: 11px; color: #888; padding-top: 10px;">
-                    ℹ️ The listing will auto-expire in 7 days
-                </p>
+                <!-- Auto-expire Notice - Fixed at bottom -->
+                <div style="position: absolute; bottom: 15px; left: 0; right: 0; padding: 10px 25px 0; border-top: 1px solid #e0e0e0; text-align: center; background: white;">
+                    <p style="font-size: 11px; color: #666; margin: 0;">
+                        <span style="opacity: 0.7;">ℹ️</span> The listing will auto-expire in 7 days
+                    </p>
+                </div>
             </div>
 
             <!-- Tile 3: My Active Listings -->
@@ -876,6 +898,70 @@
             btn.disabled = !(state.isLoggedIn && fileInput.files && fileInput.files.length > 0);
         }
 
+        // Handle file selection for grading with preview
+        function handleGradingFileSelect() {
+            const fileInput = document.getElementById('gradingImage');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                return;
+            }
+            
+            // Validate file is an image type
+            if (!file.type.startsWith('image/')) {
+                showResult('gradingResult', '❌ Please select a valid image file', true);
+                fileInput.value = '';
+                return;
+            }
+            
+            // Read file and create data URL for preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                // Set preview image source
+                document.getElementById('gradingPreviewImage').src = e.target.result;
+                
+                // Hide file input area
+                document.getElementById('gradingFileInputGroup').style.display = 'none';
+                document.getElementById('gradeProduceBtn').style.display = 'none';
+                
+                // Show preview container
+                document.getElementById('gradingPreviewContainer').style.display = 'block';
+                
+                // Enable grade button in preview
+                document.getElementById('gradeProduceBtnPreview').disabled = !state.isLoggedIn;
+                
+                // Clear any previous error messages
+                showResult('gradingResult', '', false);
+            };
+            
+            reader.onerror = () => {
+                showResult('gradingResult', '❌ Failed to read image file', true);
+                fileInput.value = '';
+            };
+            
+            reader.readAsDataURL(file);
+        }
+
+        // Change/reset grading image selection
+        function changeGradingImage() {
+            // Clear file input
+            const fileInput = document.getElementById('gradingImage');
+            fileInput.value = '';
+            
+            // Hide preview container
+            document.getElementById('gradingPreviewContainer').style.display = 'none';
+            
+            // Show file input area
+            document.getElementById('gradingFileInputGroup').style.display = 'block';
+            document.getElementById('gradeProduceBtn').style.display = 'block';
+            
+            // Disable grade button
+            enableGradeButton();
+            
+            // Clear any error messages
+            showResult('gradingResult', '', false);
+        }
+
         // Enable create button when required fields are filled
         function enableCreateButton() {
             const produceType = document.getElementById('createProduceType').value.trim();
@@ -1009,20 +1095,20 @@
                     formData.append('expectedHarvestDate', harvestDateInput.value);
                 }
 
-                // Add certificate as image if checkbox is checked
+                // Add media files first (so first uploaded image becomes primary)
+                if (mediaFiles.length > 0) {
+                    for (let i = 0; i < mediaFiles.length; i++) {
+                        formData.append('media', mediaFiles[i]);
+                    }
+                }
+
+                // Add certificate as last image if checkbox is checked
                 if (attachCert && state.currentCertificate) {
                     try {
                         const certBlob = await generateCertificateBlob(state.currentCertificate);
                         formData.append('media', certBlob, `certificate-${state.currentCertificate.id}.png`);
                     } catch (error) {
                         showResult('createResult', '⚠️ Certificate attachment failed, continuing without it...', false);
-                    }
-                }
-
-                // Add media files if any
-                if (mediaFiles.length > 0) {
-                    for (let i = 0; i < mediaFiles.length; i++) {
-                        formData.append('media', mediaFiles[i]);
                     }
                 }
 
@@ -1145,13 +1231,17 @@
                             const mediaList = mediaData.media || [];
                             const primaryMedia = mediaList.find(m => m.isPrimary) || mediaList[0];
                             if (primaryMedia && primaryMedia.mediaType === 'photo') {
+                                // Use the storageUrl directly - it should already be a signed URL from the backend
+                                const imageUrl = primaryMedia.storageUrl;
+                                console.log('[Tile 3] Primary image URL:', imageUrl);
+                                
                                 primaryImageHtml = `
-                                    <img src="${primaryMedia.storageUrl}" alt="Primary image" style="position: absolute; top: 10px; right: 10px; width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 2px solid #e0e0e0;">
+                                    <img src="${imageUrl}" alt="Primary image" style="position: absolute; top: 10px; right: 10px; width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 2px solid #e0e0e0;" onerror="console.error('[Tile 3] Image load failed:', '${imageUrl}'); this.style.display='none';">
                                 `;
                             }
                         }
                     } catch (err) {
-                        // Silently fail if media fetch fails
+                        console.error('[Tile 3] Media fetch failed:', err);
                     }
                     
                     card.innerHTML = `
@@ -1307,20 +1397,19 @@
                 return;
             }
 
+            console.log('[Tile 4] Rendering media grid with', state.mediaList.length, 'items');
+
             // Render for view mode (no controls)
             const viewModeHtml = state.mediaList.map((media, index) => {
-                let imageUrl = media.storageUrl;
-                if (imageUrl.startsWith('/')) {
-                    imageUrl = '${BASE_URL}' + imageUrl;
-                } else if (!imageUrl.startsWith('http')) {
-                    imageUrl = '${BASE_URL}/' + imageUrl;
-                }
+                // Use the storageUrl directly - it should already be a signed URL from the backend
+                const imageUrl = media.storageUrl;
+                console.log('[Tile 4] Media item', index, 'URL:', imageUrl);
                 
                 return `
                 <div class="media-item">
                     ${media.isPrimary ? '<div class="primary-badge">PRIMARY</div>' : ''}
                     ${media.mediaType === 'photo' ? 
-                        `<img src="${imageUrl}" alt="${media.fileName}" onclick="openMediaLightbox(${index})" style="cursor: pointer;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'150\\'%3E%3Crect fill=\\'%23ddd\\' width=\\'200\\' height=\\'150\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%23999\\'%3EImage Error%3C/text%3E%3C/svg%3E';">` :
+                        `<img src="${imageUrl}" alt="${media.fileName}" onclick="openMediaLightbox(${index})" style="cursor: pointer;" onerror="console.error('[Tile 4] Image load failed:', '${imageUrl}'); this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'150\\'%3E%3Crect fill=\\'%23ddd\\' width=\\'200\\' height=\\'150\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%23999\\'%3EImage Error%3C/text%3E%3C/svg%3E';">` :
                         `<div style="width: 100%; height: 150px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 5px;">
                             <span style="font-size: 48px;">${media.mediaType === 'video' ? '🎥' : '📄'}</span>
                         </div>`
@@ -1334,18 +1423,13 @@
             
             // Render for edit mode (with controls)
             const editModeHtml = state.mediaList.map((media, index) => {
-                let imageUrl = media.storageUrl;
-                if (imageUrl.startsWith('/')) {
-                    imageUrl = '${BASE_URL}' + imageUrl;
-                } else if (!imageUrl.startsWith('http')) {
-                    imageUrl = '${BASE_URL}/' + imageUrl;
-                }
+                const imageUrl = media.storageUrl;
                 
                 return `
                 <div class="media-item">
                     ${media.isPrimary ? '<div class="primary-badge">PRIMARY</div>' : ''}
                     ${media.mediaType === 'photo' ? 
-                        `<img src="${imageUrl}" alt="${media.fileName}" onclick="openMediaLightbox(${index})" style="cursor: pointer;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'150\\'%3E%3Crect fill=\\'%23ddd\\' width=\\'200\\' height=\\'150\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%23999\\'%3EImage Error%3C/text%3E%3C/svg%3E';">` :
+                        `<img src="${imageUrl}" alt="${media.fileName}" onclick="openMediaLightbox(${index})" style="cursor: pointer;" onerror="console.error('[Tile 4 Edit] Image load failed:', '${imageUrl}'); this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'150\\'%3E%3Crect fill=\\'%23ddd\\' width=\\'200\\' height=\\'150\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%23999\\'%3EImage Error%3C/text%3E%3C/svg%3E';">` :
                         `<div style="width: 100%; height: 150px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 5px;">
                             <span style="font-size: 48px;">${media.mediaType === 'video' ? '🎥' : '📄'}</span>
                         </div>`
