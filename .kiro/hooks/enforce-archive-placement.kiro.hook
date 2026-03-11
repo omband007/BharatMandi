@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Enforce Archive Placement",
+  "description": "Reminds agent to place verification reports, audit documents, and temporary work documents in docs/archive/ with dated folders instead of permanent documentation locations",
+  "version": "1",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": [
+      "write"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "CRITICAL DOCUMENTATION PLACEMENT CHECK:\n\nBefore writing this file, verify it follows the archive placement rules from docs/archive/README.md:\n\n**Temporary work documents MUST go in docs/archive/{task-type}-{YYYY-MM-DD}/**:\n- Verification reports (*-VERIFICATION.md, *-VERIFICATION-*.md)\n- Audit reports (*-AUDIT.md)\n- Cleanup reports (*-CLEANUP.md, *-COMPLETE.md)\n- Investigation findings (*-ANALYSIS.md, *-INVESTIGATION.md)\n- Migration reports (*-MIGRATION.md)\n- Summary documents (*-SUMMARY.md)\n- Any document tracking a specific one-time task\n\n**Permanent docs stay in their proper locations**:\n- docs/core/ - Core project documentation\n- docs/architecture/ - Architecture docs\n- docs/features/ - Feature documentation\n- docs/infrastructure/ - Infrastructure docs (NOT verification reports)\n- docs/database/ - Database documentation\n- docs/testing/ - Testing documentation\n\nIf you're about to write a temporary work document outside docs/archive/, STOP and create it in docs/archive/{task-type}-{YYYY-MM-DD}/ instead.\n\nProceed with the write operation only if the file placement is correct."
+  }
+}
