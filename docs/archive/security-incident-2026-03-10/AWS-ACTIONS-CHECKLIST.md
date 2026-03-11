@@ -30,30 +30,40 @@
 
 ## ⏳ Pending Actions (YOU MUST DO THESE)
 
-### 1. Check CloudTrail for Unauthorized Activity
+### 1. Check CloudTrail Event History for Unauthorized Activity
 
 **Priority**: HIGH  
 **Time Required**: 15-30 minutes
 
+**Good News**: Even without CloudTrail explicitly enabled, AWS automatically provides **90 days of Event History** for all accounts!
+
 **Steps**:
 1. Go to AWS Console: https://console.aws.amazon.com/cloudtrail/
 2. Click "Event history" in the left sidebar
-3. Filter by:
-   - **User name**: Omband
-   - **Time range**: Last 7 days (or since credentials were exposed)
-4. Look for suspicious activity:
-   - Unauthorized EC2 instance launches
-   - Lambda function creations
-   - S3 bucket access from unknown IPs
-   - IAM user/role creations
-   - Policy modifications
-5. Document any suspicious activity
+3. You'll see events from the last 90 days automatically
+4. Filter by:
+   - **User name**: Omband (or the IAM user with exposed credentials)
+   - **Time range**: Last 7-14 days (or since you suspect credentials were exposed)
+5. Look for suspicious activity:
+   - Unauthorized EC2 instance launches (Event name: `RunInstances`)
+   - Lambda function creations (Event name: `CreateFunction`)
+   - S3 bucket access from unknown IPs (Event name: `PutObject`, `GetObject`)
+   - IAM user/role creations (Event name: `CreateUser`, `CreateRole`)
+   - Policy modifications (Event name: `PutUserPolicy`, `AttachUserPolicy`)
+6. Document any suspicious activity
 
 **What to look for**:
 - Events from IP addresses you don't recognize
 - Actions you didn't perform
 - Resource creations (EC2, Lambda, RDS, etc.)
 - IAM changes (new users, policies, roles)
+- Events in regions you don't use (e.g., us-east-1, eu-west-1)
+
+**Tip**: Click on any event to see detailed information including:
+- Source IP address
+- User agent (what tool/SDK was used)
+- Request parameters
+- Response elements
 
 ---
 
