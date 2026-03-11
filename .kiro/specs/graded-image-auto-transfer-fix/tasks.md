@@ -1,0 +1,132 @@
+# Implementation Plan
+
+- [x] 1. Write bug condition exploration test
+  - **Property 1: Fault Condition** - Graded Image Auto-Transfer
+  - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
+  - **DO NOT attempt to fix the test or the code when it fails**
+  - **NOTE**: This test encodes the expected behavior - it will validate the fix when it passes after implementation
+  - **GOAL**: Surface counterexamples that demonstrate the bug exists
+  - **Scoped PBT Approach**: Scope the property to concrete failing cases - successful grading operations where image file is not stored
+  - Test that after successful grading: `state.gradedImageFile` is stored, `createMediaPreview` displays the image, and `createListing()` includes it in FormData
+  - The test assertions should match the Expected Behavior Properties from design:
+    - Assert `state.gradedImageFile != null` after grading completes
+    - Assert `createMediaPreview.innerHTML` contains img element with graded image
+    - Assert FormData includes graded image as first media file when creating listing
+  - Run test on UNFIXED code
+  - **EXPECTED OUTCOME**: Test FAILS (this is correct - it proves the bug exists)
+  - Document counterexamples found:
+    - `state.gradedImageFile` is null after grading
+    - `createMediaPreview` remains empty or hidden
+    - Graded image missing from FormData
+  - Mark task complete when test is written, run, and failure is documented
+  - _Requirements: 2.1, 2.2, 2.3, 2.4_
+
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** - Existing Functionality
+  - **IMPORTANT**: Follow observation-first methodology
+  - Observe behavior on UNFIXED code for non-grading workflows:
+    - Manual file uploads display correctly in preview
+    - Certificate attachment works as expected (certificate as last image)
+    - Listing creation without grading works correctly
+    - Form clearing works after successful listing creation
+    - Auto-population of produce type field works
+    - Auto-checking of certificate checkbox works
+  - Write property-based tests capturing observed behavior patterns from Preservation Requirements:
+    - Test manual upload workflow: upload files → verify preview displays → create listing → verify files included
+    - Test certificate attachment: attach certificate → create listing → verify certificate as last image
+    - Test no-grading workflow: create listing without grading → verify manual uploads work
+    - Test form clearing: create listing → verify state and preview cleared
+  - Property-based testing generates many test cases for stronger guarantees
+  - Run tests on UNFIXED code
+  - **EXPECTED OUTCOME**: Tests PASS (this confirms baseline behavior to preserve)
+  - Mark task complete when tests are written, run, and passing on unfixed code
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7_
+
+- [x] 3. Fix for graded image auto-transfer
+
+  - [x] 3.1 Store graded image file in state after successful grading
+    - In `gradeProduceProduce()` function (line ~1684 in `public/listing.html`)
+    - After line ~1757 where `state.currentCertificate` is stored
+    - Add: `state.gradedImageFile = document.getElementById('gradingImage').files[0];`
+    - This captures the file object for later use in preview and listing creation
+    - _Bug_Condition: isBugCondition(input) where input.gradingSuccessful == true AND state.gradedImageFile == null_
+    - _Expected_Behavior: state.gradedImageFile != null after grading completes_
+    - _Preservation: Manual upload and certificate attachment workflows unchanged_
+    - _Requirements: 2.1_
+
+  - [x] 3.2 Create helper function to update media preview with graded image
+    - Add new function `updateMediaPreviewWithGradedImage()` in `public/listing.html`
+    - Function should:
+      - Read `state.gradedImageFile` using FileReader
+      - Create img element with class 'media-thumb'
+      - Prepend img to `createMediaPreview` div (so it appears first)
+      - Remove 'hidden' class from preview div to show it
+    - This reuses the existing preview display mechanism
+    - _Bug_Condition: isBugCondition(input) where grading succeeds but preview not updated_
+    - _Expected_Behavior: createMediaPreview.innerHTML contains img element with graded image_
+    - _Preservation: Manual upload preview mechanism unchanged_
+    - _Requirements: 2.2, 2.4_
+
+  - [x] 3.3 Call helper function after storing graded image file
+    - In `gradeProduceProduce()` function after storing `state.gradedImageFile`
+    - Add: `updateMediaPreviewWithGradedImage();`
+    - This triggers the preview update immediately after grading completes
+    - _Bug_Condition: isBugCondition(input) where graded image stored but not displayed_
+    - _Expected_Behavior: Preview updates automatically after grading_
+    - _Preservation: Existing preview update logic for manual uploads unchanged_
+    - _Requirements: 2.2, 2.4_
+
+  - [x] 3.4 Include graded image in FormData when creating listing
+    - In `createListing()` function (line ~1053 in `public/listing.html`)
+    - Before line ~1107 where manual uploads are appended
+    - Add check: `if (state.gradedImageFile) { formData.append('media', state.gradedImageFile); }`
+    - Then append manual uploads as before
+    - This ensures graded image is first photo in listing
+    - _Bug_Condition: isBugCondition(input) where graded image not included in FormData_
+    - _Expected_Behavior: FormData includes graded image as first media file_
+    - _Preservation: Manual upload inclusion logic unchanged_
+    - _Requirements: 2.3_
+
+  - [x] 3.5 Clear graded image from state after listing creation
+    - In `createListing()` function after successful listing creation
+    - In the form clearing section (after line ~1172)
+    - Add: `state.gradedImageFile = null;`
+    - This prevents graded image from being reused in subsequent listings
+    - _Bug_Condition: State cleanup to prevent unintended reuse_
+    - _Expected_Behavior: Graded image cleared after use_
+    - _Preservation: Existing form clearing logic unchanged_
+    - _Requirements: 2.1, 2.2, 2.3_
+
+  - [x] 3.6 Verify bug condition exploration test now passes
+    - **Property 1: Expected Behavior** - Graded Image Auto-Transfer
+    - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
+    - The test from task 1 encodes the expected behavior
+    - When this test passes, it confirms the expected behavior is satisfied
+    - Run bug condition exploration test from step 1
+    - **EXPECTED OUTCOME**: Test PASSES (confirms bug is fixed)
+    - Verify all assertions pass:
+      - `state.gradedImageFile` is stored after grading
+      - `createMediaPreview` displays the graded image
+      - FormData includes graded image as first media file
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+
+  - [x] 3.7 Verify preservation tests still pass
+    - **Property 2: Preservation** - Existing Functionality
+    - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
+    - Run preservation property tests from step 2
+    - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions)
+    - Confirm all preservation tests still pass:
+      - Manual upload workflow works correctly
+      - Certificate attachment works correctly
+      - No-grading workflow works correctly
+      - Form clearing works correctly
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7_
+
+- [x] 4. Checkpoint - Ensure all tests pass
+  - Run all tests (exploration + preservation)
+  - Verify no regressions in existing functionality
+  - Test edge cases:
+    - Grade produce → manually upload files → create listing (graded image first, then manual uploads)
+    - Grade produce → attach certificate → create listing (graded image first, certificate last)
+    - Create listing without grading (manual upload only - should work as before)
+  - Ask user if questions arise or if additional testing is needed

@@ -1022,12 +1022,20 @@
             const files = fileInput.files;
             
             if (files.length === 0) {
-                preview.classList.add('hidden');
+                // Don't hide preview if graded image exists
+                if (!state.gradedImageFile) {
+                    preview.classList.add('hidden');
+                }
                 return;
             }
             
             preview.classList.remove('hidden');
-            preview.innerHTML = '';
+            
+            // Clear only manual upload previews, preserve graded image
+            const manualPreviews = preview.querySelectorAll('img:not([title="Graded Image"])');
+            const manualIcons = preview.querySelectorAll('div[title]');
+            manualPreviews.forEach(el => el.remove());
+            manualIcons.forEach(el => el.remove());
             
             Array.from(files).forEach(file => {
                 if (file.type.startsWith('image/')) {
@@ -1048,6 +1056,67 @@
                     preview.appendChild(icon);
                 }
             });
+        }
+
+        function updateMediaPreviewWithGradedImage() {
+            if (!state.gradedImageFile) {
+                return;
+            }
+
+            const preview = document.getElementById('createMediaPreview');
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                // Create container for image and delete button
+                const container = document.createElement('div');
+                container.style.cssText = 'position: relative; width: 80px; height: 80px;';
+                
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'media-thumb';
+                img.title = 'Graded Image';
+                img.style.border = '2px solid #667eea'; // Highlight graded image
+                
+                // Add delete button
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '×';
+                deleteBtn.style.cssText = 'position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; border-radius: 50%; background: #dc3545; color: white; border: 2px solid white; cursor: pointer; font-size: 18px; line-height: 1; padding: 0; display: flex; align-items: center; justify-content: center;';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removeGradedImage();
+                };
+                
+                container.appendChild(img);
+                container.appendChild(deleteBtn);
+                
+                // Prepend to preview (so it appears first)
+                preview.insertBefore(container, preview.firstChild);
+                preview.classList.remove('hidden');
+            };
+            
+            reader.readAsDataURL(state.gradedImageFile);
+        }
+
+        function removeGradedImage() {
+            // Clear graded image from state
+            state.gradedImageFile = null;
+            
+            // Remove graded image from preview
+            const preview = document.getElementById('createMediaPreview');
+            const gradedContainer = Array.from(preview.children).find(child => {
+                const img = child.querySelector('img[title="Graded Image"]');
+                return img !== null;
+            });
+            
+            if (gradedContainer) {
+                gradedContainer.remove();
+            }
+            
+            // Hide preview if no files remain
+            const mediaFiles = document.getElementById('createMediaFiles').files;
+            if (mediaFiles.length === 0 && !state.gradedImageFile) {
+                preview.classList.add('hidden');
+            }
         }
 
         async function createListing() {
@@ -1095,7 +1164,12 @@
                     formData.append('expectedHarvestDate', harvestDateInput.value);
                 }
 
-                // Add media files first (so first uploaded image becomes primary)
+                // Add graded image first (if available)
+                if (state.gradedImageFile) {
+                    formData.append('media', state.gradedImageFile);
+                }
+
+                // Add media files (so first uploaded image becomes primary)
                 if (mediaFiles.length > 0) {
                     for (let i = 0; i < mediaFiles.length; i++) {
                         formData.append('media', mediaFiles[i]);
@@ -1112,7 +1186,7 @@
                     }
                 }
 
-                const endpoint = (mediaFiles.length > 0 || (attachCert && state.currentCertificate))
+                const endpoint = (state.gradedImageFile || mediaFiles.length > 0 || (attachCert && state.currentCertificate))
                     ? `${API_BASE}/marketplace/listings/with-media`
                     : `${API_BASE}/marketplace/listings`;
 
@@ -1133,8 +1207,8 @@
 
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    body: (mediaFiles.length > 0 || (attachCert && state.currentCertificate)) ? formData : JSON.stringify(jsonBody),
-                    headers: (mediaFiles.length === 0 && !(attachCert && state.currentCertificate)) ? { 'Content-Type': 'application/json' } : undefined
+                    body: (state.gradedImageFile || mediaFiles.length > 0 || (attachCert && state.currentCertificate)) ? formData : JSON.stringify(jsonBody),
+                    headers: (!state.gradedImageFile && mediaFiles.length === 0 && !(attachCert && state.currentCertificate)) ? { 'Content-Type': 'application/json' } : undefined
                 });
 
                 const data = await response.json();
@@ -1170,8 +1244,10 @@
                 document.getElementById('createPricePerKg').value = '';
                 document.getElementById('createMediaFiles').value = '';
                 document.getElementById('createMediaPreview').classList.add('hidden');
+                document.getElementById('createMediaPreview').innerHTML = '';
                 document.getElementById('attachCertificate').checked = false;
                 document.getElementById('alreadyHarvested').checked = true;
+                state.gradedImageFile = null;
                 toggleHarvestDate();
                 toggleCertificateAttachment();
                 enableCreateButton();
@@ -1755,6 +1831,12 @@
                         accuracy: location.accuracy
                     } : null
                 };
+
+                // Store graded image file for auto-transfer to listing
+                state.gradedImageFile = fileInput.files[0];
+
+                // Update media preview with graded image
+                updateMediaPreviewWithGradedImage();
 
                 // Display results with geotag
                 const gradeClass = `grade-${data.gradingResult.grade}`;

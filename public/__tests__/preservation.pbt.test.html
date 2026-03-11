@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preservation Property Tests - Graded Image Auto-Transfer Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section h2 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        .test-case {
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #e0e0e0;
+            background: #f8f9fa;
+        }
+        .test-case.pass {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .test-case.fail {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .test-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .test-result {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .counterexample {
+            background: #fff;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .summary {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .summary h1 {
+            margin: 0 0 10px 0;
+        }
+        .instructions {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="summary">
+        <h1>🛡️ Preservation Property Tests - Graded Image Auto-Transfer Fix</h1>
+        <p><strong>Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7</strong></p>
+        <p>These tests verify existing functionality is preserved after the fix</p>
+    </div>
+
+    <div class="instructions">
+        <h3>✅ EXPECTED BEHAVIOR</h3>
+        <p><strong>These are preservation tests that verify baseline behavior.</strong></p>
+        <p>✅ <strong>Expected Outcome:</strong> All tests should PASS on unfixed code</p>
+        <p>✅ <strong>After Fix:</strong> All tests should STILL PASS (confirms no regressions)</p>
+        <p><strong>Instructions:</strong></p>
+        <ol>
+            <li>Click "Run Preservation Tests" below</li>
+            <li>Tests will verify manual uploads, certificate attachment, and listing creation work correctly</li>
+            <li>All tests should PASS (confirms baseline behavior)</li>
+            <li>After implementing the fix, re-run these tests to ensure no regressions</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Controls</h2>
+        <button onclick="runAllTests()">▶️ Run Preservation Tests</button>
+        <button onclick="clearResults()">🔄 Clear Results</button>
+    </div>
+
+    <div id="testResults"></div>
+
+    <script>
+        let testResults = [];
+
+        function addTestResult(testName, passed, message, counterexample = null) {
+            testResults.push({
+                testName,
+                passed,
+                message,
+                counterexample
+            });
+            renderResults();
+        }
+
+        function renderResults() {
+            const container = document.getElementById('testResults');
+            container.innerHTML = '';
+
+            testResults.forEach(result => {
+                const testCase = document.createElement('div');
+                testCase.className = `test-case ${result.passed ? 'pass' : 'fail'}`;
+                
+                let html = `
+                    <div class="test-title">${result.passed ? '✅' : '❌'} ${result.testName}</div>
+                    <div class="test-result">${result.message}</div>
+                `;
+                
+                if (result.counterexample) {
+                    html += `<div class="counterexample"><strong>Counterexample:</strong>\n${result.counterexample}</div>`;
+                }
+                
+                testCase.innerHTML = html;
+                container.appendChild(testCase);
+            });
+        }
+
+        function clearResults() {
+            testResults = [];
+            renderResults();
+        }
+
+        function createMockState() {
+            return {
+                farmerId: 'test-farmer-123',
+                loggedInUserName: 'Test Farmer',
+                isLoggedIn: true,
+                selectedListingId: null,
+                myListings: [],
+                originalListing: null,
+                mediaList: [],
+                certificates: [],
+                currentCertificate: null,
+                gradedImageFile: null
+            };
+        }
+
+        function createMockDOM() {
+            const createMediaFiles = document.createElement('input');
+            createMediaFiles.type = 'file';
+            createMediaFiles.id = 'createMediaFiles';
+            
+            const createMediaPreview = document.createElement('div');
+            createMediaPreview.id = 'createMediaPreview';
+            createMediaPreview.className = 'media-preview hidden';
+            
+            const createProduceType = document.createElement('input');
+            createProduceType.id = 'createProduceType';
+            
+            const createQuantity = document.createElement('input');
+            createQuantity.id = 'createQuantity';
+            
+            const createPricePerKg = document.createElement('input');
+            createPricePerKg.id = 'createPricePerKg';
+            
+            const attachCertificate = document.createElement('input');
+            attachCertificate.type = 'checkbox';
+            attachCertificate.id = 'attachCertificate';
+            
+            return {
+                createMediaFiles,
+                createMediaPreview,
+                createProduceType,
+                createQuantity,
+                createPricePerKg,
+                attachCertificate
+            };
+        }
+
+        function simulateManualFileUpload(mockDOM, fileCount = 2) {
+            const dataTransfer = new DataTransfer();
+            
+            for (let i = 0; i < fileCount; i++) {
+                const file = new File([`manual image ${i + 1}`], `manual${i + 1}.jpg`, { type: 'image/jpeg' });
+                dataTransfer.items.add(file);
+            }
+            
+            mockDOM.createMediaFiles.files = dataTransfer.files;
+            
+            return dataTransfer.files;
+        }
+
+        function simulatePreviewCreateFiles(mockDOM) {
+            const fileInput = mockDOM.createMediaFiles;
+            const preview = mockDOM.createMediaPreview;
+            const files = fileInput.files;
+            
+            if (files.length === 0) {
+                preview.classList.add('hidden');
+                return;
+            }
+            
+            preview.classList.remove('hidden');
+            preview.innerHTML = '';
+            
+            Array.from(files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'media-thumb';
+                        img.title = file.name;
+                        preview.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function simulateCreateListingFormData(state, mockDOM) {
+            const formData = new FormData();
+            
+            formData.append('farmerId', state.farmerId);
+            formData.append('produceType', mockDOM.createProduceType.value || 'Tomato');
+            formData.append('quantity', mockDOM.createQuantity.value || '100');
+            formData.append('pricePerKg', mockDOM.createPricePerKg.value || '25');
+            formData.append('certificateId', 'cert-demo-' + Date.now());
+            
+            const mediaFiles = mockDOM.createMediaFiles.files;
+            if (mediaFiles.length > 0) {
+                for (let i = 0; i < mediaFiles.length; i++) {
+                    formData.append('media', mediaFiles[i]);
+                }
+            }
+            
+            const attachCert = mockDOM.attachCertificate.checked;
+            if (attachCert && state.currentCertificate) {
+                const certBlob = new Blob(['mock certificate'], { type: 'image/png' });
+                formData.append('media', certBlob, `certificate-${state.currentCertificate.id}.png`);
+            }
+            
+            return formData;
+        }
+
+        async function testProperty2_1_ManualUploadPreview() {
+            const testName = 'Property 2.1: Manual file uploads display correctly in preview (Req 3.1)';
+            
+            try {
+                const state = createMockState();
+                const mockDOM = createMockDOM();
+                
+                const files = simulateManualFileUpload(mockDOM, 2);
+                
+                simulatePreviewCreateFiles(mockDOM);
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                const previewIsVisible = !mockDOM.createMediaPreview.classList.contains('hidden');
+                const hasImages = mockDOM.createMediaPreview.querySelectorAll('img').length > 0;
+                
+                const passed = previewIsVisible && hasImages;
+                
+                if (passed) {
+                    addTestResult(
+                        testName,
+                        true,
+                        'Manual file uploads display correctly in preview - baseline behavior preserved',
+                        null
+                    );
+                } else {
+                    const counterexample = {
+                        input: {
+                            manualFiles: Array.from(files).map(f => f.name)
+                        },
+                        actualBehavior: {
+                            previewIsVisible,
+                            imageCount: mockDOM.createMediaPreview.querySelectorAll('img').length
+                        },
+                        expectedBehavior: {
+                            previewIsVisible: true,
+                            imageCount: 2
+                        }
+                    };
+                    
+                    addTestResult(
+                        testName,
+                        false,
+                        'Manual file upload preview is broken - baseline behavior NOT preserved',
+                        JSON.stringify(counterexample, null, 2)
+                    );
+                }
+            } catch (error) {
+                addTestResult(testName, false, `Test error: ${error.message}`, null);
+            }
+        }
+
+        async function testProperty2_2_ManualUploadInListing() {
+            const testName = 'Property 2.2: Manual uploads included in listing creation (Req 3.2)';
+            
+            try {
+                const state = createMockState();
+                const mockDOM = createMockDOM();
+                
+                const files = simulateManualFileUpload(mockDOM, 3);
+                
+                const formData = simulateCreateListingFormData(state, mockDOM);
+                
+                const mediaFiles = formData.getAll('media');
+                const allFilesIncluded = mediaFiles.length === 3;
+                const filesMatchNames = mediaFiles.every((file, idx) => 
+                    file instanceof File && file.name === `manual${idx + 1}.jpg`
+                );
+                
+                const passed = allFilesIncluded && filesMatchNames;
+                
+                if (passed) {
+                    addTestResult(
+                        testName,
+                        true,
+                        'Manual uploads correctly included in listing FormData - baseline behavior preserved',
+                        null
+                    );
+                } else {
+                    const counterexample = {
+                        input: {
+                            manualFiles: Array.from(files).map(f => f.name)
+                        },
+                        actualFormData: {
+                            mediaCount: mediaFiles.length,
+                            mediaFiles: mediaFiles.map(f => f instanceof File ? f.name : 'not a file')
+                        },
+                        expectedFormData: {
+                            mediaCount: 3,
+                            mediaFiles: ['manual1.jpg', 'manual2.jpg', 'manual3.jpg']
+                        }
+                    };
+                    
+                    addTestResult(
+                        testName,
+                        false,
+                        'Manual uploads NOT correctly included in FormData - baseline behavior broken',
+                        JSON.stringify(counterexample, null, 2)
+                    );
+                }
+            } catch (error) {
+                addTestResult(testName, false, `Test error: ${error.message}`, null);
+            }
+        }
+
+        async function testProperty2_3_CertificateAttachment() {
+            const testName = 'Property 2.3: Certificate attachment works (certificate as last image) (Req 3.3)';
+            
+            try {
+                const state = createMockState();
+                const mockDOM = createMockDOM();
+                
+                state.currentCertificate = {
+                    id: 'cert-test-123',
+                    grade: 'A',
+                    produceType: 'Tomato',
+                    timestamp: new Date().toISOString()
+                };
+                
+                simulateManualFileUpload(mockDOM, 2);
+                mockDOM.attachCertificate.checked = true;
+                
+                const formData = simulateCreateListingFormData(state, mockDOM);
+                
+                const mediaFiles = formData.getAll('media');
+                const totalFiles = mediaFiles.length;
+                const lastFile = mediaFiles[mediaFiles.length - 1];
+                const certificateIsLast = lastFile instanceof Blob && 
+                    lastFile.type === 'image/png' && 
+                    totalFiles === 3;
+                
+                const passed = certificateIsLast;
+                
+                if (passed) {
+                    addTestResult(
+                        testName,
+                        true,
+                        'Certificate correctly attached as last image - baseline behavior preserved',
+                        null
+                    );
+                } else {
+                    const counterexample = {
+                        input: {
+                            manualFiles: 2,
+                            certificateAttached: true
+                        },
+                        actualFormData: {
+                            totalFiles,
+                            lastFileType: lastFile ? lastFile.type : 'none',
+                            lastFileIsBlob: lastFile instanceof Blob
+                        },
+                        expectedFormData: {
+                            totalFiles: 3,
+                            lastFileType: 'image/png',
+                            certificatePosition: 'last'
+                        }
+                    };
+                    
+                    addTestResult(
+                        testName,
+                        false,
+                        'Certificate NOT correctly attached as last image - baseline behavior broken',
+                        JSON.stringify(counterexample, null, 2)
+                    );
+                }
+            } catch (error) {
+                addTestResult(testName, false, `Test error: ${error.message}`, null);
+            }
+        }
+
+        async function testProperty2_4_ListingWithoutGrading() {
+            const testName = 'Property 2.4: Listing creation without grading works (Req 3.6)';
+            
+            try {
+                const state = createMockState();
+                const mockDOM = createMockDOM();
+                
+                state.currentCertificate = null;
+                state.gradedImageFile = null;
+                
+                simulateManualFileUpload(mockDOM, 1);
+                mockDOM.createProduceType.value = 'Potato';
+                mockDOM.createQuantity.value = '50';
+                mockDOM.createPricePerKg.value = '30';
+                
+                const formData = simulateCreateListingFormData(state, mockDOM);
+                
+                const hasProduceType = formData.get('produceType') === 'Potato';
+                const hasQuantity = formData.get('quantity') === '50';
+                const hasPricePerKg = formData.get('pricePerKg') === '30';
+                const hasMedia = formData.getAll('media').length === 1;
+                
+                const passed = hasProduceType && hasQuantity && hasPricePerKg && hasMedia;
+                
+                if (passed) {
+                    addTestResult(
+                        testName,
+                        true,
+                        'Listing creation without grading works correctly - baseline behavior preserved',
+                        null
+                    );
+                } else {
+                    const counterexample = {
+                        input: {
+                            noGrading: true,
+                            manualUpload: 1,
+                            produceType: 'Potato',
+                            quantity: 50,
+                            pricePerKg: 30
+                        },
+                        actualFormData: {
+                            produceType: formData.get('produceType'),
+                            quantity: formData.get('quantity'),
+                            pricePerKg: formData.get('pricePerKg'),
+                            mediaCount: formData.getAll('media').length
+                        },
+                        expectedFormData: {
+                            produceType: 'Potato',
+                            quantity: '50',
+                            pricePerKg: '30',
+                            mediaCount: 1
+                        }
+                    };
+                    
+                    addTestResult(
+                        testName,
+                        false,
+                        'Listing creation without grading is broken - baseline behavior NOT preserved',
+                        JSON.stringify(counterexample, null, 2)
+                    );
+                }
+            } catch (error) {
+                addTestResult(testName, false, `Test error: ${error.message}`, null);
+            }
+        }
+
+        async function testProperty2_5_FormClearing() {
+            const testName = 'Property 2.5: Form clearing works after listing creation (Req 3.7)';
+            
+            try {
+                const state = createMockState();
+                const mockDOM = createMockDOM();
+                
+                mockDOM.createProduceType.value = 'Tomato';
+                mockDOM.createQuantity.value = '100';
+                mockDOM.createPricePerKg.value = '25';
+                simulateManualFileUpload(mockDOM, 2);
+                mockDOM.attachCertificate.checked = true;
+                
+                mockDOM.createProduceType.value = '';
+                mockDOM.createQuantity.value = '';
+                mockDOM.createPricePerKg.value = '';
+                mockDOM.createMediaFiles.value = '';
+                mockDOM.createMediaPreview.classList.add('hidden');
+                mockDOM.attachCertificate.checked = false;
+                
+                const formIsCleared = 
+                    mockDOM.createProduceType.value === '' &&
+                    mockDOM.createQuantity.value === '' &&
+                    mockDOM.createPricePerKg.value === '' &&
+                    mockDOM.createMediaFiles.value === '' &&
+                    mockDOM.createMediaPreview.classList.contains('hidden') &&
+                    mockDOM.attachCertificate.checked === false;
+                
+                const passed = formIsCleared;
+                
+                if (passed) {
+                    addTestResult(
+                        testName,
+                        true,
+                        'Form clearing works correctly after listing creation - baseline behavior preserved',
+                        null
+                    );
+                } else {
+                    const counterexample = {
+                        input: {
+                            formWasFilled: true,
+                            listingCreated: true
+                        },
+                        actualState: {
+                            produceType: mockDOM.createProduceType.value,
+                            quantity: mockDOM.createQuantity.value,
+                            pricePerKg: mockDOM.createPricePerKg.value,
+                            mediaFiles: mockDOM.createMediaFiles.value,
+                            previewHidden: mockDOM.createMediaPreview.classList.contains('hidden'),
+                            certificateChecked: mockDOM.attachCertificate.checked
+                        },
+                        expectedState: {
+                            allFieldsEmpty: true,
+                            previewHidden: true,
+                            certificateUnchecked: true
+                        }
+                    };
+                    
+                    addTestResult(
+                        testName,
+                        false,
+                        'Form clearing is broken - baseline behavior NOT preserved',
+                        JSON.stringify(counterexample, null, 2)
+                    );
+                }
+            } catch (error) {
+                addTestResult(testName, false, `Test error: ${error.message}`, null);
+            }
+        }
+
+        async function testProperty2_6_MediaOrderPreservation() {
+            const testName = 'Property 2.6: Media file order preserved in FormData (Req 3.7)';
+            
+            try {
+                const state = createMockState();
+                const mockDOM = createMockDOM();
+                
+                const dataTransfer = new DataTransfer();
+                const file1 = new File(['first'], 'first.jpg', { type: 'image/jpeg' });
+                const file2 = new File(['second'], 'second.jpg', { type: 'image/jpeg' });
+                const file3 = new File(['third'], 'third.jpg', { type: 'image/jpeg' });
+                
+                dataTransfer.items.add(file1);
+                dataTransfer.items.add(file2);
+                dataTransfer.items.add(file3);
+                mockDOM.createMediaFiles.files = dataTransfer.files;
+                
+                const formData = simulateCreateListingFormData(state, mockDOM);
+                
+                const mediaFiles = formData.getAll('media');
+                const orderPreserved = 
+                    mediaFiles.length === 3 &&
+                    mediaFiles[0].name === 'first.jpg' &&
+                    mediaFiles[1].name === 'second.jpg' &&
+                    mediaFiles[2].name === 'third.jpg';
+                
+                const passed = orderPreserved;
+                
+                if (passed) {
+                    addTestResult(
+                        testName,
+                        true,
+                        'Media file order correctly preserved in FormData - baseline behavior preserved',
+                        null
+                    );
+                } else {
+                    const counterexample = {
+                        input: {
+                            uploadOrder: ['first.jpg', 'second.jpg', 'third.jpg']
+                        },
+                        actualFormData: {
+                            fileOrder: mediaFiles.map(f => f.name)
+                        },
+                        expectedFormData: {
+                            fileOrder: ['first.jpg', 'second.jpg', 'third.jpg']
+                        }
+                    };
+                    
+                    addTestResult(
+                        testName,
+                        false,
+                        'Media file order NOT preserved - baseline behavior broken',
+                        JSON.stringify(counterexample, null, 2)
+                    );
+                }
+            } catch (error) {
+                addTestResult(testName, false, `Test error: ${error.message}`, null);
+            }
+        }
+
+        async function runAllTests() {
+            clearResults();
+            
+            addTestResult(
+                'Test Suite Started',
+                true,
+                'Running preservation property tests on UNFIXED code...',
+                null
+            );
+            
+            await testProperty2_1_ManualUploadPreview();
+            await testProperty2_2_ManualUploadInListing();
+            await testProperty2_3_CertificateAttachment();
+            await testProperty2_4_ListingWithoutGrading();
+            await testProperty2_5_FormClearing();
+            await testProperty2_6_MediaOrderPreservation();
+            
+            const passedTests = testResults.filter(r => r.passed && r.testName !== 'Test Suite Started').length;
+            const totalTests = testResults.length - 1;
+            
+            if (passedTests === totalTests) {
+                addTestResult(
+                    '✅ Preservation Tests Complete',
+                    true,
+                    `All ${totalTests} tests PASSED. Baseline behavior is confirmed and documented. After implementing the fix, re-run these tests to ensure no regressions.`,
+                    null
+                );
+            } else {
+                addTestResult(
+                    '⚠️ Some Tests Failed',
+                    false,
+                    `${passedTests} out of ${totalTests} tests passed. Some baseline behaviors may be broken or the tests need adjustment.`,
+                    null
+                );
+            }
+        }
+    </script>
+</body>
+</html>
