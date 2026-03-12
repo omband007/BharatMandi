@@ -364,7 +364,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Validates: Requirements 13.1, 13.3, 13.5**
     - **NOTE: Marked for future implementation per user request**
 
-  - [~] 11.7 Implement comprehensive error handling
+  - [ ] 11.7 Implement comprehensive error handling
     - Add error handlers for all error categories (client, server, business logic)
     - Return consistent error response format
     - Include retryable flag and retry guidance
@@ -381,7 +381,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 13. Phase 7: Optimization & Launch (Week 7-8)
-  - [~] 13.1 Implement cost tracking and monitoring
+  - [ ] 13.1 Implement cost tracking and monitoring
     - Create cost calculation for each diagnosis (Bedrock + S3 + MongoDB + Translation)
     - Log cost metrics to CloudWatch
     - Set up alerts for costs exceeding ₹1 threshold
@@ -393,7 +393,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 47: Cost Alert Trigger** - Alert logged when exceeding ₹1
     - **Validates: Requirements 12.1, 12.5**
 
-  - [~] 13.3 Optimize token usage for Bedrock API
+  - [ ] 13.3 Optimize token usage for Bedrock API
     - Refine prompts to minimize response tokens
     - Use structured output format (JSON)
     - Remove unnecessary verbose instructions
@@ -404,7 +404,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 44: Token Optimization** - Prompts minimize response tokens
     - **Validates: Requirements 12.2**
 
-  - [~] 13.5 Implement performance monitoring
+  - [ ] 13.5 Implement performance monitoring
     - Track end-to-end response time for each diagnosis
     - Calculate p95 and p99 percentiles
     - Monitor each stage: upload, validation, analysis, remedy, storage
@@ -416,7 +416,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 48: End-to-End Performance** - Total time ≤3000ms at p95
     - **Validates: Requirements 2.4, 12.6**
 
-  - [~] 13.7 Implement security measures
+  - [ ] 13.7 Implement security measures
     - Verify TLS 1.3 encryption for all API calls
     - Verify S3 server-side encryption enabled
     - Implement rate limiting enforcement
@@ -429,7 +429,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - **Property 55: Rate Limiting** - Reject after 10 requests/hour
     - **Validates: Requirements 14.2, 14.3, 14.7**
 
-  - [~] 13.9 Create deployment configuration
+  - [ ] 13.9 Create deployment configuration
     - Set up environment variables for production
     - Configure AWS credentials and regions
     - Set up MongoDB connection strings
@@ -437,7 +437,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - Set up CloudWatch logging and metrics
     - _Requirements: All_
 
-  - [~] 13.10 Write deployment documentation
+  - [ ] 13.10 Write deployment documentation
     - Document environment setup steps
     - Document AWS resource requirements
     - Document MongoDB schema setup
@@ -445,7 +445,7 @@ This implementation plan breaks down the Crop Disease Diagnosis feature into 7 p
     - Document monitoring and alerting setup
     - _Requirements: All_
 
-  - [~] 13.11 Conduct load testing
+  - [ ] 13.11 Conduct load testing
     - Simulate 100 concurrent diagnosis requests
     - Measure response times under load
     - Verify system stability

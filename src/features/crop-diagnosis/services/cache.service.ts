@@ -22,47 +22,79 @@ export interface CachedDiagnosis {
 }
 
 export class CacheService {
-  private client: RedisClientType;
+  private client: RedisClientType | null = null;
   private connected: boolean = false;
+  private connectionFailed: boolean = false;
   private readonly DEFAULT_TTL = 86400; // 24 hours in seconds
 
   constructor() {
     const redisHost = process.env.REDIS_HOST || 'localhost';
     const redisPort = parseInt(process.env.REDIS_PORT || '6379', 10);
+    const redisEnabled = process.env.REDIS_ENABLED !== 'false'; // Allow disabling via env var
 
-    this.client = createClient({
-      socket: {
-        host: redisHost,
-        port: redisPort,
-      },
-    });
+    if (!redisEnabled) {
+      console.log('[CacheService] Redis caching disabled via REDIS_ENABLED=false');
+      this.connectionFailed = true;
+      return;
+    }
 
-    // Handle connection events
-    this.client.on('error', (err) => {
-      console.error('[CacheService] Redis client error:', err);
-      this.connected = false;
-    });
+    try {
+      this.client = createClient({
+        socket: {
+          host: redisHost,
+          port: redisPort,
+          connectTimeout: 5000, // 5 second timeout
+          reconnectStrategy: (retries) => {
+            // Stop retrying after 3 attempts
+            if (retries > 3) {
+              console.log('[CacheService] Redis connection failed after 3 attempts, disabling cache');
+              this.connectionFailed = true;
+              return false; // Stop reconnecting
+            }
+            return Math.min(retries * 100, 3000);
+          }
+        },
+      });
 
-    this.client.on('connect', () => {
-      console.log('[CacheService] Redis client connected');
-      this.connected = true;
-    });
+      // Handle connection events
+      this.client.on('error', (err) => {
+        if (!this.connectionFailed) {
+          console.error('[CacheService] Redis client error:', err.message);
+          this.connectionFailed = true;
+        }
+        this.connected = false;
+      });
 
-    this.client.on('ready', () => {
-      console.log('[CacheService] Redis client ready');
-      this.connected = true;
-    });
+      this.client.on('connect', () => {
+        console.log('[CacheService] Redis client connected');
+        this.connected = true;
+        this.connectionFailed = false;
+      });
 
-    this.client.on('end', () => {
-      console.log('[CacheService] Redis client disconnected');
-      this.connected = false;
-    });
+      this.client.on('ready', () => {
+        console.log('[CacheService] Redis client ready');
+        this.connected = true;
+        this.connectionFailed = false;
+      });
+
+      this.client.on('end', () => {
+        console.log('[CacheService] Redis client disconnected');
+        this.connected = false;
+      });
+    } catch (error) {
+      console.error('[CacheService] Failed to create Redis client:', error);
+      this.connectionFailed = true;
+      this.client = null;
+    }
   }
 
   /**
    * Connect to Redis server
    */
   async connect(): Promise<void> {
+    if (!this.client || this.connectionFailed) {
+      return; // Redis unavailable, skip connection
+    }
     if (!this.connected && !this.client.isOpen) {
       await this.client.connect();
     }
@@ -72,6 +104,9 @@ export class CacheService {
    * Disconnect from Redis server
    */
   async disconnect(): Promise<void> {
+    if (!this.client || this.connectionFailed) {
+      return; // Redis unavailable, nothing to disconnect
+    }
     if (this.connected && this.client.isOpen) {
       await this.client.quit();
     }
@@ -85,6 +120,10 @@ export class CacheService {
    * @returns Cached value or null if not found
    */
   async get(key: string): Promise<any | null> {
+    if (!this.client || this.connectionFailed) {
+      return null; // Redis unavailable, cache miss
+    }
+
     try {
       if (!this.connected) {
         await this.connect();
@@ -119,6 +158,10 @@ export class CacheService {
    * @param ttl - Time to live in seconds (default: 24 hours)
    */
   async set(key: string, value: any, ttl?: number): Promise<void> {
+    if (!this.client || this.connectionFailed) {
+      return; // Redis unavailable, skip caching
+    }
+
     try {
       if (!this.connected) {
         await this.connect();
@@ -140,6 +183,10 @@ export class CacheService {
    * @param key - Cache key to delete
    */
   async delete(key: string): Promise<void> {
+    if (!this.client || this.connectionFailed) {
+      return; // Redis unavailable, nothing to delete
+    }
+
     try {
       if (!this.connected) {
         await this.connect();
@@ -159,6 +206,10 @@ export class CacheService {
    * @returns Hit count or 0 if not found
    */
   async getCacheHitCount(key: string): Promise<number> {
+    if (!this.client || this.connectionFailed) {
+      return 0; // Redis unavailable, return 0
+    }
+
     try {
       if (!this.connected) {
         await this.connect();
@@ -182,6 +233,9 @@ export class CacheService {
    * Check if Redis is connected
    */
   isConnected(): boolean {
+    if (!this.client || this.connectionFailed) {
+      return false; // Redis unavailable
+    }
     return this.connected && this.client.isOpen;
   }
 
@@ -189,6 +243,10 @@ export class CacheService {
    * Flush all cached data (use with caution)
    */
   async flushAll(): Promise<void> {
+    if (!this.client || this.connectionFailed) {
+      return; // Redis unavailable, nothing to flush
+    }
+
     try {
       if (!this.connected) {
         await this.connect();

@@ -84,3 +84,43 @@ export {
   type ReviewRequest,
   type ExpertReview
 } from './expert-escalation.service';
+
+export {
+  EmbeddingService,
+  getEmbeddingService,
+  resetEmbeddingService,
+  DEFAULT_EMBEDDING_CONFIG,
+  type IEmbeddingService,
+  type EmbeddingConfig
+} from './embedding.service';
+
+export {
+  VectorDatabaseService,
+  vectorDatabaseService,
+  type DocumentMetadata,
+  type DocumentToIndex,
+  type SearchQuery,
+  type SearchResult,
+  type IndexedDocument
+} from './vector-database.service';
+
+export {
+  KnowledgeBaseManager,
+  getKnowledgeBaseManager,
+  resetKnowledgeBaseManager,
+  KnowledgeBaseModel,
+  type KnowledgeDocument,
+  type DocumentFilters,
+  type DocumentChunk
+} from './knowledge-base-manager.service';
+
+export {
+  RAGRetrievalService,
+  getRAGRetrievalService,
+  resetRAGRetrievalService,
+  DEFAULT_RAG_RETRIEVAL_CONFIG,
+  type RetrievalRequest,
+  type RetrievalResponse,
+  type RetrievedDocument,
+  type RAGRetrievalConfig
+} from './rag-retrieval.service';

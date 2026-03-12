@@ -68,6 +68,28 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
+        }
+        
+        .listing-profile-pic {
+            width: 80px;
+            height: 80px;
+            border-radius: 6px;
+            object-fit: cover;
+            border: 2px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        
+        .listing-profile-pic-placeholder {
+            width: 80px;
+            height: 80px;
+            border-radius: 6px;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            flex-shrink: 0;
         }
         
         .listing-item:hover {
@@ -120,17 +142,27 @@
             padding: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
         }
         
         .tile h2 {
             color: #667eea;
             margin-bottom: 15px;
             font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        
+        .tile > div:not(h2) {
+            flex: 1;
         }
         
         .listings-container {
-            max-height: 500px;
+            flex: 1;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            max-height: calc(700px - 100px);
         }
         
         .empty-state {
@@ -222,6 +254,166 @@
             color: #721c24;
             display: block;
         }
+        
+        .marketplace-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: stretch;
+        }
+        
+        .marketplace-grid .tile {
+            display: flex;
+            flex-direction: column;
+            min-height: 700px;
+        }
+        
+        @media (max-width: 768px) {
+            .marketplace-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .media-item {
+            border: 3px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .media-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .media-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .media-item .primary-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Lightbox styles */
+        .lightbox {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            overflow: hidden;
+        }
+
+        .lightbox.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-image {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.5);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            user-select: none;
+        }
+
+        .lightbox-nav:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .lightbox-prev {
+            left: 40px;
+        }
+
+        .lightbox-next {
+            right: 40px;
+        }
+
+        .lightbox-counter {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 18px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 20px;
+        }
     </style>
 </head>
 <body>
@@ -247,14 +439,16 @@
         <div class="info-card">
             <p><strong>🛒 Marketplace:</strong></p>
             <p>✓ Browse and purchase produce from farmers</p>
-            <p>✓ Advanced search and filtering by crop, quantity, and price</p>
+            <p>✓ Search and filtering by crop, quantity, and price</p>
             <p>✓ Real-time inventory and pricing updates</p>
-            <p>✓ Quality certificates and farmer ratings</p>
+            <p>✓ Update order quantity</p>
+            <p>✓ Quality certificates</p>
+            <p>✓ Initiate purchase workflow</p>
             <p style="margin-top: 10px;"><strong>🚀 Coming Next:</strong></p>
-            <p>• Location-based search and nearby farmers</p>
+            <p>• Location-based search and nearby listings</p>
             <p>• Saved searches and price alerts</p>
-            <p>• Bulk purchase discounts</p>
-            <p>• Farmer reviews and ratings system</p>
+            <p>• Integrated logistics booking and scheduling</p>
+            <p>• Farmer reviews and ratings</p>
         </div>
 
         <!-- Filters Bar -->
@@ -294,26 +488,36 @@
             </div>
         </div>
 
-        <!-- Tile 1: Listings -->
-        <div class="tile">
-            <h2 id="listingsHeader">Listings (0)</h2>
-            <div class="listings-container" id="listingsContainer">
-                <div class="empty-state">Loading listings...</div>
+        <!-- Listings and Purchase Details Grid -->
+        <div class="marketplace-grid">
+            <!-- Tile 1: Listings -->
+            <div class="tile">
+                <h2 id="listingsHeader">Listings (0)</h2>
+                <div class="listings-container" id="listingsContainer">
+                    <div class="empty-state">Loading listings...</div>
+                </div>
             </div>
-        </div>
 
-        <!-- Tile 2: Purchase Details -->
-        <div class="tile" id="purchaseTile" style="display: none;">
-            <h2>Purchase Details</h2>
-            <div class="purchase-details" id="purchaseDetails"></div>
-            <div class="quantity-input">
-                <label for="purchaseQty">Quantity (kg):</label>
-                <input type="number" id="purchaseQty" min="1" placeholder="Enter quantity" oninput="updatePurchaseTotal()">
+            <!-- Tile 2: Purchase Details -->
+            <div class="tile" id="purchaseTile">
+                <h2>Listing Details</h2>
+                <div style="flex: 1; display: flex; flex-direction: column; overflow-y: auto;">
+                    <div class="purchase-details" id="purchaseDetails"></div>
+                    
+                    <div class="quantity-input">
+                        <label for="purchaseQty">Order Quantity (kg):</label>
+                        <input type="number" id="purchaseQty" min="1" placeholder="Enter quantity" oninput="updatePurchaseTotal()">
+                    </div>
+                    <div id="purchaseTotal" style="font-size: 18px; font-weight: 700; color: #28a745; margin-bottom: 15px;"></div>
+                    
+                    <!-- Media Grid -->
+                    <div id="listingMediaGrid" class="media-grid"></div>
+                </div>
+                <div style="flex-shrink: 0; display: flex; gap: 10px; margin-top: 15px;">
+                    <button onclick="confirmPurchase()" style="flex: 1;">Confirm Purchase</button>
+                </div>
+                <div id="purchaseResult" class="result"></div>
             </div>
-            <div id="purchaseTotal" style="font-size: 18px; font-weight: 700; color: #28a745; margin-bottom: 15px;"></div>
-            <button onclick="confirmPurchase()">Confirm Purchase</button>
-            <button onclick="cancelPurchase()" style="background: #6c757d; margin-left: 10px;">Cancel</button>
-            <div id="purchaseResult" class="result"></div>
         </div>
 
         <!-- Tile 3: Purchase Confirmation -->
@@ -322,6 +526,17 @@
             <div id="confirmationDetails"></div>
             <button onclick="backToMarketplace()">Back to Marketplace</button>
         </div>
+    </div>
+
+    <!-- Lightbox for image viewing -->
+    <div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+        <span class="lightbox-close" onclick="closeLightbox(event)">&times;</span>
+        <div class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1, event)">&#10094;</div>
+        <div class="lightbox-content">
+            <img id="lightboxImage" class="lightbox-image" src="" alt="Lightbox image">
+        </div>
+        <div class="lightbox-nav lightbox-next" onclick="navigateLightbox(1, event)">&#10095;</div>
+        <div class="lightbox-counter" id="lightboxCounter"></div>
     </div>
 
     <script>
@@ -412,7 +627,7 @@
             displayListings();
         }
 
-        function displayListings() {
+        async function displayListings() {
             const container = document.getElementById('listingsContainer');
             const header = document.getElementById('listingsHeader');
             
@@ -423,13 +638,34 @@
                 return;
             }
             
-            container.innerHTML = filteredListings.map(listing => {
+            // Fetch primary images for all listings
+            const listingsWithImages = await Promise.all(filteredListings.map(async (listing) => {
+                try {
+                    const response = await fetch(`/api/marketplace/listings/${listing.id}/media`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        // Handle both array and object responses
+                        const mediaList = Array.isArray(data) ? data : (data.media || []);
+                        const primaryImage = mediaList.find(m => m.isPrimary && m.mediaType === 'photo');
+                        return { ...listing, primaryImageUrl: primaryImage?.storageUrl };
+                    }
+                } catch (error) {
+                    console.error('Error loading media for listing:', listing.id, error);
+                }
+                return { ...listing, primaryImageUrl: null };
+            }));
+            
+            container.innerHTML = listingsWithImages.map(listing => {
                 const totalPrice = listing.quantity * listing.pricePerKg;
                 const harvestDate = listing.expectedHarvestDate ? 
                     new Date(listing.expectedHarvestDate).toLocaleDateString() : 'N/A';
                 
                 return `
-                    <div class="listing-item" onclick="selectListing('${listing.id}')">
+                    <div class="listing-item" onclick="selectListing('${listing.id}', event)">
+                        ${listing.primaryImageUrl ? 
+                            `<img src="${listing.primaryImageUrl}" alt="${listing.produceType}" class="listing-profile-pic" onerror="this.outerHTML='<div class=\\'listing-profile-pic-placeholder\\'>🌾</div>';">` :
+                            `<div class="listing-profile-pic-placeholder">🌾</div>`
+                        }
                         <div class="listing-info">
                             <div class="listing-title">${listing.produceType}</div>
                             <div class="listing-details">
@@ -443,9 +679,14 @@
                     </div>
                 `;
             }).join('');
+            
+            // Pre-select first listing on load
+            if (filteredListings.length > 0) {
+                selectListing(filteredListings[0].id, null);
+            }
         }
 
-        function selectListing(listingId) {
+        function selectListing(listingId, event) {
             selectedListing = allListings.find(l => l.id === listingId);
             if (!selectedListing) return;
             
@@ -453,7 +694,9 @@
             document.querySelectorAll('.listing-item').forEach(item => {
                 item.classList.remove('selected');
             });
-            event.target.closest('.listing-item').classList.add('selected');
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('selected');
+            }
             
             // Show purchase tile
             document.getElementById('purchaseTile').style.display = 'block';
@@ -482,15 +725,9 @@
                     <span class="detail-value">₹${totalPrice.toFixed(2)}</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">Expected Harvest:</span>
+                    <span class="detail-label">Harvest Date:</span>
                     <span class="detail-value">${harvestDate}</span>
                 </div>
-                ${selectedListing.certificateId ? `
-                <div class="detail-row">
-                    <span class="detail-label">Certificate:</span>
-                    <span class="detail-value">${selectedListing.certificateId}</span>
-                </div>
-                ` : ''}
             `;
             
             // Set default quantity
@@ -502,8 +739,84 @@
             document.getElementById('purchaseResult').className = 'result';
             document.getElementById('purchaseResult').textContent = '';
             
-            // Scroll to purchase tile
-            document.getElementById('purchaseTile').scrollIntoView({ behavior: 'smooth' });
+            // Load and display media for the selected listing
+            loadListingMedia(listingId);
+            
+            // Scroll to purchase tile only on explicit user click (not on auto-select)
+            if (event) {
+                document.getElementById('purchaseTile').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        async function loadListingMedia(listingId) {
+            try {
+                const response = await fetch(`/api/marketplace/listings/${listingId}/media`);
+                if (!response.ok) {
+                    console.warn('Failed to load media for listing:', listingId);
+                    renderMediaGrid([]);
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('Loaded media for listing:', listingId, data);
+                // Handle both array and object responses
+                const mediaList = Array.isArray(data) ? data : (data.media || []);
+                renderMediaGrid(mediaList);
+            } catch (error) {
+                console.error('Error loading listing media:', error);
+                renderMediaGrid([]);
+            }
+        }
+
+        function renderMediaGrid(mediaList) {
+            const mediaGrid = document.getElementById('listingMediaGrid');
+            
+            if (!mediaList || mediaList.length === 0) {
+                mediaGrid.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No images available</p>';
+                return;
+            }
+
+            console.log('Rendering media grid with', mediaList.length, 'items');
+
+            // Sort: primary first, then photos, then certificates last
+            const sortedMedia = mediaList.sort((a, b) => {
+                // Primary images first
+                if (a.isPrimary && a.mediaType === 'photo') return -1;
+                if (b.isPrimary && b.mediaType === 'photo') return 1;
+                
+                // Photos second
+                if (a.mediaType === 'photo' && b.mediaType !== 'photo') return -1;
+                if (a.mediaType !== 'photo' && b.mediaType === 'photo') return 1;
+                
+                // Certificates/PDFs last
+                return 0;
+            });
+
+            // Collect all image URLs for lightbox
+            const imageUrls = sortedMedia
+                .filter(media => media.mediaType === 'photo')
+                .map(media => media.storageUrl);
+            
+            // Store imageUrls globally for lightbox access
+            window.currentListingImages = imageUrls;
+
+            // Render media items (readonly, no edit controls)
+            const mediaHtml = sortedMedia.map((media, index) => {
+                const imageUrl = media.storageUrl;
+                const imageIndex = imageUrls.indexOf(imageUrl);
+                
+                return `
+                <div class="media-item" ${media.mediaType === 'photo' ? `onclick="openLightbox(window.currentListingImages, ${imageIndex})"` : ''}>
+                    ${media.mediaType === 'photo' ? 
+                        `<img src="${imageUrl}" alt="${media.fileName}" onerror="console.error('Image load failed:', '${imageUrl}'); this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'150\\'%3E%3Crect fill=\\'%23ddd\\' width=\\'200\\' height=\\'150\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%23999\\'%3EImage Error%3C/text%3E%3C/svg%3E';">` :
+                        `<div style="width: 100%; height: 150px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 5px;">
+                            <span style="font-size: 48px;">${media.mediaType === 'video' ? '🎥' : '📄'}</span>
+                        </div>`
+                    }
+                </div>
+            `}).join('');
+            
+            mediaGrid.innerHTML = mediaHtml;
         }
 
         function updatePurchaseTotal() {
@@ -591,6 +904,63 @@
             resultDiv.className = `result ${type}`;
             resultDiv.textContent = message;
         }
+
+        // Lightbox functionality
+        let lightboxImages = [];
+        let currentLightboxIndex = 0;
+
+        function openLightbox(images, startIndex = 0) {
+            lightboxImages = images;
+            currentLightboxIndex = startIndex;
+            showLightboxImage();
+            document.getElementById('lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeLightbox(event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+
+        function navigateLightbox(direction, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            currentLightboxIndex += direction;
+            if (currentLightboxIndex < 0) {
+                currentLightboxIndex = lightboxImages.length - 1;
+            } else if (currentLightboxIndex >= lightboxImages.length) {
+                currentLightboxIndex = 0;
+            }
+            showLightboxImage();
+        }
+
+        function showLightboxImage() {
+            const img = document.getElementById('lightboxImage');
+            const counter = document.getElementById('lightboxCounter');
+            
+            if (lightboxImages.length > 0) {
+                img.src = lightboxImages[currentLightboxIndex];
+                counter.textContent = `${currentLightboxIndex + 1} / ${lightboxImages.length}`;
+            }
+        }
+
+        // Keyboard navigation for lightbox
+        document.addEventListener('keydown', (e) => {
+            const lightbox = document.getElementById('lightbox');
+            if (lightbox.classList.contains('active')) {
+                if (e.key === 'Escape') {
+                    closeLightbox();
+                } else if (e.key === 'ArrowLeft') {
+                    navigateLightbox(-1);
+                } else if (e.key === 'ArrowRight') {
+                    navigateLightbox(1);
+                }
+            }
+        });
 
         // Initialize on page load
         checkLoginStatus();

@@ -146,6 +146,8 @@ export async function createIndexes(): Promise<void> {
   await AdListingModel.createIndexes();
   await FarmingTipModel.createIndexes();
   
+  // Note: KnowledgeBaseModel indexes are managed in knowledge-base-manager.service.ts
+  
   console.log('✓ All MongoDB indexes created successfully');
 }
 
