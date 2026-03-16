@@ -73,6 +73,8 @@ export interface Remedy {
   dosage?: string;
   applicationMethod: string;
   frequency: string;
+  source?: 'basic' | 'rag';
+  citationIds?: string[];
 }
 
 export interface ErrorResponse {
@@ -391,7 +393,8 @@ async function createDiagnosis(req: Request, res: Response): Promise<void> {
       cropHint: cropType,
       location,
       language,
-      shareWithKisanMitra: true
+      shareWithKisanMitra: true,
+      ragEnabled: req.body.ragEnabled === 'true' || req.body.ragEnabled === true
     });
 
     const duration = Date.now() - startTime;
@@ -427,14 +430,24 @@ async function createDiagnosis(req: Request, res: Response): Promise<void> {
           name: r.genericName,
           dosage: r.dosage,
           applicationMethod: r.applicationMethod,
-          frequency: r.frequency
+          frequency: r.frequency,
+          brandNames: r.brandNames,
+          preHarvestInterval: r.preHarvestInterval,
+          estimatedCost: r.estimatedCost,
+          safetyPrecautions: r.safetyPrecautions,
+          source: r.source,
+          citationIds: r.citationIds
         })),
         ...diagnosisResult.remedies.organic.map(r => ({
           type: 'organic' as const,
           name: r.name,
           dosage: r.preparation?.join('; ') || 'As needed',
           applicationMethod: r.applicationMethod,
-          frequency: r.frequency
+          frequency: r.frequency,
+          estimatedCost: (r as any).estimatedCost,
+          safetyPrecautions: (r as any).safetyPrecautions,
+          source: r.source,
+          citationIds: r.citationIds
         }))
       ],
       preventiveMeasures: diagnosisResult.remedies.preventive.map(p => p.description),
@@ -442,6 +455,10 @@ async function createDiagnosis(req: Request, res: Response): Promise<void> {
       imageUrl: diagnosisResult.imageUrl,
       timestamp: diagnosisResult.timestamp
     };
+
+    console.log('[DiagnosisController] RAG Enhanced:', diagnosisResult.ragEnhanced);
+    console.log('[DiagnosisController] First chemical remedy source:', diagnosisResult.remedies.chemical[0]?.source);
+    console.log('[DiagnosisController] First chemical remedy:', JSON.stringify(diagnosisResult.remedies.chemical[0], null, 2));
 
     res.status(201).json({
       success: true,
@@ -854,6 +871,17 @@ if (process.env.NODE_ENV !== 'production') {
   console.log('✓ Test endpoint enabled at POST /api/diagnosis/test (no auth required)');
 }
 
+// GET /api/diagnosis/rag-stats - Public endpoint, no auth required
+router.get('/rag-stats', async (_req: Request, res: Response) => {
+  try {
+    const { pool } = await import('../../../shared/database/pg-config');
+    const result = await pool.query('SELECT COUNT(*) as count FROM rag_documents');
+    const documentsIndexed = parseInt(result.rows[0].count, 10);
+    res.json({ documentsIndexed });
+  } catch (error) {
+    res.json({ documentsIndexed: 0 });
+  }
+});
 // Apply authentication to all routes below
 router.use(requireAuth);
 

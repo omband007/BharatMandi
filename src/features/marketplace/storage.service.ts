@@ -26,12 +26,9 @@ export class StorageService {
     
     // Initialize S3 client if S3 is enabled
     if (this.useS3) {
+      const s3Region = process.env.S3_REGION || config.aws.region;
       this.s3Client = new S3Client({
-        region: config.aws.region,
-        credentials: {
-          accessKeyId: config.aws.accessKeyId,
-          secretAccessKey: config.aws.secretAccessKey
-        }
+        region: s3Region
       });
       console.log(`✓ S3 storage enabled: ${this.bucketName}`);
     } else {

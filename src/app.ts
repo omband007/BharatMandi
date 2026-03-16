@@ -4,6 +4,7 @@ import cors from 'cors';
 import fs from 'fs';
 import { DatabaseManager } from './shared/database/db-abstraction';
 import { testSequelizeConnection, syncDatabase } from './shared/database/sequelize-config';
+import { connectMongoDB, disconnectMongoDB } from './shared/database/mongodb-config';
 import { i18nextMiddleware } from './features/i18n/i18n-backend.config';
 
 // Feature controllers
@@ -20,6 +21,19 @@ import authRoutes from './features/profile/routes/auth.routes';
 import { diagnosisController } from './features/crop-diagnosis/controllers';
 
 const app = express();
+
+// Display current database configuration on startup
+console.log('');
+console.log('═══════════════════════════════════════════════════════════');
+console.log('📊 DATABASE CONFIGURATION');
+console.log('═══════════════════════════════════════════════════════════');
+console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log(`Database Host: ${process.env.POSTGRES_HOST || 'not set'}`);
+console.log(`Database Port: ${process.env.POSTGRES_PORT || 'not set'}`);
+console.log(`Database Name: ${process.env.POSTGRES_DB || 'not set'}`);
+console.log(`SSL Enabled: ${process.env.DB_SSL || 'false'}`);
+console.log('═══════════════════════════════════════════════════════════');
+console.log('');
 
 // Initialize DatabaseManager for PostgreSQL
 const dbManager = new DatabaseManager();
@@ -46,6 +60,13 @@ const dbManager = new DatabaseManager();
     // Start DatabaseManager (connection monitoring)
     await dbManager.start();
     console.log('✓ DatabaseManager started - PostgreSQL connectivity confirmed');
+
+    // Initialize MongoDB (for diagnosis history)
+    try {
+      await connectMongoDB();
+    } catch (mongoError: any) {
+      console.warn('⚠ MongoDB connection failed - diagnosis history will not be saved:', mongoError.message);
+    }
   } catch (error) {
     console.error('✗ Failed to initialize databases:', error);
   }
@@ -55,12 +76,14 @@ const dbManager = new DatabaseManager();
 process.on('SIGINT', () => {
   console.log('\n[App] Shutting down gracefully...');
   dbManager.stop();
+  disconnectMongoDB().catch(() => {});
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
   console.log('\n[App] Shutting down gracefully...');
   dbManager.stop();
+  disconnectMongoDB().catch(() => {});
   process.exit(0);
 });
 

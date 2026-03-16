@@ -21,8 +21,14 @@ import { remedyGenerator } from './remedy-generator.service';
 import { expertEscalationService } from './expert-escalation.service';
 import { historyManager } from './history-manager.service';
 import { kisanMitraIntegrationService, generateDiagnosisSummary } from './kisan-mitra-integration.service';
+import { getEmbeddingService } from './embedding.service';
+import { vectorDatabaseService } from './vector-database.service';
+import { getRAGRetrievalService } from './rag-retrieval.service';
+import { getRAGResponseGenerator } from './rag-response-generator.service';
 import type { ImageAnalysisResult } from './nova-vision.service';
 import type { RemedyResponse } from './remedy-generator.service';
+import type { EnhancedDiagnosisResponse } from './rag-response-generator.service';
+import type { RetrievalResponse } from './rag-retrieval.service';
 
 // ============================================================================
 // CONSTANTS
@@ -30,6 +36,20 @@ import type { RemedyResponse } from './remedy-generator.service';
 
 const CONFIDENCE_THRESHOLD = 80; // Requirement 3.2: Expert review required if <80%
 const END_TO_END_TIMEOUT = 3000; // Requirement 12.6: <3000ms target
+const RAG_ENABLED = process.env.RAG_ENABLED !== 'false'; // Default: enabled
+const RAG_RETRIEVAL_TIMEOUT = parseInt(process.env.RETRIEVAL_TIMEOUT_MS || '1500', 10); // 1500ms
+const RAG_GENERATION_TIMEOUT = parseInt(process.env.GENERATION_TIMEOUT_MS || '2000', 10); // 2000ms
+
+// Log RAG configuration on module load
+console.log('='.repeat(60));
+console.log('[DiagnosisService] RAG Configuration:');
+console.log(`  RAG_ENABLED: ${RAG_ENABLED} (env: ${process.env.RAG_ENABLED})`);
+console.log(`  RETRIEVAL_TIMEOUT: ${RAG_RETRIEVAL_TIMEOUT}ms`);
+console.log(`  GENERATION_TIMEOUT: ${RAG_GENERATION_TIMEOUT}ms`);
+console.log(`  POSTGRES_HOST: ${process.env.POSTGRES_HOST}`);
+console.log(`  POSTGRES_PORT: ${process.env.POSTGRES_PORT}`);
+console.log(`  POSTGRES_DB: ${process.env.POSTGRES_DB}`);
+console.log('='.repeat(60));
 
 // ============================================================================
 // TYPES
@@ -50,6 +70,7 @@ export interface DiagnosisRequest {
   language?: 'en' | 'hi' | 'ta' | 'te' | 'kn' | 'ml' | 'mr' | 'bn' | 'gu' | 'pa' | 'or';
   growthStage?: 'seedling' | 'vegetative' | 'flowering' | 'fruiting' | 'maturity';
   shareWithKisanMitra?: boolean; // Whether to share context with Kisan Mitra (default: true)
+  ragEnabled?: boolean; // Whether to enable RAG enhancement (default: true)
 }
 
 export interface DiagnosisResponse {
@@ -79,6 +100,9 @@ export interface DiagnosisResponse {
       preHarvestInterval: number;
       safetyPrecautions: string[];
       estimatedCost: string;
+      source?: 'rag' | 'basic'; // Indicates if remedy is from RAG or basic
+      citationIds?: string[]; // Citation IDs if from RAG
+      confidence?: number; // Confidence score
     }>;
     organic: Array<{
       name: string;
@@ -88,12 +112,18 @@ export interface DiagnosisResponse {
       frequency: string;
       effectiveness: string;
       commercialProducts?: string[];
+      source?: 'rag' | 'basic'; // Indicates if remedy is from RAG or basic
+      citationIds?: string[]; // Citation IDs if from RAG
+      confidence?: number; // Confidence score
     }>;
     preventive: Array<{
       category: 'crop_rotation' | 'irrigation' | 'spacing' | 'soil_health' | 'timing';
       description: string;
       timing?: string;
       frequency?: string;
+      source?: 'rag' | 'basic'; // Indicates if remedy is from RAG or basic
+      citationIds?: string[]; // Citation IDs if from RAG
+      confidence?: number; // Confidence score
     }>;
     regionalNotes?: string;
     seasonalNotes?: string;
@@ -102,6 +132,26 @@ export interface DiagnosisResponse {
   expertReviewId?: string;
   imageUrl: string;
   timestamp: Date;
+  ragEnhanced?: boolean; // Indicates if RAG enhancement was applied
+  ragMetadata?: {
+    retrievalTimeMs: number;
+    generationTimeMs: number;
+    documentsRetrieved: number;
+    similarityThreshold: number;
+    cacheHit: boolean;
+    fallbackReason?: string; // Reason for fallback if RAG failed
+  };
+  citations?: Array<{
+    citationId: string;
+    documentId: string;
+    title: string;
+    excerpt: string;
+    source: string;
+    author?: string;
+    publicationDate?: string;
+    url?: string;
+    relevanceScore: number;
+  }>;
   metadata: {
     cacheHit: boolean;
     processingTimeMs: number;
@@ -113,6 +163,8 @@ export interface DiagnosisResponse {
       remedyGeneration: number;
       expertEscalation: number;
       historyStorage: number;
+      ragRetrieval?: number;
+      ragGeneration?: number;
     };
   };
 }
@@ -317,6 +369,80 @@ export class DiagnosisService {
       }
 
       // ========================================================================
+      // STAGE 5.5: RAG ENHANCEMENT (if enabled)
+      // ========================================================================
+      let ragEnhanced = false;
+      let ragMetadata: DiagnosisResponse['ragMetadata'];
+      let citations: DiagnosisResponse['citations'];
+      let ragRetrievalTime = 0;
+      let ragGenerationTime = 0;
+
+      // Check if RAG is enabled: environment variable AND request parameter (default: true)
+      const ragEnabledForRequest = RAG_ENABLED && (request.ragEnabled !== false);
+
+      if (ragEnabledForRequest && diagnosisResult.diseases.length > 0) {
+        console.log('[DiagnosisService] Stage 5.5: Attempting RAG enhancement...');
+        
+        try {
+          const ragResult = await this.enhanceWithRAG(
+            diagnosisResult,
+            request.cropHint || diagnosisResult.cropType,
+            request.location,
+            request.language || 'en'
+          );
+
+          if (ragResult.success && ragResult.enhancedResponse) {
+            ragEnhanced = true;
+            ragRetrievalTime = ragResult.retrievalTimeMs;
+            ragGenerationTime = ragResult.generationTimeMs;
+            
+            // Merge RAG-enhanced remedies with basic remedies
+            remedies = this.mergeRemedies(remedies, ragResult.enhancedResponse);
+            citations = ragResult.enhancedResponse.citations;
+
+            ragMetadata = {
+              retrievalTimeMs: ragResult.retrievalTimeMs,
+              generationTimeMs: ragResult.generationTimeMs,
+              documentsRetrieved: ragResult.documentsRetrieved,
+              similarityThreshold: ragResult.similarityThreshold,
+              cacheHit: ragResult.cacheHit
+            };
+
+            console.log(`[DiagnosisService] ✓ RAG enhancement successful`);
+            console.log(`[DiagnosisService]   Retrieved: ${ragResult.documentsRetrieved} documents`);
+            console.log(`[DiagnosisService]   Citations: ${citations?.length || 0}`);
+            console.log(`[DiagnosisService]   Time: ${ragRetrievalTime + ragGenerationTime}ms`);
+          } else {
+            // RAG failed - use fallback mode
+            console.log(`[DiagnosisService] ✗ RAG enhancement failed: ${ragResult.fallbackReason}`);
+            ragMetadata = {
+              retrievalTimeMs: 0,
+              generationTimeMs: 0,
+              documentsRetrieved: 0,
+              similarityThreshold: 0,
+              cacheHit: false,
+              fallbackReason: ragResult.fallbackReason
+            };
+          }
+        } catch (error) {
+          // Log error but continue with basic diagnosis
+          console.error('[DiagnosisService] RAG enhancement error:', error);
+          ragMetadata = {
+            retrievalTimeMs: 0,
+            generationTimeMs: 0,
+            documentsRetrieved: 0,
+            similarityThreshold: 0,
+            cacheHit: false,
+            fallbackReason: error instanceof Error ? error.message : 'Unknown error'
+          };
+        }
+      } else if (!ragEnabledForRequest) {
+        console.log('[DiagnosisService] Stage 5.5: RAG enhancement disabled');
+      } else {
+        console.log('[DiagnosisService] Stage 5.5: RAG enhancement skipped (no diseases detected)');
+      }
+
+      // ========================================================================
       // STAGE 6: CHECK CONFIDENCE & EXPERT ESCALATION
       // ========================================================================
       const escalationStart = Date.now();
@@ -480,10 +606,17 @@ export class DiagnosisService {
         expertReviewId,
         imageUrl,
         timestamp: new Date(),
+        ragEnhanced,
+        ragMetadata,
+        citations,
         metadata: {
           cacheHit,
           processingTimeMs: totalTime,
-          stages
+          stages: {
+            ...stages,
+            ragRetrieval: ragRetrievalTime,
+            ragGeneration: ragGenerationTime
+          }
         }
       };
 
@@ -528,6 +661,286 @@ export class DiagnosisService {
    */
   private isDiagnosisError(error: any): error is DiagnosisError {
     return error && typeof error.code === 'string' && typeof error.message === 'string';
+  }
+
+  /**
+   * Enhance diagnosis with RAG
+   * 
+   * Retrieves relevant documents and generates enhanced recommendations
+   * with citations. Implements timeout handling and fallback mode.
+   * 
+   * @param diagnosisResult - Disease identification from Nova Pro
+   * @param cropType - Identified crop type
+   * @param location - Optional location information
+   * @param language - Requested language
+   * @returns RAG enhancement result with success/failure status
+   */
+  private async enhanceWithRAG(
+    diagnosisResult: ImageAnalysisResult,
+    cropType: string,
+    location?: { state: string; district?: string },
+    language: string = 'en'
+  ): Promise<{
+    success: boolean;
+    enhancedResponse?: EnhancedDiagnosisResponse;
+    retrievalTimeMs: number;
+    generationTimeMs: number;
+    documentsRetrieved: number;
+    similarityThreshold: number;
+    cacheHit: boolean;
+    fallbackReason?: string;
+  }> {
+    const primaryDisease = diagnosisResult.diseases[0];
+    let retrievalTimeMs = 0;
+    let generationTimeMs = 0;
+    let documentsRetrieved = 0;
+    let similarityThreshold = 0;
+    let cacheHit = false;
+
+    try {
+      // Initialize RAG services
+      const embeddingService = getEmbeddingService();
+      const ragRetrievalService = getRAGRetrievalService(
+        embeddingService,
+        vectorDatabaseService
+      );
+      const ragResponseGenerator = getRAGResponseGenerator();
+
+      // Stage 1: Retrieve documents with timeout
+      const retrievalStart = Date.now();
+      const retrievalPromise = ragRetrievalService.retrieveDocuments({
+        disease: {
+          name: primaryDisease.name,
+          scientificName: primaryDisease.scientificName,
+          type: primaryDisease.type,
+          severity: primaryDisease.severity,
+        },
+        cropType,
+        location,
+        language,
+      });
+
+      const retrievalTimeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Retrieval timeout')), RAG_RETRIEVAL_TIMEOUT);
+      });
+
+      let retrievalResponse: RetrievalResponse;
+      try {
+        retrievalResponse = await Promise.race([retrievalPromise, retrievalTimeoutPromise]);
+      } catch (error) {
+        retrievalTimeMs = Date.now() - retrievalStart;
+        return {
+          success: false,
+          retrievalTimeMs,
+          generationTimeMs: 0,
+          documentsRetrieved: 0,
+          similarityThreshold: 0,
+          cacheHit: false,
+          fallbackReason: error instanceof Error ? error.message : 'Retrieval failed',
+        };
+      }
+
+      retrievalTimeMs = retrievalResponse.retrievalTimeMs;
+      documentsRetrieved = retrievalResponse.documents.length;
+      similarityThreshold = retrievalResponse.similarityThreshold;
+      cacheHit = retrievalResponse.cacheHit;
+
+      // Check if we have documents
+      if (documentsRetrieved === 0) {
+        return {
+          success: false,
+          retrievalTimeMs,
+          generationTimeMs: 0,
+          documentsRetrieved: 0,
+          similarityThreshold,
+          cacheHit,
+          fallbackReason: 'No documents retrieved above similarity threshold',
+        };
+      }
+
+      // Stage 2: Generate enhanced response with timeout
+      const generationStart = Date.now();
+      const generationPromise = ragResponseGenerator.generateEnhancedResponse({
+        disease: {
+          name: primaryDisease.name,
+          scientificName: primaryDisease.scientificName,
+          type: primaryDisease.type,
+          severity: primaryDisease.severity,
+          confidence: primaryDisease.confidence,
+          symptoms: diagnosisResult.symptoms,
+          affectedParts: primaryDisease.affectedParts,
+        },
+        cropType,
+        retrievedDocuments: retrievalResponse.documents,
+        location,
+        language,
+      });
+
+      const generationTimeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Generation timeout')), RAG_GENERATION_TIMEOUT);
+      });
+
+      let enhancedResponse: EnhancedDiagnosisResponse;
+      try {
+        enhancedResponse = await Promise.race([generationPromise, generationTimeoutPromise]);
+      } catch (error) {
+        generationTimeMs = Date.now() - generationStart;
+        return {
+          success: false,
+          retrievalTimeMs,
+          generationTimeMs,
+          documentsRetrieved,
+          similarityThreshold,
+          cacheHit,
+          fallbackReason: error instanceof Error ? error.message : 'Generation failed',
+        };
+      }
+
+      generationTimeMs = enhancedResponse.generationTimeMs;
+
+      return {
+        success: true,
+        enhancedResponse,
+        retrievalTimeMs,
+        generationTimeMs,
+        documentsRetrieved,
+        similarityThreshold,
+        cacheHit,
+      };
+    } catch (error) {
+      console.error('[DiagnosisService] RAG enhancement error:', error);
+      return {
+        success: false,
+        retrievalTimeMs,
+        generationTimeMs,
+        documentsRetrieved,
+        similarityThreshold,
+        cacheHit,
+        fallbackReason: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  /**
+   * Merge basic remedies with RAG-enhanced remedies
+   * 
+   * Strategy:
+   * - Keep all basic remedies as baseline
+   * - Add RAG-enhanced remedies that aren't duplicates
+   * - Prefer RAG-enhanced versions when duplicates exist (higher confidence)
+   * 
+   * @param basicRemedies - Basic remedies from remedy generator
+   * @param enhancedResponse - RAG-enhanced response with citations
+   * @returns Merged remedies with best of both
+   */
+  private mergeRemedies(
+    basicRemedies: RemedyResponse,
+    enhancedResponse: EnhancedDiagnosisResponse
+  ): RemedyResponse {
+    // Merge chemical treatments
+    const chemicalMap = new Map<string, any>();
+    
+    // Add basic chemical treatments
+    basicRemedies.chemical.forEach(chem => {
+      chemicalMap.set(chem.name.toLowerCase(), {
+        ...chem,
+        citationIds: [],
+        confidence: 50, // Default confidence for basic remedies
+        source: 'basic', // Mark as basic
+      });
+    });
+
+    // Add or replace with RAG-enhanced chemical treatments
+    enhancedResponse.chemicalTreatments.forEach(chem => {
+      const key = chem.name.toLowerCase();
+      // Always prefer RAG remedies when they exist (they have citations)
+      chemicalMap.set(key, {
+        name: chem.name,
+        genericName: chem.activeIngredient,
+        brandNames: [], // RAG doesn't provide brand names
+        dosage: chem.dosage,
+        applicationMethod: chem.applicationMethod,
+        frequency: chem.frequency,
+        duration: undefined,
+        preHarvestInterval: 0, // RAG doesn't provide PHI
+        safetyPrecautions: chem.precautions,
+        estimatedCost: 'Varies', // RAG doesn't provide cost
+        citationIds: chem.citationIds,
+        confidence: chem.confidence,
+        source: 'rag', // Mark as RAG-enhanced
+      });
+    });
+
+    // Merge organic treatments
+    const organicMap = new Map<string, any>();
+    
+    // Add basic organic treatments
+    basicRemedies.organic.forEach(org => {
+      organicMap.set(org.name.toLowerCase(), {
+        ...org,
+        citationIds: [],
+        confidence: 50,
+        source: 'basic', // Mark as basic
+      });
+    });
+
+    // Add or replace with RAG-enhanced organic treatments
+    enhancedResponse.organicTreatments.forEach(org => {
+      const key = org.name.toLowerCase();
+      // Always prefer RAG remedies when they exist (they have citations)
+      organicMap.set(key, {
+        name: org.name,
+        ingredients: org.ingredients,
+        preparation: [org.preparation], // Convert string to array
+        applicationMethod: org.applicationMethod,
+        frequency: org.frequency,
+        effectiveness: org.effectivenessRate ? `${org.effectivenessRate}%` : 'Moderate',
+        commercialProducts: [],
+        citationIds: org.citationIds,
+        confidence: org.confidence,
+        source: 'rag', // Mark as RAG-enhanced
+      });
+    });
+
+    // Merge preventive measures
+    const preventiveMap = new Map<string, any>();
+    
+    // Add basic preventive measures
+    basicRemedies.preventive.forEach(prev => {
+      preventiveMap.set(prev.description.toLowerCase(), {
+        ...prev,
+        citationIds: [],
+        confidence: 50,
+        source: 'basic', // Mark as basic
+      });
+    });
+
+    // Add or replace with RAG-enhanced preventive measures
+    enhancedResponse.preventiveMeasures.forEach(prev => {
+      const key = prev.measure.toLowerCase();
+      // Always prefer RAG remedies when they exist (they have citations)
+      preventiveMap.set(key, {
+        category: 'crop_rotation' as const, // Default category
+        description: prev.description,
+        timing: prev.timing,
+        frequency: undefined,
+        citationIds: prev.citationIds,
+        confidence: prev.confidence,
+        source: 'rag', // Mark as RAG-enhanced
+      });
+    });
+
+    // Use RAG regional/seasonal notes if available, otherwise keep basic
+    const regionalNotes = enhancedResponse.regionalNotes || basicRemedies.regionalNotes;
+    const seasonalNotes = enhancedResponse.seasonalNotes || basicRemedies.seasonalNotes;
+
+    return {
+      chemical: Array.from(chemicalMap.values()),
+      organic: Array.from(organicMap.values()),
+      preventive: Array.from(preventiveMap.values()),
+      regionalNotes,
+      seasonalNotes,
+    };
   }
 }
 

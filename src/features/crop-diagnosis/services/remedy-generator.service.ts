@@ -50,6 +50,9 @@ export interface ChemicalRemedy {
   preHarvestInterval: number;
   safetyPrecautions: string[];
   estimatedCost: string;
+  source?: 'rag' | 'basic'; // Indicates if remedy is from RAG or basic
+  citationIds?: string[]; // Citation IDs if from RAG
+  confidence?: number; // Confidence score
 }
 
 export interface OrganicRemedy {
@@ -60,6 +63,9 @@ export interface OrganicRemedy {
   frequency: string;
   effectiveness: string;
   commercialProducts?: string[];
+  source?: 'rag' | 'basic'; // Indicates if remedy is from RAG or basic
+  citationIds?: string[]; // Citation IDs if from RAG
+  confidence?: number; // Confidence score
 }
 
 export interface PreventiveMeasure {
@@ -67,6 +73,9 @@ export interface PreventiveMeasure {
   description: string;
   timing?: string;
   frequency?: string;
+  source?: 'rag' | 'basic'; // Indicates if remedy is from RAG or basic
+  citationIds?: string[]; // Citation IDs if from RAG
+  confidence?: number; // Confidence score
 }
 
 export interface RemedyResponse {

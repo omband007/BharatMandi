@@ -71,6 +71,58 @@
             margin-right: auto;
         }
 
+        .stats-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .rag-checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .rag-checkbox-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .rag-checkbox-label {
+            color: #333;
+            cursor: pointer;
+        }
+
         .button-group {
             display: flex;
             gap: 10px;
@@ -237,7 +289,98 @@
         }
 
         .remedy-card li {
+            margin-bottom: 5px;
+        }
+
+        .remedy-source-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            margin-left: 8px;
+            font-weight: bold;
+        }
+
+        .source-rag {
+            background: #e7f3ff;
+            color: #0066cc;
+        }
+
+        .source-basic {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .remedy-citation {
+            display: inline-block;
+            background: #e7f3ff;
+            color: #0066cc;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            margin-left: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .remedy-citation:hover {
+            background: #cce5ff;
+            transform: scale(1.05);
+        }
+
+        .citations-section {
+            margin-top: 25px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .citations-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .citation-card {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
             margin-bottom: 10px;
+            border-left: 3px solid #667eea;
+        }
+
+        .citation-id {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .citation-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .citation-excerpt {
+            font-size: 0.85rem;
+            color: #666;
+            font-style: italic;
+            margin: 8px 0;
+            padding-left: 10px;
+            border-left: 2px solid #ddd;
+        }
+
+        .citation-meta {
+            font-size: 0.8rem;
+            color: #999;
+            margin-top: 5px;
         }
 
         .error-message {
@@ -292,82 +435,112 @@
         <div class="info-card">
             <p><strong>🌾 Dr. Fasal - AI Disease Diagnosis:</strong></p>
             <p>✓ AI-powered crop disease identification using Amazon Nova Pro</p>
+            <p>✓ RAG-enabled recommendations with scientific citations</p>
             <p>✓ Multi-language support with local crop and disease names</p>
             <p>✓ Detailed treatment recommendations (chemical, organic, and preventive)</p>
             <p>✓ Confidence scoring and expert escalation for low-confidence cases</p>
-            <p>✓ Diagnosis history and caching for faster results</p>           
+            <p>✓ Diagnosis history and caching for faster results</p>
             <p style="margin-top: 10px;"><strong>🚀 Coming Next:</strong></p>
             <p>• Integration with Kisan Mitra for follow-up questions</p>
             <p>• Expert review system for complex cases</p>
             <p>• Seasonal disease alerts and prevention tips</p>
             <p>• Community-sourced treatment effectiveness ratings</p>
-            <p>• RAG capabilities</p>          
         </div>
 
         <div class="error-message" id="errorMessage"></div>
 
-            <div class="tiles-container">
-                <!-- Tile 1: Upload Image -->
-                <div class="tile">
-                    <h2>📸 Upload Image</h2>
-                    
-                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-                        <div class="upload-icon">📷</div>
-                        <h3>Select Crop Image</h3>
-                        <p>Click or drag and drop</p>
-                        <p style="font-size: 0.85em; color: #666;">JPEG, PNG, WebP (10KB-10MB, min 200x200px)</p>
-                        <input type="file" id="fileInput" class="file-input" accept="image/jpeg,image/png,image/webp" onchange="handleFileSelect(event)">
-                    </div>
-
-                    <div id="previewContainer" style="display: none;">
-                        <img id="previewImage" class="preview-image" alt="Preview">
-                        <div class="button-group">
-                            <button class="analyze-button" id="analyzeButton" onclick="analyzeCrop()">
-                                🔍 Analyze Crop
-                            </button>
-                            <button class="change-image-button" onclick="changeImage()">
-                                🔄 Change Image
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Nova Pro Attribution -->
-                    <div style="position: absolute; bottom: 15px; left: 0; right: 0; padding: 10px 30px 0; border-top: 1px solid #e0e0e0; text-align: center; background: white;">
-                        <p style="font-size: 11px; color: #666; margin: 0;">
-                            <span style="opacity: 0.7;">🤖</span> AI powered by Amazon Nova Pro
-                        </p>
-                    </div>
+        <div class="tiles-container">
+            <!-- Tile 1: Upload Image -->
+            <div class="tile">
+                <h2>📸 Upload Image</h2>
+                
+                <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">📷</div>
+                    <h3>Select Crop Image</h3>
+                    <p>Click or drag and drop</p>
+                    <p style="font-size: 0.85em; color: #666;">JPEG, PNG, WebP (10KB-10MB, min 200x200px)</p>
+                    <input type="file" id="fileInput" class="file-input" accept="image/jpeg,image/png,image/webp" onchange="handleFileSelect(event)">
                 </div>
 
-                <!-- Tile 2: Diagnosis Results -->
-                <div class="tile">
-                    <h2>📊 Diagnosis Results</h2>
-                    
-                    <div id="emptyState" class="empty-state">
-                        <div class="empty-state-icon">🔬</div>
-                        <p>Upload an image to see diagnosis results</p>
-                    </div>
+                <div id="previewContainer" style="display: none;">
+                    <img id="previewImage" class="preview-image" alt="Preview">
+                </div>
 
-                    <div id="loadingState" class="loading" style="display: none;">
-                        <div class="spinner"></div>
-                        <h3>Analyzing...</h3>
-                        <p>This may take a few seconds</p>
-                    </div>
+                <div class="rag-checkbox-container">
+                    <input type="checkbox" id="ragCheckbox" checked>
+                    <label for="ragCheckbox" class="rag-checkbox-label">✨ Enable Research-backed Recommendations (RAG)</label>
+                </div>
 
-                    <div id="resultsContent" class="results-content">
-                        <div class="crop-type-display" id="cropTypeDisplay"></div>
-                        
-                        <div id="diseasesList"></div>
-                        
-                        <div class="remedy-section" id="remedySection"></div>
-                    </div>
+                <div class="button-group">
+                    <button class="analyze-button" id="analyzeButton" onclick="analyzeCrop()" disabled>
+                        🔍 Analyze Crop
+                    </button>
+                    <button class="change-image-button" id="changeImageButton" onclick="document.getElementById('fileInput').click()" disabled>
+                        🔄 Change Image
+                    </button>
+                </div>
+                
+                <!-- Nova Pro Attribution -->
+                <div style="position: absolute; bottom: 15px; left: 0; right: 0; padding: 10px 30px 0; border-top: 1px solid #e0e0e0; text-align: center; background: white;">
+                    <p style="font-size: 11px; color: #666; margin: 0;">
+                        <span style="opacity: 0.7;">🤖</span> AI powered by Amazon Nova Pro
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tile 2: Diagnosis Results -->
+            <div class="tile">
+                <h2>📊 Diagnosis Results</h2>
+                
+                <div id="emptyState" class="empty-state">
+                    <div class="empty-state-icon">🔬</div>
+                    <p>Upload an image to see diagnosis results</p>
+                </div>
+
+                <div id="loadingState" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <h3>Analyzing...</h3>
+                    <p>This may take a few seconds</p>
+                </div>
+
+                <div id="resultsContent" class="results-content">
+                    <div class="crop-type-display" id="cropTypeDisplay"></div>
                     
-                    <!-- Nova Pro Attribution -->
-                    <div style="position: absolute; bottom: 15px; left: 0; right: 0; padding: 10px 30px 0; border-top: 1px solid #e0e0e0; text-align: center; background: white;">
-                        <p style="font-size: 11px; color: #666; margin: 0;">
-                            <span style="opacity: 0.7;">🤖</span> AI powered by Amazon Nova Pro
-                        </p>
-                    </div>
+                    <div id="diseasesList"></div>
+                    
+                    <div class="remedy-section" id="remedySection"></div>
+                    
+                    <div id="citationsSection" style="display: none;"></div>
+                </div>
+                
+                <!-- Nova Pro Attribution -->
+                <div style="position: absolute; bottom: 15px; left: 0; right: 0; padding: 10px 30px 0; border-top: 1px solid #e0e0e0; text-align: center; background: white;">
+                    <p style="font-size: 11px; color: #666; margin: 0;">
+                        <span style="opacity: 0.7;">🤖</span> AI powered by Amazon Nova Pro
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- RAG Statistics Panel -->
+        <div class="stats-panel">
+            <h3 style="color: #667eea; margin-bottom: 15px;">📊 RAG Enhancement Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statEnhanced">0</div>
+                    <div class="stat-label">Diagnoses Enhanced</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statCitations">0</div>
+                    <div class="stat-label">Citations Retrieved</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statAvgTime">0ms</div>
+                    <div class="stat-label">Avg Enhancement Time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statDocuments">0</div>
+                    <div class="stat-label">Documents Indexed</div>
                 </div>
             </div>
         </div>
@@ -377,8 +550,78 @@
         let selectedFile = null;
         const API_BASE = `${window.location.protocol}//${window.location.host}/api`;
 
+        // RAG Statistics tracking
+        let ragStats = {
+            enhancedCount: 0,
+            totalCitations: 0,
+            totalEnhancementTime: 0,
+            enhancementCount: 0
+        };
+
+        // Load stats from localStorage
+        function loadStats() {
+            const saved = localStorage.getItem('ragStats');
+            if (saved) {
+                ragStats = JSON.parse(saved);
+                updateStatsUI();
+            }
+        }
+
+        // Save stats to localStorage
+        function saveStats() {
+            localStorage.setItem('ragStats', JSON.stringify(ragStats));
+        }
+
+        function updateStatsUI() {
+            document.getElementById('statEnhanced').textContent = ragStats.enhancedCount;
+            document.getElementById('statCitations').textContent = ragStats.totalCitations;
+            
+            if (ragStats.enhancementCount > 0) {
+                const avgTime = Math.round(ragStats.totalEnhancementTime / ragStats.enhancementCount);
+                document.getElementById('statAvgTime').textContent = avgTime + 'ms';
+            }
+        }
+
+        function updateStats(data) {
+            console.log('[Stats] Updating with data:', data);
+            
+            if (data.ragEnhanced) {
+                ragStats.enhancedCount++;
+                
+                if (data.citations && data.citations.length > 0) {
+                    ragStats.totalCitations += data.citations.length;
+                }
+                
+                if (data.ragMetadata) {
+                    const retrievalTime = data.ragMetadata.retrievalTimeMs || 0;
+                    const generationTime = data.ragMetadata.generationTimeMs || 0;
+                    if (retrievalTime > 0 || generationTime > 0) {
+                        ragStats.totalEnhancementTime += retrievalTime + generationTime;
+                        ragStats.enhancementCount++;
+                    }
+                }
+                
+                console.log('[Stats] Updated ragStats:', ragStats);
+            }
+
+            // Update UI and save
+            updateStatsUI();
+            saveStats();
+        }
+
         // Drag and drop handlers
         const uploadArea = document.getElementById('uploadArea');
+        
+        // Load stats on page load
+        loadStats();
+        
+        // Load documents indexed count from server
+        fetch(`${API_BASE}/diagnosis/rag-stats`)
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('statDocuments').textContent = data.documentsIndexed || 0;
+            })
+            .catch(() => {});
         
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -430,6 +673,11 @@
                 document.getElementById('previewImage').src = e.target.result;
                 document.getElementById('uploadArea').style.display = 'none';
                 document.getElementById('previewContainer').style.display = 'block';
+                
+                // Enable buttons
+                document.getElementById('analyzeButton').disabled = false;
+                document.getElementById('changeImageButton').disabled = false;
+                
                 hideError();
             };
             reader.readAsDataURL(file);
@@ -441,6 +689,11 @@
             document.getElementById('fileInput').value = '';
             document.getElementById('uploadArea').style.display = 'block';
             document.getElementById('previewContainer').style.display = 'none';
+            
+            // Disable buttons
+            document.getElementById('analyzeButton').disabled = true;
+            document.getElementById('changeImageButton').disabled = true;
+            
             hideError();
         }
 
@@ -462,7 +715,16 @@
                 // Create form data
                 const formData = new FormData();
                 formData.append('image', selectedFile);
-                formData.append('language', 'en'); // TODO: Add language selector
+                
+                // Get RAG checkbox status
+                const ragEnabled = document.getElementById('ragCheckbox').checked;
+                formData.append('ragEnabled', ragEnabled.toString());
+
+                console.log('[Diagnosis] Request params:', {
+                    ragEnabled,
+                    fileSize: selectedFile.size,
+                    fileName: selectedFile.name
+                });
 
                 // Call diagnosis API (using test endpoint - no auth required)
                 const response = await fetch(`${API_BASE}/diagnosis/test`, {
@@ -506,11 +768,15 @@
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('resultsContent').style.display = 'block';
 
+            // Update stats
+            updateStats(data);
+
             // Display crop type (capitalized) with local name if available
             const cropTypeDiv = document.getElementById('cropTypeDisplay');
             const cropDisplay = capitalize(data.cropType || 'Unknown');
             const localCropName = data.cropLocalName ? ` (${data.cropLocalName})` : '';
-            cropTypeDiv.textContent = cropDisplay + localCropName;
+            
+            cropTypeDiv.innerHTML = cropDisplay + localCropName;
 
             // Display diseases
             const diseasesDiv = document.getElementById('diseasesList');
@@ -552,6 +818,15 @@
             }
 
             // Display remedies
+            displayRemedies(data);
+            
+            // Display citations if RAG enhanced
+            if (data.ragEnhanced && data.citations && data.citations.length > 0) {
+                displayCitations(data.citations);
+            }
+        }
+
+        function displayRemedies(data) {
             const remedyDiv = document.getElementById('remedySection');
             let remedyHTML = '';
 
@@ -564,12 +839,26 @@
                 if (chemicalRemedies.length > 0) {
                     remedyHTML += '<div class="remedy-card"><div class="remedy-type">🧪 Chemical Remedies</div><ul>';
                     chemicalRemedies.forEach(remedy => {
+                        const sourceBadge = remedy.source === 'rag' 
+                            ? '<span class="remedy-source-badge source-rag">✨</span>'
+                            : '<span class="remedy-source-badge source-basic">Basic</span>';
+                        const citationLinks = remedy.citationIds && remedy.citationIds.length > 0
+                            ? remedy.citationIds.map(cid => `<span class="remedy-citation" onclick="scrollToCitation('${cid}')">[${cid}]</span>`).join('')
+                            : '';
+                        const phi = remedy.preHarvestInterval
+                            ? `<br><em>Pre-Harvest Interval:</em> ${remedy.preHarvestInterval} days` : '';
+                        const brands = remedy.brandNames && remedy.brandNames.length > 0
+                            ? `<br><em>Brand Names:</em> ${remedy.brandNames.join(', ')}` : '';
+                        const costVal = remedy.estimatedCost && remedy.estimatedCost.toLowerCase() !== 'varies'
+                            ? `<br><em>Estimated Cost:</em> ${remedy.estimatedCost}` : '';
+                        const safety = remedy.safetyPrecautions && remedy.safetyPrecautions.length > 0
+                            ? `<br><em>Safety: </em><div style="margin:2px 0 0 28px;">${remedy.safetyPrecautions.map(s => `<div style="margin-bottom:1px;">– ${s}</div>`).join('')}</div>` : '';
                         remedyHTML += `
                             <li>
-                                <strong>${remedy.name}</strong><br>
+                                <strong>${remedy.name}</strong>${sourceBadge}${citationLinks}<br>
                                 <em>Dosage:</em> ${remedy.dosage}<br>
                                 <em>Application:</em> ${remedy.applicationMethod}<br>
-                                <em>Frequency:</em> ${remedy.frequency}
+                                <em>Frequency:</em> ${remedy.frequency}${phi}${brands}${costVal}${safety}
                             </li>
                         `;
                     });
@@ -584,12 +873,22 @@
                 if (organicRemedies.length > 0) {
                     remedyHTML += '<div class="remedy-card"><div class="remedy-type">🌿 Organic Remedies</div><ul>';
                     organicRemedies.forEach(remedy => {
+                        const sourceBadge = remedy.source === 'rag' 
+                            ? '<span class="remedy-source-badge source-rag">✨</span>'
+                            : '<span class="remedy-source-badge source-basic">Basic</span>';
+                        const citationLinks = remedy.citationIds && remedy.citationIds.length > 0
+                            ? remedy.citationIds.map(cid => `<span class="remedy-citation" onclick="scrollToCitation('${cid}')">[${cid}]</span>`).join('')
+                            : '';
+                        const costVal = remedy.estimatedCost && remedy.estimatedCost.toLowerCase() !== 'varies'
+                            ? `<br><em>Estimated Cost:</em> ${remedy.estimatedCost}` : '';
+                        const safety = remedy.safetyPrecautions && remedy.safetyPrecautions.length > 0
+                            ? `<br><em>Safety: </em><div style="margin:2px 0 0 28px;">${remedy.safetyPrecautions.map(s => `<div style="margin-bottom:1px;">– ${s}</div>`).join('')}</div>` : '';
                         remedyHTML += `
                             <li>
-                                <strong>${remedy.name}</strong><br>
+                                <strong>${remedy.name}</strong>${sourceBadge}${citationLinks}<br>
                                 <em>Dosage:</em> ${remedy.dosage}<br>
                                 <em>Application:</em> ${remedy.applicationMethod}<br>
-                                <em>Frequency:</em> ${remedy.frequency}
+                                <em>Frequency:</em> ${remedy.frequency}${costVal}${safety}
                             </li>
                         `;
                     });
@@ -598,9 +897,9 @@
 
                 // Preventive measures
                 if (data.preventiveMeasures && data.preventiveMeasures.length > 0) {
-                    remedyHTML += '<div class="remedy-card"><div class="remedy-type">🛡️ Preventive Measures</div><ul>';
+                    remedyHTML += '<div class="remedy-card"><div class="remedy-type">🛡️ Preventive Measures</div><ul style="margin:6px 0 0 0;padding-left:18px;">';
                     data.preventiveMeasures.forEach(measure => {
-                        remedyHTML += `<li>${measure}</li>`;
+                        remedyHTML += `<li style="margin-bottom:2px;">${measure}</li>`;
                     });
                     remedyHTML += '</ul></div>';
                 }
@@ -611,6 +910,44 @@
             }
 
             remedyDiv.innerHTML = remedyHTML;
+        }
+
+        function displayCitations(citations) {
+            const citationsDiv = document.getElementById('citationsSection');
+            citationsDiv.style.display = 'block';
+            
+            let citationsHTML = '<div class="citations-section">';
+            citationsHTML += '<div class="citations-title">📚 Scientific References</div>';
+            
+            citations.forEach(citation => {
+                citationsHTML += `
+                    <div class="citation-card" id="citation-${citation.citationId}">
+                        <div>
+                            <span class="citation-id">${citation.citationId}</span>
+                            <span class="citation-title">${citation.title || 'Untitled'}</span>
+                        </div>
+                        ${citation.excerpt ? `<div class="citation-excerpt">"${citation.excerpt}"</div>` : ''}
+                        <div class="citation-meta">
+                            Source: ${citation.source || 'Unknown'}
+                            ${citation.author ? ` • Author: ${citation.author}` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            citationsHTML += '</div>';
+            citationsDiv.innerHTML = citationsHTML;
+        }
+
+        function scrollToCitation(citationId) {
+            const element = document.getElementById(`citation-${citationId}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.style.background = '#e7f3ff';
+                setTimeout(() => {
+                    element.style.background = '#f8f9fa';
+                }, 2000);
+            }
         }
 
         function showError(message) {

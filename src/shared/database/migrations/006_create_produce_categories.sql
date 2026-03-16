@@ -27,7 +27,4 @@ CREATE INDEX idx_produce_categories_name ON produce_categories(name);
 COMMENT ON TABLE produce_categories IS 'Produce categories with expiry periods for automatic listing expiration';
 COMMENT ON COLUMN produce_categories.expiry_period_hours IS 'Hours after harvest when produce expires (1-8760 hours = 1 hour to 1 year)';
 
--- Initialize sync status for produce_categories
-INSERT INTO sync_status (entity_type, last_sync_status)
-VALUES ('produce_categories', 'SUCCESS')
-ON CONFLICT (entity_type) DO NOTHING;
+-- Note: sync_status table initialization removed - not needed for core functionality

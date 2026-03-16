@@ -299,6 +299,15 @@ export class VectorDatabaseService {
 
       const result = await client.query(sqlQuery, params);
 
+      // Debug: Log all results with similarity scores
+      console.log(`[VectorDB] Total results from query: ${result.rows.length}`);
+      if (result.rows.length > 0) {
+        console.log('[VectorDB] Top 5 similarity scores:');
+        result.rows.slice(0, 5).forEach((row, idx) => {
+          console.log(`  ${idx + 1}. ${row.document_id}: ${row.similarity_score.toFixed(4)} (threshold: ${query.similarityThreshold})`);
+        });
+      }
+
       // Filter by similarity threshold and map to SearchResult
       const searchResults: SearchResult[] = result.rows
         .filter(row => row.similarity_score >= query.similarityThreshold)

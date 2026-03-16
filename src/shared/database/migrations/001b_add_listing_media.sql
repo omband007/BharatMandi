@@ -4,8 +4,8 @@
 
 -- Media table for listing attachments
 CREATE TABLE IF NOT EXISTS listing_media (
-  id VARCHAR(36) PRIMARY KEY,
-  listing_id VARCHAR(36) NOT NULL,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  listing_id UUID NOT NULL,
   media_type VARCHAR(20) NOT NULL CHECK (media_type IN ('photo', 'video', 'document')),
   file_name VARCHAR(255) NOT NULL,
   file_size INTEGER NOT NULL,
@@ -49,7 +49,4 @@ AFTER INSERT OR UPDATE OR DELETE ON listing_media
 FOR EACH ROW
 EXECUTE FUNCTION update_listing_timestamp();
 
--- Initialize sync status for listing_media
-INSERT INTO sync_status (entity_type, last_sync_status)
-VALUES ('listing_media', 'SUCCESS')
-ON CONFLICT (entity_type) DO NOTHING;
+-- Note: sync_status table initialization removed - not needed for core functionality

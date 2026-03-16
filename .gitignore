@@ -8,6 +8,15 @@ docs/testing/coverage/
 docs/testing/config-coverage/
 diagrams_output/
 
+# Environment files (keep templates, ignore active .env files with credentials)
+.env
+.env.aws
+.env.local
+config/.env.aws
+config/.env.local
+!config/.env.production
+!config/.env.example
+
 # Archive folder for old scripts and notes
 docs/archive/
 !docs/archive/security-incident-*/

@@ -124,3 +124,18 @@ export {
   type RetrievedDocument,
   type RAGRetrievalConfig
 } from './rag-retrieval.service';
+
+export {
+  RAGResponseGenerator,
+  getRAGResponseGenerator,
+  resetRAGResponseGenerator,
+  DEFAULT_RAG_GENERATOR_CONFIG,
+  type DiseaseIdentification,
+  type Citation,
+  type ChemicalRecommendation,
+  type OrganicRecommendation,
+  type PreventiveRecommendation,
+  type EnhancedDiagnosisResponse,
+  type GenerationRequest,
+  type RAGGeneratorConfig
+} from './rag-response-generator.service';

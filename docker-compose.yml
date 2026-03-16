@@ -33,8 +33,29 @@ services:
       timeout: 5s
       retries: 5
 
+  # PostgreSQL with pgvector for RAG
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: bharat-mandi-postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=bharat_mandi
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=PGSql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   mongodb_data:
     driver: local
   redis_data:
+    driver: local
+  postgres_data:
     driver: local

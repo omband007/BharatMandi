@@ -1,157 +1,175 @@
-# Scripts
+# Scripts Directory
 
-Utility scripts for development, testing, deployment, and diagnostics.
+This directory contains utility scripts for the Bharat Mandi application.
 
-## Structure
+## Available Scripts
 
-```
-scripts/
-├── deployment/          # Deployment scripts
-│   ├── deploy.ps1      # PowerShell deployment
-│   ├── deploy.sh       # Bash deployment
-│   ├── deploy-to-ec2.sh
-│   ├── ec2-setup.sh
-│   ├── update-ec2-iam-role.ps1
-│   └── test-key.pem    # EC2 SSH key
-│
-├── aws-setup/          # AWS infrastructure setup
-│   ├── setup-crop-diagnosis-s3.ps1
-│   ├── setup-crop-diagnosis-s3.sh
-│   ├── setup-crop-diagnosis-s3-clean.ps1
-│   ├── verify-crop-diagnosis-s3.ps1
-│   ├── verify-crop-diagnosis-s3.sh
-│   ├── migrate-to-ap-south-1.ps1
-│   └── migrate-to-ap-south-1.sh
-│
-├── database/           # Database scripts
-│   ├── sql/           # SQL migration scripts
-│   ├── seed-farming-tips.ts
-│   ├── seed-marketplace-listings.ts
-│   ├── translate-and-seed-farming-tips.ts
-│   ├── update-sale-channel-enum.ts
-│   ├── update-user-type.ts
-│   └── update-user-type.sql
-│
-├── diagnostics/        # Diagnostic and troubleshooting scripts
-│   ├── diagnose-marketplace.ts
-│   ├── test-kisan-mitra-live.ts
-│   ├── test-lex-connection.js
-│   └── test-marketplace-api.ts
-│
-├── utilities/          # Utility scripts
-│   ├── clear-audio-cache.js
-│   ├── download-test-images.ps1
-│   ├── download-test-images.py
-│   ├── download-test-images.sh
-│   └── test-image-requirements.txt
-│
-├── tests/             # Test scripts
-├── perf-tests/        # Performance testing
-├── archive/           # Archived/deprecated scripts
-│
-├── README.md          # This file
-├── install-perf-tools.ps1  # Install performance testing tools
-├── run-perf-tests.ps1      # Run performance tests
-└── jest.config.js          # Jest configuration
+### Knowledge Base Ingestion
+
+**File**: `ingest-knowledge-base.ts`
+
+**Purpose**: Ingests disease data from JSON files into the vector database for RAG functionality.
+
+**Usage**:
+```bash
+npx ts-node scripts/ingest-knowledge-base.ts
 ```
 
-## Usage
+**What it does**:
+1. Loads disease data from `src/features/crop-diagnosis/data/knowledge-base/`
+2. Generates embeddings using AWS Titan Embeddings
+3. Indexes documents in PostgreSQL with pgvector
+4. Provides progress feedback and error handling
 
-Scripts in this folder are meant to be run from the project root:
+**Prerequisites**:
+- PostgreSQL with pgvector extension running
+- AWS Bedrock access configured
+- Environment variables set (see below)
+
+**Expected Output**:
+```
+============================================================
+Knowledge Base Ingestion Script
+============================================================
+
+Initializing services...
+✓ Embedding service initialized
+✓ Vector database service initialized
+
+Found 22 diseases to ingest:
+  - Fungal: 5
+  - Bacterial: 3
+  - Viral: 4
+  - Pests: 5
+  - Nutrient Deficiency: 5
+
+[1/22] Processing: Late Blight
+  Scientific name: Phytophthora infestans
+  Type: fungal
+  Affected crops: tomato, potato
+  Content length: 1234 characters
+  Generating embedding...
+  ✓ Embedding generated (450ms, dimension: 1536)
+  Indexing in vector database...
+  ✓ Indexed successfully (120ms)
+
+...
+
+============================================================
+Ingestion Complete!
+============================================================
+Total diseases processed: 22
+Successfully indexed: 22
+Errors: 0
+
+✓ Knowledge base is ready for RAG testing!
+```
+
+**Environment Variables Required**:
+```bash
+# PostgreSQL
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=bharat_mandi
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_password
+
+# AWS Bedrock
+AWS_REGION=us-east-1
+# Use IAM role on EC2, or set:
+# AWS_ACCESS_KEY_ID=your_key
+# AWS_SECRET_ACCESS_KEY=your_secret
+
+# Redis (optional)
+REDIS_ENABLED=false
+```
+
+**Verification**:
+```bash
+# Check if documents were indexed
+psql -h localhost -U postgres -d bharat_mandi -c "SELECT COUNT(*) FROM rag_documents;"
+# Expected: 22
+
+# View sample documents
+psql -h localhost -U postgres -d bharat_mandi -c "SELECT document_id, metadata->>'source' FROM rag_documents LIMIT 5;"
+```
+
+**Troubleshooting**:
+
+1. **Error: Cannot connect to PostgreSQL**
+   - Verify PostgreSQL is running
+   - Check connection string in environment variables
+   - Ensure pgvector extension is installed
+
+2. **Error: AWS Bedrock access denied**
+   - Verify AWS credentials or IAM role
+   - Check Bedrock is available in your region
+   - Ensure Titan Embeddings model access is enabled
+
+3. **Error: Embedding generation timeout**
+   - Check network connectivity to AWS
+   - Verify AWS Bedrock quotas
+   - Try again (may be temporary throttling)
+
+4. **Some documents failed to ingest**
+   - Check error messages for specific failures
+   - Verify JSON file format is correct
+   - Ensure all required fields are present
+
+**Re-running the Script**:
+
+If you need to re-ingest (e.g., after updating disease data):
 
 ```bash
-# Deployment
-.\scripts\deployment\deploy.ps1
+# Clear existing documents
+psql -h localhost -U postgres -d bharat_mandi -c "TRUNCATE TABLE rag_documents;"
 
-# AWS Setup
-.\scripts\aws-setup\setup-crop-diagnosis-s3.ps1
-
-# Database Seeding
-npx ts-node scripts/database/seed-farming-tips.ts
-
-# Diagnostics
-npx ts-node scripts/diagnostics/diagnose-marketplace.ts
-
-# Performance Testing
-.\scripts\install-perf-tools.ps1
-.\scripts\run-perf-tests.ps1
+# Re-run ingestion
+npx ts-node scripts/ingest-knowledge-base.ts
 ```
 
-## AWS Configuration Files
+## Deployment Scripts
 
-AWS infrastructure configuration files (JSON) are located in `docs/infrastructure/aws/`:
-- `crop-diagnosis-cors.json` - S3 CORS configuration
-- `crop-diagnosis-iam-policy.json` - IAM policy
-- `crop-diagnosis-lifecycle.json` - S3 lifecycle rules
+### Deploy to AWS EC2
 
-These are Infrastructure-as-Code documentation and are referenced by scripts in `aws-setup/`.
+**File**: `deployment/deploy.ps1`
 
-## Guidelines
+**Purpose**: Deploys the application to AWS EC2 instance.
 
-1. Keep scripts focused on a single purpose
-2. Add clear comments explaining what the script does
-3. Include usage examples in script headers
-4. Use descriptive filenames
+**Usage**:
+```bash
+npm run deploy
+```
 
----
+See `deployment/README.md` for detailed deployment instructions.
 
-## Archive Rules for AI Agents
+## Adding New Scripts
 
-### When to Move Scripts to `scripts/archive/`
+When adding new scripts to this directory:
 
-Move scripts to archive when they are:
-- ✅ **One-time setup scripts** (e.g., `setup-crop-diagnosis-s3.ps1`)
-- ✅ **One-time migration scripts** (e.g., `migrate-to-ap-south-1.ps1`, `update-sale-channel-enum.ts`)
-- ✅ **Investigation/diagnostic scripts** for specific bugs (e.g., `diagnose-aws-issue.js`, `test-marathi-translation.js`)
-- ✅ **One-time sync/fix scripts** (e.g., `sync-all-html-from-aws.ps1`, `download-index-from-aws.ps1`)
-- ✅ **Verification scripts** for one-time setup validation (e.g., `verify-crop-diagnosis-s3.ps1`)
-- ✅ **Download/setup scripts** for initial project setup (e.g., `download-test-images.py`)
+1. Create the script file with `.ts` or `.js` extension
+2. Add a clear comment block at the top explaining:
+   - Purpose
+   - Usage
+   - Prerequisites
+   - Expected output
+3. Update this README with script documentation
+4. Add npm script in `package.json` if appropriate
+5. Include error handling and progress feedback
+6. Test thoroughly before committing
 
-### What to Keep in Active Directories
+## Script Conventions
 
-Keep scripts in their functional directories when they are:
-- ❌ **Reusable deployment scripts** (e.g., `deploy.ps1`, `deploy.sh`)
-- ❌ **Ongoing diagnostic tools** (e.g., `test-marketplace-api.ts`, `diagnose-marketplace.ts`)
-- ❌ **Seed/data generation scripts** used regularly (e.g., `seed-farming-tips.ts`)
-- ❌ **Utility scripts** used repeatedly (e.g., `clear-audio-cache.js`)
-- ❌ **Test runners** and test infrastructure (e.g., `run-perf-tests.ps1`)
-- ❌ **Code sync verification** tools (e.g., `check-code-sync.ps1`)
+- Use TypeScript for type safety
+- Include comprehensive error handling
+- Provide clear progress feedback
+- Log important operations
+- Exit with appropriate status codes (0 = success, 1 = error)
+- Document all prerequisites and environment variables
+- Include verification steps in documentation
 
-### Decision Criteria
+## Related Documentation
 
-Ask yourself:
-1. **Will this script be run again?** If no → archive
-2. **Was this for a specific one-time task?** If yes → archive
-3. **Is this investigating a specific bug?** If yes → archive after bug is fixed
-4. **Is this setting up something already set up?** If yes → archive
-5. **Is this a migration that's already been run?** If yes → archive
-
-### Examples
-
-**Archive** ✅:
-- `setup-crop-diagnosis-s3.ps1` - S3 bucket already created
-- `migrate-to-ap-south-1.ps1` - Migration already completed
-- `sync-all-html-from-aws.ps1` - Code drift already fixed
-- `update-sale-channel-enum.ts` - Schema already updated
-- `test-marathi-translation.js` - Investigation already completed
-
-**Keep** ❌:
-- `deploy.ps1` - Used for every deployment
-- `check-code-sync.ps1` - Used to verify sync status anytime
-- `seed-farming-tips.ts` - Used to regenerate test data
-- `clear-audio-cache.js` - Used when audio cache needs clearing
-- `test-marketplace-api.ts` - Used to test marketplace functionality
-
----
-
-## Archive Organization
-
-Unlike `docs/archive/` which uses dated folders, `scripts/archive/` is a flat directory containing all archived scripts. This is because:
-- Scripts are self-documenting with comments
-- Script filenames indicate their purpose
-- Less overhead for script archival
-- Easy to search and reference if needed later
-
-If you need to reference why a script was archived, check:
-- `docs/archive/{task-type}-{YYYY-MM-DD}/README.md` - Work documentation
-- Git commit history - Shows when and why script was archived
+- **RAG Testing Guide**: `docs/features/crop-diagnosis/RAG-TESTING-GUIDE.md`
+- **RAG Quick Start**: `docs/features/crop-diagnosis/RAG-QUICK-START.md`
+- **Deployment Guide**: `deployment/README.md`
